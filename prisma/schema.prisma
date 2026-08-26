@@ -1,0 +1,116 @@
+// Prisma Schema para Oportunidades de Automação (RPA)
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Parametro {
+  id                         String   @id @default("singleton")
+  // Pesos de Benefícios (1 a 3)
+  pesoAumentarCapacidade      Float    @default(2.0)
+  pesoTransformacaoDigital   Float    @default(1.0)
+  pesoLiberarPessoas         Float    @default(3.0)
+  pesoMelhorarExpCliente     Float    @default(1.0)
+  pesoReduzirCusto           Float    @default(3.0)
+  pesoReduzirErros           Float    @default(2.0)
+  pesoReduzirFte             Float    @default(3.0)
+  pesoReduzirTempoResposta   Float    @default(2.0)
+
+  // Carga Horária Padrão
+  cargaHorariaPadrao         Float    @default(160.0) // HH/mês
+
+  // Infraestrutura Robótica
+  operadorSalaControle       Float    @default(4000.0) // C24: 2500 * 1.6
+  servidor                   Float    @default(1150.70) // C25: 311 * 3.7
+  licencaRobo                Float    @default(3325.0)  // C29
+  estacaoTrabalhoRobo        Float    @default(125.0)   // C30: 3000 / 24
+
+  // Distribuição Custo-Hora Semanal e Turnos
+  nrRobos                    Float    @default(1.0)
+  percDiurno                 Float    @default(0.60)
+  percNoturno                Float    @default(0.30)
+  percFimDeSemana            Float    @default(0.10)
+
+  // Investimento de Implementação
+  custoHoraDesenvolvimento   Float    @default(165.0)
+
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+}
+
+model Registro {
+  id                         String   @id @default(uuid())
+  
+  // Identificação & Contexto
+  idOrigem                   String   @default("")
+  idAnalise                  String   @default("P1")
+  area                       String   @default("")
+  nomeProcesso               String
+  dataLevantamento           String   @default("")
+  participantes              String   @default("")
+  situacao                   String   @default("Em levantamento") // "Em levantamento", "Aprovado", "Em implantação", "Concluído", "Descartado"
+
+  // AS IS (Situação Atual)
+  areasEnvolvidas            String   @default("")
+  descricaoProcesso          String   @default("")
+  numExecucoes               Float    @default(0.0)
+  periodicidade              String   @default("Mensal") // "Diária", "Semanal", "Mensal", "Sob demanda"
+  numPessoasEnvolvidas       Float    @default(1.0)
+  tipoAlocacao               String   @default("Parcial") // "Dedicada", "Parcial"
+  perfilExecutor             String   @default("Analista")
+  valorHoraExecutor          Float    @default(0.0)
+  tempoExecucao              Float    @default(0.0) // horas/mês
+  custoMensalAtual           Float    @default(0.0)
+  sistemasEnvolvidos         String   @default("")
+  documentosApoio            String   @default("")
+
+  // TO BE - Benefícios (Impacto: "principal", "bastante", "pouco", "nenhum")
+  benAumentarCapacidade      String   @default("nenhum")
+  benTransformacaoDigital   String   @default("nenhum")
+  benLiberarPessoas         String   @default("nenhum")
+  benMelhorarExpCliente     String   @default("nenhum")
+  benReduzirCusto           String   @default("nenhum")
+  benReduzirErros           String   @default("nenhum")
+  benReduzirFte             String   @default("nenhum")
+  benReduzirTempoResposta   String   @default("nenhum")
+  pontuacaoBeneficios        Float    @default(0.0)
+
+  // TO BE - Solução Técnica e Esforço
+  descricaoSolucao           String   @default("")
+  pontosAtencao              String   @default("")
+  fteLiberado                Float    @default(0.0)
+  reducaoTempoPrevista       String   @default("0%")
+  complexidade               String   @default("Média") // "Baixa", "Média", "Alta"
+  reducaoCustoPrevista       String   @default("0%")
+  numRotinas                 Float    @default(1.0)
+  turno                      String   @default("Diurno") // "Diurno", "Noturno", "Final de Semana"
+  recomendacao               String   @default("Recomendado") // "Recomendado", "Em análise", "Não viável"
+
+  // Custo e Investimento
+  esforcoSetupSemanas        Float    @default(1.0)
+  investimentoSetup          Float    @default(0.0)
+  horasRobo                  Float    @default(0.0)
+  custoHorasRobo             Float    @default(0.0)
+  horasApoioNegocio          Float    @default(0.0)
+  custoHorasNegocio          Float    @default(0.0)
+  horasManutencao            Float    @default(0.0)
+  custoManutencao            Float    @default(0.0)
+
+  // Totais Mensais e Anuais
+  custoMensalAno1            Float    @default(0.0)
+  custoMensalAno2            Float    @default(0.0)
+  custoAnualAno1             Float    @default(0.0)
+  custoAnualAno2             Float    @default(0.0)
+
+  // ROI & Payback
+  roiAno1                    Float    @default(0.0)
+  roiAno2                    Float    @default(0.0)
+  paybackMeses               Float    @default(0.0)
+
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+}
