@@ -1,4 +1,4 @@
-// Prisma Schema para Oportunidades de Automação (RPA)
+// Prisma Schema para Oportunidades de Automação
 datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
@@ -10,34 +10,51 @@ generator client {
 
 model Parametro {
   id                         String   @id @default("singleton")
-  // Pesos de Benefícios (1 a 3)
-  pesoAumentarCapacidade      Float    @default(2.0)
-  pesoTransformacaoDigital   Float    @default(1.0)
-  pesoLiberarPessoas         Float    @default(3.0)
-  pesoMelhorarExpCliente     Float    @default(1.0)
-  pesoReduzirCusto           Float    @default(3.0)
-  pesoReduzirErros           Float    @default(2.0)
-  pesoReduzirFte             Float    @default(3.0)
-  pesoReduzirTempoResposta   Float    @default(2.0)
+  
+  // Matriz de Benefícios Ponderados (Unificada para o Setor Público)
+  pesoLiberarPessoas         Float    @default(3.0) // Liberar Capacidade Humana / Realocação de Pessoas
+  pesoReduzirCusto           Float    @default(3.0) // Redução de Custos Operacionais
+  pesoReduzirErros           Float    @default(3.0) // Redução de Erros & Conformidade/Compliance
+  pesoMelhorarExpCliente     Float    @default(3.0) // Experiência do Cidadão e Órgãos Públicos
+  pesoAumentarCapacidade     Float    @default(2.0) // Aumento de Capacidade Operacional
+  pesoReduzirTempoResposta   Float    @default(2.0) // Redução do Tempo de Resposta (SLA)
+  pesoTransformacaoDigital   Float    @default(1.0) // Fomento à Transformação Digital
+  pesoReduzirFte             Float    @default(0.0) // Unificado em pesoLiberarPessoas
 
   // Carga Horária Padrão
   cargaHorariaPadrao         Float    @default(160.0) // HH/mês
 
-  // Infraestrutura Robótica
-  operadorSalaControle       Float    @default(4000.0) // C24: 2500 * 1.6
-  servidor                   Float    @default(1150.70) // C25: 311 * 3.7
-  licencaRobo                Float    @default(3325.0)  // C29
-  estacaoTrabalhoRobo        Float    @default(125.0)   // C30: 3000 / 24
+  // Infraestrutura Robótica Padrão / Sustentação
+  operadorSalaControle       Float    @default(7500.0) // Posto de sustentação NOC 24x7 com encargos
+  servidor                   Float    @default(1150.70) // VM / Cluster Nuvem Corporativa
+  licencaRobo                Float    @default(0.0)     // Licença padrão (Open Source = 0)
+  estacaoTrabalhoRobo        Float    @default(0.0)     // Estação de trabalho dedicada
+  nrRobos                    Float    @default(5.0)     // Quantidade de robôs no parque para rateio
 
-  // Distribuição Custo-Hora Semanal e Turnos
-  nrRobos                    Float    @default(1.0)
+  // Distribuição Percentual de Custo por Turno
   percDiurno                 Float    @default(0.60)
   percNoturno                Float    @default(0.30)
   percFimDeSemana            Float    @default(0.10)
 
-  // Investimento de Implementação
-  custoHoraDesenvolvimento   Float    @default(165.0)
+  // Investimento de Engenharia / Desenvolvimento
+  custoHoraDesenvolvimento   Float    @default(185.0) // Custo pleno analista/desenvolvedor
 
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+}
+
+model PerfilPlataforma {
+  id                         String   @id @default(uuid())
+  nome                       String
+  categoria                  String   @default("Open Source / Scripting") // "Open Source / Scripting", "Workflow & iPaaS", "RPA Proprietário", "Low-Code / RAD"
+  descricao                  String   @default("")
+  custoLicencaMensal         Float    @default(0.0)
+  custoEstacaoTrabalho       Float    @default(0.0)
+  custoServidor              Float    @default(1150.70)
+  nrRobosDiluicao            Float    @default(5.0)
+  isPadrao                   Boolean  @default(false)
+  
+  registros                  Registro[]
   createdAt                  DateTime @default(now())
   updatedAt                  DateTime @updatedAt
 }
@@ -69,17 +86,21 @@ model Registro {
   documentosApoio            String   @default("")
 
   // TO BE - Benefícios (Impacto: "principal", "bastante", "pouco", "nenhum")
-  benAumentarCapacidade      String   @default("nenhum")
-  benTransformacaoDigital   String   @default("nenhum")
-  benLiberarPessoas         String   @default("nenhum")
-  benMelhorarExpCliente     String   @default("nenhum")
-  benReduzirCusto           String   @default("nenhum")
-  benReduzirErros           String   @default("nenhum")
-  benReduzirFte             String   @default("nenhum")
-  benReduzirTempoResposta   String   @default("nenhum")
+  benLiberarPessoas          String   @default("nenhum") // Liberar Capacidade Humana / Realocação de Pessoas
+  benReduzirCusto            String   @default("nenhum") // Reduzir Custos Operacionais
+  benReduzirErros            String   @default("nenhum") // Redução de Erros & Conformidade
+  benMelhorarExpCliente      String   @default("nenhum") // Experiência do Cidadão e Órgãos
+  benAumentarCapacidade      String   @default("nenhum") // Aumentar Capacidade
+  benReduzirTempoResposta    String   @default("nenhum") // Reduzir Tempo de Resposta
+  benTransformacaoDigital    String   @default("nenhum") // Transformação Digital
+  benReduzirFte              String   @default("nenhum") // Legado mantido para compatibilidade
   pontuacaoBeneficios        Float    @default(0.0)
 
-  // TO BE - Solução Técnica e Esforço
+  // TO BE - Solução Técnica e Plataforma
+  perfilPlataformaId         String?
+  perfilPlataforma           PerfilPlataforma? @relation(fields: [perfilPlataformaId], references: [id])
+  tipoPlataformaNome         String   @default("Python & Robot Framework (Open Source)")
+  
   descricaoSolucao           String   @default("")
   pontosAtencao              String   @default("")
   fteLiberado                Float    @default(0.0)

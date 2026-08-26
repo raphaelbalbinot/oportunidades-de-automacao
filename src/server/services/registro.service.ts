@@ -29,11 +29,15 @@ export class RegistroService {
         { idOrigem: { contains: filter.search } },
         { area: { contains: filter.search } },
         { descricaoProcesso: { contains: filter.search } },
+        { tipoPlataformaNome: { contains: filter.search } },
       ];
     }
 
     return await prisma.registro.findMany({
       where,
+      include: {
+        perfilPlataforma: true,
+      },
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -41,12 +45,33 @@ export class RegistroService {
   static async getById(id: string) {
     return await prisma.registro.findUnique({
       where: { id },
+      include: {
+        perfilPlataforma: true,
+      },
     });
   }
 
   static async create(data: any) {
     const parametro = await ParametroService.getParametros();
-    const calculated = CalculationService.calculate(data as RegistroInput, parametro);
+
+    let perfilPlataforma = null;
+    let tipoPlataformaNome = data.tipoPlataformaNome || 'Python & Robot Framework (Open Source)';
+    if (data.perfilPlataformaId) {
+      perfilPlataforma = await prisma.perfilPlataforma.findUnique({
+        where: { id: data.perfilPlataformaId },
+      });
+      if (perfilPlataforma) {
+        tipoPlataformaNome = perfilPlataforma.nome;
+      }
+    }
+
+    const calculated = CalculationService.calculate(
+      {
+        ...(data as RegistroInput),
+        perfilPlataforma: perfilPlataforma || undefined,
+      },
+      parametro
+    );
 
     let idAnalise = data.idAnalise;
     if (!idAnalise || idAnalise.trim() === '') {
@@ -74,14 +99,20 @@ export class RegistroService {
         tempoExecucao: Number(data.tempoExecucao ?? 0),
         sistemasEnvolvidos: data.sistemasEnvolvidos ?? '',
         documentosApoio: data.documentosApoio ?? '',
-        benAumentarCapacidade: data.benAumentarCapacidade ?? 'nenhum',
-        benTransformacaoDigital: data.benTransformacaoDigital ?? 'nenhum',
+
+        // Benefícios Unificados
         benLiberarPessoas: data.benLiberarPessoas ?? 'nenhum',
-        benMelhorarExpCliente: data.benMelhorarExpCliente ?? 'nenhum',
         benReduzirCusto: data.benReduzirCusto ?? 'nenhum',
         benReduzirErros: data.benReduzirErros ?? 'nenhum',
-        benReduzirFte: data.benReduzirFte ?? 'nenhum',
+        benMelhorarExpCliente: data.benMelhorarExpCliente ?? 'nenhum',
+        benAumentarCapacidade: data.benAumentarCapacidade ?? 'nenhum',
         benReduzirTempoResposta: data.benReduzirTempoResposta ?? 'nenhum',
+        benTransformacaoDigital: data.benTransformacaoDigital ?? 'nenhum',
+        benReduzirFte: data.benReduzirFte ?? 'nenhum',
+
+        // Plataforma e Solução
+        perfilPlataformaId: data.perfilPlataformaId || null,
+        tipoPlataformaNome: tipoPlataformaNome,
         descricaoSolucao: data.descricaoSolucao ?? '',
         pontosAtencao: data.pontosAtencao ?? '',
         reducaoTempoPrevista: data.reducaoTempoPrevista ?? '0%',
@@ -111,12 +142,33 @@ export class RegistroService {
         roiAno2: calculated.roiAno2,
         paybackMeses: calculated.paybackMeses,
       },
+      include: {
+        perfilPlataforma: true,
+      },
     });
   }
 
   static async update(id: string, data: any) {
     const parametro = await ParametroService.getParametros();
-    const calculated = CalculationService.calculate(data as RegistroInput, parametro);
+
+    let perfilPlataforma = null;
+    let tipoPlataformaNome = data.tipoPlataformaNome;
+    if (data.perfilPlataformaId) {
+      perfilPlataforma = await prisma.perfilPlataforma.findUnique({
+        where: { id: data.perfilPlataformaId },
+      });
+      if (perfilPlataforma) {
+        tipoPlataformaNome = perfilPlataforma.nome;
+      }
+    }
+
+    const calculated = CalculationService.calculate(
+      {
+        ...(data as RegistroInput),
+        perfilPlataforma: perfilPlataforma || undefined,
+      },
+      parametro
+    );
 
     return await prisma.registro.update({
       where: { id },
@@ -139,14 +191,20 @@ export class RegistroService {
         ...(data.tempoExecucao !== undefined && { tempoExecucao: Number(data.tempoExecucao) }),
         ...(data.sistemasEnvolvidos !== undefined && { sistemasEnvolvidos: data.sistemasEnvolvidos }),
         ...(data.documentosApoio !== undefined && { documentosApoio: data.documentosApoio }),
-        ...(data.benAumentarCapacidade !== undefined && { benAumentarCapacidade: data.benAumentarCapacidade }),
-        ...(data.benTransformacaoDigital !== undefined && { benTransformacaoDigital: data.benTransformacaoDigital }),
+
+        // Benefícios Unificados
         ...(data.benLiberarPessoas !== undefined && { benLiberarPessoas: data.benLiberarPessoas }),
-        ...(data.benMelhorarExpCliente !== undefined && { benMelhorarExpCliente: data.benMelhorarExpCliente }),
         ...(data.benReduzirCusto !== undefined && { benReduzirCusto: data.benReduzirCusto }),
         ...(data.benReduzirErros !== undefined && { benReduzirErros: data.benReduzirErros }),
-        ...(data.benReduzirFte !== undefined && { benReduzirFte: data.benReduzirFte }),
+        ...(data.benMelhorarExpCliente !== undefined && { benMelhorarExpCliente: data.benMelhorarExpCliente }),
+        ...(data.benAumentarCapacidade !== undefined && { benAumentarCapacidade: data.benAumentarCapacidade }),
         ...(data.benReduzirTempoResposta !== undefined && { benReduzirTempoResposta: data.benReduzirTempoResposta }),
+        ...(data.benTransformacaoDigital !== undefined && { benTransformacaoDigital: data.benTransformacaoDigital }),
+        ...(data.benReduzirFte !== undefined && { benReduzirFte: data.benReduzirFte }),
+
+        // Plataforma e Solução
+        ...(data.perfilPlataformaId !== undefined && { perfilPlataformaId: data.perfilPlataformaId }),
+        ...(tipoPlataformaNome !== undefined && { tipoPlataformaNome: tipoPlataformaNome }),
         ...(data.descricaoSolucao !== undefined && { descricaoSolucao: data.descricaoSolucao }),
         ...(data.pontosAtencao !== undefined && { pontosAtencao: data.pontosAtencao }),
         ...(data.reducaoTempoPrevista !== undefined && { reducaoTempoPrevista: data.reducaoTempoPrevista }),
@@ -160,7 +218,7 @@ export class RegistroService {
         ...(data.horasApoioNegocio !== undefined && { horasApoioNegocio: Number(data.horasApoioNegocio) }),
         ...(data.horasManutencao !== undefined && { horasManutencao: Number(data.horasManutencao) }),
 
-        // Atualiza campos calculados com os parâmetros vigentes no momento
+        // Atualiza campos calculados com base no perfil e parâmetros
         custoMensalAtual: calculated.custoMensalAtual,
         fteLiberado: calculated.fteLiberado,
         pontuacaoBeneficios: calculated.pontuacaoBeneficios,
@@ -175,6 +233,9 @@ export class RegistroService {
         roiAno1: calculated.roiAno1,
         roiAno2: calculated.roiAno2,
         paybackMeses: calculated.paybackMeses,
+      },
+      include: {
+        perfilPlataforma: true,
       },
     });
   }

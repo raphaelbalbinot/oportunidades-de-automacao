@@ -1,12 +1,12 @@
 export interface ParametroData {
-  pesoAumentarCapacidade: number;
-  pesoTransformacaoDigital: number;
   pesoLiberarPessoas: number;
-  pesoMelhorarExpCliente: number;
   pesoReduzirCusto: number;
   pesoReduzirErros: number;
-  pesoReduzirFte: number;
+  pesoMelhorarExpCliente: number;
+  pesoAumentarCapacidade: number;
   pesoReduzirTempoResposta: number;
+  pesoTransformacaoDigital: number;
+  pesoReduzirFte?: number;
   cargaHorariaPadrao: number;
   operadorSalaControle: number;
   servidor: number;
@@ -19,6 +19,13 @@ export interface ParametroData {
   custoHoraDesenvolvimento: number;
 }
 
+export interface PerfilPlataformaData {
+  custoLicencaMensal?: number;
+  custoEstacaoTrabalho?: number;
+  custoServidor?: number;
+  nrRobosDiluicao?: number;
+}
+
 export interface RegistroInput {
   tempoExecucao?: number;
   valorHoraExecutor?: number;
@@ -28,14 +35,15 @@ export interface RegistroInput {
   horasRobo?: number;
   horasApoioNegocio?: number;
   horasManutencao?: number;
-  benAumentarCapacidade?: string;
-  benTransformacaoDigital?: string;
   benLiberarPessoas?: string;
-  benMelhorarExpCliente?: string;
   benReduzirCusto?: string;
   benReduzirErros?: string;
-  benReduzirFte?: string;
+  benMelhorarExpCliente?: string;
+  benAumentarCapacidade?: string;
   benReduzirTempoResposta?: string;
+  benTransformacaoDigital?: string;
+  benReduzirFte?: string;
+  perfilPlataforma?: PerfilPlataformaData | null;
 }
 
 export interface CalculatedFields {
@@ -57,12 +65,25 @@ export interface CalculatedFields {
 
 export class CalculationService {
   /**
-   * Calcula o custo por hora de operação do robô de acordo com o turno.
+   * Calcula o custo por hora de operação do robô de acordo com o turno e plataforma tecnológica.
    */
-  static getCustoHoraRoboPorTurno(param: ParametroData, turno: string = 'Diurno'): number {
-    const nrRobos = param.nrRobos > 0 ? param.nrRobos : 1;
-    const custoRoboTotal = param.licencaRobo + param.estacaoTrabalhoRobo;
-    const baseCusto = (param.servidor / nrRobos) + custoRoboTotal + (param.operadorSalaControle / nrRobos);
+  static getCustoHoraRoboPorTurno(
+    param: ParametroData,
+    turno: string = 'Diurno',
+    perfil?: PerfilPlataformaData | null
+  ): number {
+    const servidor = perfil?.custoServidor !== undefined ? perfil.custoServidor : param.servidor;
+    const nrRobos =
+      perfil?.nrRobosDiluicao && perfil.nrRobosDiluicao > 0
+        ? perfil.nrRobosDiluicao
+        : param.nrRobos > 0
+        ? param.nrRobos
+        : 1;
+    const licenca = perfil?.custoLicencaMensal !== undefined ? perfil.custoLicencaMensal : param.licencaRobo;
+    const estacao = perfil?.custoEstacaoTrabalho !== undefined ? perfil.custoEstacaoTrabalho : param.estacaoTrabalhoRobo;
+
+    const custoRoboTotal = licenca + estacao;
+    const baseCusto = servidor / nrRobos + custoRoboTotal + param.operadorSalaControle / nrRobos;
 
     const normalTurno = (turno || 'Diurno').trim().toLowerCase();
 
@@ -79,7 +100,7 @@ export class CalculationService {
   }
 
   /**
-   * Calcula o custo por hora de manutenção do robô.
+   * Calcula o custo por hora de manutenção do robô (com encargos técnicos).
    */
   static getCustoHoraManutencao(param: ParametroData): number {
     return (param.operadorSalaControle * 1.6) / 168;
@@ -104,7 +125,7 @@ export class CalculationService {
   }
 
   /**
-   * Executa todos os cálculos derivados de um registro utilizando os parâmetros informados.
+   * Executa todos os cálculos derivados de um registro utilizando os parâmetros e perfil informados.
    */
   static calculate(input: RegistroInput, param: ParametroData): CalculatedFields {
     const tempoExecucao = Number(input.tempoExecucao) || 0;
@@ -115,40 +136,38 @@ export class CalculationService {
       custoMensalAtual = tempoExecucao * valorHoraExecutor;
     }
 
-    // 1. FTE Liberado
+    // 1. FTE Liberado (Horas poupadas / Carga Horária Padrão)
     const cargaHoraria = param.cargaHorariaPadrao > 0 ? param.cargaHorariaPadrao : 160;
     const fteLiberado = Number((tempoExecucao / cargaHoraria).toFixed(2));
 
-    // 2. Pontuação de Benefícios
+    // 2. Pontuação de Benefícios (7 Critérios Estratégicos do Setor Público)
     const pMax =
-      param.pesoAumentarCapacidade +
-      param.pesoTransformacaoDigital +
       param.pesoLiberarPessoas +
-      param.pesoMelhorarExpCliente +
       param.pesoReduzirCusto +
       param.pesoReduzirErros +
-      param.pesoReduzirFte +
-      param.pesoReduzirTempoResposta;
+      param.pesoMelhorarExpCliente +
+      param.pesoAumentarCapacidade +
+      param.pesoReduzirTempoResposta +
+      param.pesoTransformacaoDigital;
 
     const somaPontos =
-      this.getBeneficioFactor(input.benAumentarCapacidade) * param.pesoAumentarCapacidade +
-      this.getBeneficioFactor(input.benTransformacaoDigital) * param.pesoTransformacaoDigital +
       this.getBeneficioFactor(input.benLiberarPessoas) * param.pesoLiberarPessoas +
-      this.getBeneficioFactor(input.benMelhorarExpCliente) * param.pesoMelhorarExpCliente +
       this.getBeneficioFactor(input.benReduzirCusto) * param.pesoReduzirCusto +
       this.getBeneficioFactor(input.benReduzirErros) * param.pesoReduzirErros +
-      this.getBeneficioFactor(input.benReduzirFte) * param.pesoReduzirFte +
-      this.getBeneficioFactor(input.benReduzirTempoResposta) * param.pesoReduzirTempoResposta;
+      this.getBeneficioFactor(input.benMelhorarExpCliente) * param.pesoMelhorarExpCliente +
+      this.getBeneficioFactor(input.benAumentarCapacidade) * param.pesoAumentarCapacidade +
+      this.getBeneficioFactor(input.benReduzirTempoResposta) * param.pesoReduzirTempoResposta +
+      this.getBeneficioFactor(input.benTransformacaoDigital) * param.pesoTransformacaoDigital;
 
     const pontuacaoBeneficios = pMax > 0 ? Number((somaPontos / pMax).toFixed(4)) : 0;
 
-    // 3. Custos de Setup e Operação TO BE
+    // 3. Custos de Setup e Operação TO BE com Perfil Tecnológico
     const esforcoSetupSemanas = Number(input.esforcoSetupSemanas) || 0;
     const custoSetupPorSemana = this.getCustoSetupMensalPorSemana(param);
     const investimentoSetup = Number((esforcoSetupSemanas * custoSetupPorSemana).toFixed(2));
 
     const horasRobo = Number(input.horasRobo) || 0;
-    const custoHoraRobo = this.getCustoHoraRoboPorTurno(param, input.turno);
+    const custoHoraRobo = this.getCustoHoraRoboPorTurno(param, input.turno, input.perfilPlataforma);
     const custoHorasRobo = Number((horasRobo * custoHoraRobo).toFixed(2));
 
     const horasApoioNegocio = Number(input.horasApoioNegocio) || 0;
@@ -159,7 +178,9 @@ export class CalculationService {
     const custoManutencao = Number((horasManutencao * custoHoraManutencao).toFixed(2));
 
     // 4. Totais Mensais e Anuais
-    const custoMensalAno1 = Number((investimentoSetup + custoHorasRobo + custoHorasNegocio + custoManutencao).toFixed(2));
+    const custoMensalAno1 = Number(
+      (investimentoSetup + custoHorasRobo + custoHorasNegocio + custoManutencao).toFixed(2)
+    );
     const custoMensalAno2 = Number((custoHorasRobo + custoHorasNegocio + custoManutencao).toFixed(2));
 
     const custoAnualAno1 = Number((custoMensalAno1 * 12).toFixed(2));
@@ -170,9 +191,7 @@ export class CalculationService {
     const roiAno2 = Number(((custoMensalAtual * 24) - custoAnualAno1 - custoAnualAno2 - roiAno1).toFixed(2));
 
     const paybackMeses =
-      custoMensalAtual > 0 && custoAnualAno1 > 0
-        ? Number((custoAnualAno1 / custoMensalAtual).toFixed(1))
-        : 0;
+      custoMensalAtual > 0 && custoAnualAno1 > 0 ? Number((custoAnualAno1 / custoMensalAtual).toFixed(1)) : 0;
 
     return {
       custoMensalAtual,

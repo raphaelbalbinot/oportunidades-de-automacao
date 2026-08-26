@@ -9,6 +9,9 @@ export interface AnalyticsFilter {
 export class AnalyticsService {
   static async getResumo(filter?: AnalyticsFilter) {
     const allRegistros = await prisma.registro.findMany({
+      include: {
+        perfilPlataforma: true,
+      },
       orderBy: { roiAno1: 'desc' },
     });
 
@@ -82,7 +85,7 @@ export class AnalyticsService {
       value,
     }));
 
-    // 5. Comparativo AS IS vs TO BE por Processo (exibe todos os registros para permitir navegação/seleção)
+    // 5. Comparativo AS IS vs TO BE por Processo
     const comparativoProcessos = targetRegistros.map((r: any) => ({
       id: r.id,
       idOrigem: r.idOrigem || '-',
@@ -95,6 +98,7 @@ export class AnalyticsService {
       tempoExecucao: r.tempoExecucao || 0,
       sistemasEnvolvidos: r.sistemasEnvolvidos || '-',
       complexidade: r.complexidade || 'Média',
+      tipoPlataformaNome: r.tipoPlataformaNome || 'Python & Robot Framework (Open Source)',
       pontuacaoBeneficios: Number(((r.pontuacaoBeneficios || 0) * 100).toFixed(1)),
       fteLiberado: r.fteLiberado || 0,
       reducaoCustoPrevista: r.reducaoCustoPrevista || '0%',

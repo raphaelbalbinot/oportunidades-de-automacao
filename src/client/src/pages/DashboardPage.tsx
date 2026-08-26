@@ -734,6 +734,10 @@ export const DashboardPage: React.FC = () => {
                                   </div>
                                   <div className="space-y-2 text-[11px]">
                                     <div className="flex justify-between">
+                                      <span className="text-slate-500">Plataforma:</span>
+                                      <span className="font-bold text-brand-700">{proc.tipoPlataformaNome || 'Python & Robot Framework'}</span>
+                                    </div>
+                                    <div className="flex justify-between">
                                       <span className="text-slate-500">Complexidade:</span>
                                       <span className="font-semibold text-slate-800">{proc.complexidade}</span>
                                     </div>

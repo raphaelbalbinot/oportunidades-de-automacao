@@ -1,9 +1,9 @@
-import { Parametro, Registro, AnalyticsResumo } from '../types';
+import { Parametro, PerfilPlataforma, Registro, AnalyticsResumo } from '../types';
 
 const API_BASE = '/api';
 
 export const api = {
-  // Parâmetros
+  // Parâmetros Globais
   async getParametros(): Promise<Parametro> {
     const res = await fetch(`${API_BASE}/parametros`);
     if (!res.ok) throw new Error('Falha ao carregar parâmetros');
@@ -20,7 +20,47 @@ export const api = {
     return res.json();
   },
 
-  // Registros
+  // Perfis de Plataforma Tecnológica
+  async getPerfisPlataforma(): Promise<PerfilPlataforma[]> {
+    const res = await fetch(`${API_BASE}/perfis-plataforma`);
+    if (!res.ok) throw new Error('Falha ao carregar perfis de plataforma');
+    return res.json();
+  },
+
+  async getPerfilPlataformaById(id: string): Promise<PerfilPlataforma> {
+    const res = await fetch(`${API_BASE}/perfis-plataforma/${id}`);
+    if (!res.ok) throw new Error('Falha ao carregar perfil de plataforma');
+    return res.json();
+  },
+
+  async createPerfilPlataforma(data: Partial<PerfilPlataforma>): Promise<PerfilPlataforma> {
+    const res = await fetch(`${API_BASE}/perfis-plataforma`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('Falha ao criar perfil de plataforma');
+    return res.json();
+  },
+
+  async updatePerfilPlataforma(id: string, data: Partial<PerfilPlataforma>): Promise<PerfilPlataforma> {
+    const res = await fetch(`${API_BASE}/perfis-plataforma/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('Falha ao atualizar perfil de plataforma');
+    return res.json();
+  },
+
+  async deletePerfilPlataforma(id: string): Promise<void> {
+    const res = await fetch(`${API_BASE}/perfis-plataforma/${id}`, {
+      method: 'DELETE',
+    });
+    if (!res.ok) throw new Error('Falha ao excluir perfil de plataforma');
+  },
+
+  // Registros de Oportunidades
   async getRegistros(filter?: { search?: string; area?: string; situacao?: string; complexidade?: string }): Promise<Registro[]> {
     const params = new URLSearchParams();
     if (filter?.search) params.append('search', filter.search);
@@ -67,7 +107,7 @@ export const api = {
     if (!res.ok) throw new Error('Falha ao excluir registro');
   },
 
-  // Analytics
+  // Analytics & Dashboard
   async getAnalyticsResumo(filter?: { registroId?: string; area?: string; situacao?: string }): Promise<AnalyticsResumo> {
     const params = new URLSearchParams();
     if (filter?.registroId) params.append('registroId', filter.registroId);

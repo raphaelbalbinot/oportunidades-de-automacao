@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Modal } from './Modal';
-import { Registro, Parametro, BeneficioNivel } from '../types';
-import { Bot, Calculator, CheckCircle2, TrendingUp, DollarSign, Clock, HelpCircle, Layers } from 'lucide-react';
+import { Registro, Parametro, BeneficioNivel, PerfilPlataforma } from '../types';
+import { Tooltip } from './Tooltip';
+import { api } from '../services/api';
+import { Bot, Calculator, CheckCircle2, TrendingUp, DollarSign, Clock, HelpCircle, Layers, Award } from 'lucide-react';
 
 interface RegistroFormModalProps {
   isOpen: boolean;
@@ -18,6 +20,8 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
   initialData,
   parametro,
 }) => {
+  const [perfis, setPerfis] = useState<PerfilPlataforma[]>([]);
+
   const [formData, setFormData] = useState<Partial<Registro>>({
     idOrigem: '',
     idAnalise: '',
@@ -39,15 +43,17 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
     sistemasEnvolvidos: '',
     documentosApoio: '',
 
-    benAumentarCapacidade: 'nenhum',
-    benTransformacaoDigital: 'nenhum',
+    // 7 Critérios Unificados
     benLiberarPessoas: 'nenhum',
-    benMelhorarExpCliente: 'nenhum',
     benReduzirCusto: 'nenhum',
     benReduzirErros: 'nenhum',
-    benReduzirFte: 'nenhum',
+    benMelhorarExpCliente: 'nenhum',
+    benAumentarCapacidade: 'nenhum',
     benReduzirTempoResposta: 'nenhum',
+    benTransformacaoDigital: 'nenhum',
 
+    perfilPlataformaId: '',
+    tipoPlataformaNome: '',
     descricaoSolucao: '',
     pontosAtencao: '',
     reducaoTempoPrevista: '80%',
@@ -67,9 +73,24 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
   const [activeSubTab, setActiveSubTab] = useState<'geral' | 'asis' | 'beneficios' | 'tobe'>('geral');
 
   useEffect(() => {
+    const fetchPerfis = async () => {
+      try {
+        const list = await api.getPerfisPlataforma();
+        setPerfis(list);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    if (isOpen) {
+      fetchPerfis();
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
     if (initialData) {
       setFormData(initialData);
     } else {
+      const padrao = perfis.find((p) => p.isPadrao) || perfis[0];
       setFormData({
         idOrigem: '',
         idAnalise: '',
@@ -90,14 +111,15 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
         custoMensalAtual: 0,
         sistemasEnvolvidos: '',
         documentosApoio: '',
-        benAumentarCapacidade: 'nenhum',
-        benTransformacaoDigital: 'nenhum',
         benLiberarPessoas: 'nenhum',
-        benMelhorarExpCliente: 'nenhum',
         benReduzirCusto: 'nenhum',
         benReduzirErros: 'nenhum',
-        benReduzirFte: 'nenhum',
+        benMelhorarExpCliente: 'nenhum',
+        benAumentarCapacidade: 'nenhum',
         benReduzirTempoResposta: 'nenhum',
+        benTransformacaoDigital: 'nenhum',
+        perfilPlataformaId: padrao?.id || '',
+        tipoPlataformaNome: padrao?.nome || 'Python & Robot Framework (Open Source)',
         descricaoSolucao: '',
         pontosAtencao: '',
         reducaoTempoPrevista: '80%',
@@ -112,14 +134,23 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
         horasManutencao: 4,
       });
     }
-  }, [initialData, isOpen]);
+  }, [initialData, isOpen, perfis]);
 
   const handleChange = (field: keyof Registro, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  // Cálculo de pré-visualização em tempo real
-  const calcPreview = React.useMemo(() => {
+  const handlePlataformaChange = (perfilId: string) => {
+    const selected = perfis.find((p) => p.id === perfilId);
+    setFormData((prev) => ({
+      ...prev,
+      perfilPlataformaId: perfilId,
+      tipoPlataformaNome: selected?.nome || '',
+    }));
+  };
+
+  // Cálculo de pré-visualização em tempo real com suporte a Perfil de Plataforma
+  const calcPreview = useMemo(() => {
     if (!parametro) return null;
 
     const tempoExecucao = Number(formData.tempoExecucao) || 0;
@@ -132,7 +163,7 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
     const cargaHoraria = parametro.cargaHorariaPadrao || 160;
     const fteLiberado = Number((tempoExecucao / cargaHoraria).toFixed(2));
 
-    // Pontuação de Benefícios
+    // Pontuação de Benefícios Unificados
     const pFactor = (res?: string) => {
       if (res === 'principal') return 1.0;
       if (res === 'bastante') return 0.5;
@@ -141,31 +172,34 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
     };
 
     const pMax =
-      parametro.pesoAumentarCapacidade +
-      parametro.pesoTransformacaoDigital +
       parametro.pesoLiberarPessoas +
-      parametro.pesoMelhorarExpCliente +
       parametro.pesoReduzirCusto +
       parametro.pesoReduzirErros +
-      parametro.pesoReduzirFte +
-      parametro.pesoReduzirTempoResposta;
+      parametro.pesoMelhorarExpCliente +
+      parametro.pesoAumentarCapacidade +
+      parametro.pesoReduzirTempoResposta +
+      parametro.pesoTransformacaoDigital;
 
     const somaPontos =
-      pFactor(formData.benAumentarCapacidade) * parametro.pesoAumentarCapacidade +
-      pFactor(formData.benTransformacaoDigital) * parametro.pesoTransformacaoDigital +
       pFactor(formData.benLiberarPessoas) * parametro.pesoLiberarPessoas +
-      pFactor(formData.benMelhorarExpCliente) * parametro.pesoMelhorarExpCliente +
       pFactor(formData.benReduzirCusto) * parametro.pesoReduzirCusto +
       pFactor(formData.benReduzirErros) * parametro.pesoReduzirErros +
-      pFactor(formData.benReduzirFte) * parametro.pesoReduzirFte +
-      pFactor(formData.benReduzirTempoResposta) * parametro.pesoReduzirTempoResposta;
+      pFactor(formData.benMelhorarExpCliente) * parametro.pesoMelhorarExpCliente +
+      pFactor(formData.benAumentarCapacidade) * parametro.pesoAumentarCapacidade +
+      pFactor(formData.benReduzirTempoResposta) * parametro.pesoReduzirTempoResposta +
+      pFactor(formData.benTransformacaoDigital) * parametro.pesoTransformacaoDigital;
 
     const pontuacaoBeneficios = pMax > 0 ? (somaPontos / pMax) * 100 : 0;
 
-    // Custo do Turno
-    const nrRobos = parametro.nrRobos || 1;
-    const custoRoboTotal = parametro.licencaRobo + parametro.estacaoTrabalhoRobo;
-    const baseCusto = (parametro.servidor / nrRobos) + custoRoboTotal + (parametro.operadorSalaControle / nrRobos);
+    // Custo da Plataforma e Turno
+    const selectedPerfil = perfis.find((p) => p.id === formData.perfilPlataformaId);
+    const servidor = selectedPerfil?.custoServidor !== undefined ? selectedPerfil.custoServidor : parametro.servidor;
+    const nrRobos = selectedPerfil?.nrRobosDiluicao || parametro.nrRobos || 1;
+    const licenca = selectedPerfil?.custoLicencaMensal !== undefined ? selectedPerfil.custoLicencaMensal : parametro.licencaRobo;
+    const estacao = selectedPerfil?.custoEstacaoTrabalho !== undefined ? selectedPerfil.custoEstacaoTrabalho : parametro.estacaoTrabalhoRobo;
+
+    const baseCusto = servidor / nrRobos + (licenca + estacao) + parametro.operadorSalaControle / nrRobos;
+
     let custoHoraRobo = (baseCusto * parametro.percDiurno) / 21 / 10;
     if (formData.turno === 'Noturno') custoHoraRobo = (baseCusto * parametro.percNoturno) / 21 / 14;
     if (formData.turno === 'Final de Semana') custoHoraRobo = (baseCusto * parametro.percFimDeSemana) / 8 / 24;
@@ -182,79 +216,111 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
 
     const custoMensalAno1 = investimentoSetup + custoHorasRobo + custoHorasNegocio + custoManutencao;
     const custoMensalAno2 = custoHorasRobo + custoHorasNegocio + custoManutencao;
+
     const custoAnualAno1 = custoMensalAno1 * 12;
     const custoAnualAno2 = custoMensalAno2 * 12;
 
-    const roiAno1 = (custoMensalAtual * 12) - custoAnualAno1;
-    const roiAno2 = (custoMensalAtual * 24) - custoAnualAno1 - custoAnualAno2 - roiAno1;
-    const paybackMeses = custoMensalAtual > 0 ? (custoAnualAno1 / custoMensalAtual) : 0;
+    const roiAno1 = custoMensalAtual * 12 - custoAnualAno1;
+    const roiAno2 = custoMensalAtual * 12 - custoAnualAno2;
+
+    const paybackMeses = custoMensalAtual > 0 && custoAnualAno1 > 0 ? Number((custoAnualAno1 / custoMensalAtual).toFixed(1)) : 0;
 
     return {
       custoMensalAtual,
       fteLiberado,
       pontuacaoBeneficios,
       investimentoSetup,
+      custoHoraRobo,
+      custoHorasRobo,
       custoMensalAno1,
       custoMensalAno2,
       roiAno1,
       roiAno2,
       paybackMeses,
     };
-  }, [formData, parametro]);
+  }, [formData, parametro, perfis]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.nomeProcesso) {
-      alert('Por favor, informe o nome do processo.');
+    if (!formData.nomeProcesso || formData.nomeProcesso.trim() === '') {
+      alert('Por favor, informe o Nome do Processo.');
       return;
     }
+
     try {
       setIsSubmitting(true);
       await onSave(formData);
-      onClose();
     } catch (err: any) {
+      console.error(err);
       alert(err.message || 'Erro ao salvar oportunidade.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const beneficiosList = [
-    { key: 'benAumentarCapacidade' as const, label: 'Aumentar capacidade de processamento', peso: parametro?.pesoAumentarCapacidade ?? 2 },
-    { key: 'benTransformacaoDigital' as const, label: 'Iniciativa de transformação digital', peso: parametro?.pesoTransformacaoDigital ?? 1 },
-    { key: 'benLiberarPessoas' as const, label: 'Liberar pessoas para atividades de negócio', peso: parametro?.pesoLiberarPessoas ?? 3 },
-    { key: 'benMelhorarExpCliente' as const, label: 'Melhorar experiência do cliente/cidadão', peso: parametro?.pesoMelhorarExpCliente ?? 1 },
-    { key: 'benReduzirCusto' as const, label: 'Reduzir custos operacionais diretos', peso: parametro?.pesoReduzirCusto ?? 3 },
-    { key: 'benReduzirErros' as const, label: 'Reduzir erros operacionais e retrabalho', peso: parametro?.pesoReduzirErros ?? 2 },
-    { key: 'benReduzirFte' as const, label: 'Reduzir necessidade de FTE dedicado', peso: parametro?.pesoReduzirFte ?? 3 },
-    { key: 'benReduzirTempoResposta' as const, label: 'Reduzir tempo de resposta (SLA)', peso: parametro?.pesoReduzirTempoResposta ?? 2 },
-  ];
+  const renderRadioBeneficio = (field: keyof Registro, label: string, tooltipText: string) => {
+    const value = (formData[field] as string) || 'nenhum';
+    return (
+      <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-200">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-bold text-slate-800 flex items-center">
+            {label}
+            <Tooltip content={tooltipText} />
+          </span>
+          <span className="text-[10px] uppercase font-bold text-slate-400">Impacto</span>
+        </div>
+        <div className="grid grid-cols-4 gap-1.5 text-xs">
+          {[
+            { id: 'principal', label: 'Principal (100%)', color: 'peer-checked:bg-emerald-600 peer-checked:text-white' },
+            { id: 'bastante', label: 'Bastante (50%)', color: 'peer-checked:bg-brand-600 peer-checked:text-white' },
+            { id: 'pouco', label: 'Pouco (25%)', color: 'peer-checked:bg-amber-600 peer-checked:text-white' },
+            { id: 'nenhum', label: 'Nenhum (0%)', color: 'peer-checked:bg-slate-500 peer-checked:text-white' },
+          ].map((opt) => (
+            <label key={opt.id} className="cursor-pointer">
+              <input
+                type="radio"
+                name={field}
+                value={opt.id}
+                checked={value === opt.id}
+                onChange={() => handleChange(field, opt.id)}
+                className="peer sr-only"
+              />
+              <div
+                className={`py-1.5 px-1 text-center rounded-lg border border-slate-200 bg-white text-slate-600 font-semibold transition-all hover:bg-slate-50 text-[11px] ${opt.color}`}
+              >
+                {opt.label.split(' ')[0]}
+              </div>
+            </label>
+          ))}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={initialData ? `Editar Processo: ${initialData.idAnalise} - ${initialData.nomeProcesso}` : 'Nova Oportunidade de Automação'}
-      subtitle="Levantamento operacional, matriz de benefícios e estimativas de custeio TO BE"
-      maxWidth="5xl"
+      title={initialData ? `Editar Oportunidade: ${formData.idAnalise || 'Processo'}` : 'Cadastrar Nova Oportunidade de Automação'}
+      maxWidth="4xl"
     >
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Navigation Sub-Tabs */}
-        <div className="flex border-b border-slate-200 space-x-2">
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Navigation Tabs */}
+        <div className="flex border-b border-slate-200 space-x-1 pb-1 text-xs">
           {[
-            { id: 'geral', label: '1. Identificação & Contexto' },
-            { id: 'asis', label: '2. Situação Atual (AS IS)' },
-            { id: 'beneficios', label: '3. Benefícios Intangíveis' },
-            { id: 'tobe', label: '4. Solução & Custeio (TO BE)' },
+            { id: 'geral', label: '1. Identificação Geral' },
+            { id: 'asis', label: '2. Diagnóstico AS IS' },
+            { id: 'beneficios', label: '3. Matriz de Benefícios' },
+            { id: 'tobe', label: '4. Solução TO BE & Esforço' },
           ].map((tab) => (
             <button
               type="button"
               key={tab.id}
               onClick={() => setActiveSubTab(tab.id as any)}
-              className={`pb-3 px-3 text-sm font-semibold border-b-2 transition-colors ${
+              className={`px-3 py-2 font-bold rounded-lg transition-all ${
                 activeSubTab === tab.id
-                  ? 'border-brand-600 text-brand-700'
-                  : 'border-transparent text-slate-500 hover:text-slate-700'
+                  ? 'bg-brand-600 text-white shadow-sm'
+                  : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
               {tab.label}
@@ -262,69 +328,106 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
           ))}
         </div>
 
-        {/* Tab 1: Geral */}
-        {activeSubTab === 'geral' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">ID Origem (Opcional)</label>
-              <input
-                type="text"
-                placeholder="Ex: FIN-001"
-                value={formData.idOrigem || ''}
-                onChange={(e) => handleChange('idOrigem', e.target.value)}
-                className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">ID Análise</label>
-              <input
-                type="text"
-                placeholder="Ex: P1 (automático se vazio)"
-                value={formData.idAnalise || ''}
-                onChange={(e) => handleChange('idAnalise', e.target.value)}
-                className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Área / Departamento *</label>
-              <input
-                type="text"
-                required
-                placeholder="Ex: Contabilidade, RH, Fiscal"
-                value={formData.area || ''}
-                onChange={(e) => handleChange('area', e.target.value)}
-                className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
-              />
+        {/* Dynamic Calculation Live Banner */}
+        {calcPreview && (
+          <div className="bg-gradient-to-r from-slate-900 to-brand-950 p-4 rounded-xl text-white shadow-md">
+            <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-3">
+              <span className="text-xs font-semibold text-brand-300 flex items-center space-x-1">
+                <Calculator className="w-3.5 h-3.5" />
+                <span>Simulação Instantânea de Retorno & Viabilidade</span>
+              </span>
+              <span className="text-xs font-bold px-2 py-0.5 rounded bg-brand-500/30 text-brand-200 border border-brand-400/30">
+                Score: {calcPreview.pontuacaoBeneficios.toFixed(0)}%
+              </span>
             </div>
 
-            <div className="sm:col-span-2 lg:col-span-3">
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Nome do Processo *</label>
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center text-xs">
+              <div>
+                <span className="text-[10px] text-slate-400 block font-medium">Custo Atual (AS IS)</span>
+                <span className="font-extrabold text-white text-sm">
+                  R$ {calcPreview.custoMensalAtual.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/mês
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] text-slate-400 block font-medium">FTE Liberável</span>
+                <span className="font-extrabold text-emerald-400 text-sm">{calcPreview.fteLiberado} FTE</span>
+              </div>
+              <div>
+                <span className="text-[10px] text-slate-400 block font-medium">Custo TO BE (Ano 1)</span>
+                <span className="font-extrabold text-amber-300 text-sm">
+                  R$ {calcPreview.custoMensalAno1.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mês
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] text-slate-400 block font-medium">ROI Líquido (Ano 1)</span>
+                <span className="font-extrabold text-emerald-300 text-sm">
+                  R$ {calcPreview.roiAno1.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] text-slate-400 block font-medium">Payback Estimado</span>
+                <span className="font-extrabold text-sky-300 text-sm">{calcPreview.paybackMeses} meses</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 1: Identificação Geral */}
+        {activeSubTab === 'geral' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">
+                Nome do Processo *
+                <Tooltip content="Título descritivo da rotina operacional candidata à automação." />
+              </label>
               <input
                 type="text"
                 required
-                placeholder="Ex: Lançamento de Notas Fiscais e Conciliação"
                 value={formData.nomeProcesso || ''}
                 onChange={(e) => handleChange('nomeProcesso', e.target.value)}
-                className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                placeholder="Ex: Conciliação Bancária de Arrecadação"
+                className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Data do Levantamento</label>
+              <label className="block font-semibold text-slate-700 mb-1">
+                Área / Diretoria *
+                <Tooltip content="Unidade de negócio proprietária do processo." />
+              </label>
               <input
-                type="date"
-                value={formData.dataLevantamento || ''}
-                onChange={(e) => handleChange('dataLevantamento', e.target.value)}
-                className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                type="text"
+                required
+                value={formData.area || ''}
+                onChange={(e) => handleChange('area', e.target.value)}
+                placeholder="Ex: Contabilidade, Financeiro, Gestão de Pessoas"
+                className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Situação / Status</label>
+              <label className="block font-semibold text-slate-700 mb-1">
+                ID Origem (Opcional)
+                <Tooltip content="Código ou número de demanda em sistema legado/Jira/Redmine." />
+              </label>
+              <input
+                type="text"
+                value={formData.idOrigem || ''}
+                onChange={(e) => handleChange('idOrigem', e.target.value)}
+                placeholder="Ex: DEM-2026-089"
+                className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">
+                Situação da Oportunidade
+                <Tooltip content="Fase atual no pipeline de automação." />
+              </label>
               <select
                 value={formData.situacao || 'Em levantamento'}
                 onChange={(e) => handleChange('situacao', e.target.value)}
-                className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none bg-white font-medium"
               >
                 <option value="Em levantamento">Em levantamento</option>
                 <option value="Aprovado">Aprovado</option>
@@ -334,399 +437,300 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
               </select>
             </div>
 
-            <div className="sm:col-span-2 lg:col-span-3">
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Participantes do Levantamento</label>
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">
+                Data do Levantamento
+                <Tooltip content="Data em que a entrevista ou diagnóstico inicial foi realizado." />
+              </label>
+              <input
+                type="date"
+                value={formData.dataLevantamento || ''}
+                onChange={(e) => handleChange('dataLevantamento', e.target.value)}
+                className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">
+                Participantes & Entrevistados
+                <Tooltip content="Nomes e cargos das pessoas envolvidas na entrevista de levantamento." />
+              </label>
               <input
                 type="text"
-                placeholder="Ex: João Silva (Analista), Maria Santos (Coordenadora)"
                 value={formData.participantes || ''}
                 onChange={(e) => handleChange('participantes', e.target.value)}
-                className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                placeholder="Ex: Maria Souza (Analista), João Silva (Líder)"
+                className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none"
               />
             </div>
           </div>
         )}
 
-        {/* Tab 2: AS IS */}
+        {/* Tab 2: Diagnóstico AS IS */}
         {activeSubTab === 'asis' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="sm:col-span-2 lg:col-span-3">
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Descrição do Processo Atual</label>
+          <div className="space-y-4 text-xs">
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">
+                Descrição Detalhada do Processo Manual Atual
+                <Tooltip content="Passo a passo sucinto de como as tarefas manuais são executadas hoje." />
+              </label>
               <textarea
-                rows={3}
-                placeholder="Detalhe como o processo é executado manualmente hoje..."
+                rows={2}
                 value={formData.descricaoProcesso || ''}
                 onChange={(e) => handleChange('descricaoProcesso', e.target.value)}
-                className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                placeholder="Descreva as etapas operacionais manuais..."
+                className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none"
               />
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Periodicidade</label>
-              <select
-                value={formData.periodicidade || 'Mensal'}
-                onChange={(e) => handleChange('periodicidade', e.target.value)}
-                className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
-              >
-                <option value="Diária">Diária</option>
-                <option value="Semanal">Semanal</option>
-                <option value="Mensal">Mensal</option>
-                <option value="Trimestral">Trimestral</option>
-                <option value="Sob demanda">Sob demanda</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1"># Execuções por Mês</label>
-              <input
-                type="number"
-                min="0"
-                value={formData.numExecucoes ?? 0}
-                onChange={(e) => handleChange('numExecucoes', Number(e.target.value))}
-                className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Nr Pessoas Envolvidas</label>
-              <input
-                type="number"
-                min="1"
-                value={formData.numPessoasEnvolvidas ?? 1}
-                onChange={(e) => handleChange('numPessoasEnvolvidas', Number(e.target.value))}
-                className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Perfil do Executor</label>
-              <input
-                type="text"
-                placeholder="Ex: Assistente, Analista Jr, Especialista"
-                value={formData.perfilExecutor || ''}
-                onChange={(e) => handleChange('perfilExecutor', e.target.value)}
-                className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Valor Hora Executor (R$/HH)</label>
-              <input
-                type="number"
-                step="0.5"
-                min="0"
-                value={formData.valorHoraExecutor ?? 0}
-                onChange={(e) => handleChange('valorHoraExecutor', Number(e.target.value))}
-                className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Tempo de Execução (Horas/Mês)</label>
-              <input
-                type="number"
-                step="1"
-                min="0"
-                value={formData.tempoExecucao ?? 0}
-                onChange={(e) => handleChange('tempoExecucao', Number(e.target.value))}
-                className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
-              />
-            </div>
-
-            <div className="sm:col-span-2 lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Sistemas Envolvidos</label>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  Periodicidade
+                  <Tooltip content="Frequência com que o processo é disparado." />
+                </label>
+                <select
+                  value={formData.periodicidade || 'Mensal'}
+                  onChange={(e) => handleChange('periodicidade', e.target.value)}
+                  className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none bg-white"
+                >
+                  <option value="Diária">Diária</option>
+                  <option value="Semanal">Semanal</option>
+                  <option value="Mensal">Mensal</option>
+                  <option value="Sob demanda">Sob demanda</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  Nº de Execuções / Mês
+                  <Tooltip content="Volume de transações ou vezes que a rotina é executada ao longo de um mês." />
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={formData.numExecucoes ?? 100}
+                  onChange={(e) => handleChange('numExecucoes', Number(e.target.value))}
+                  className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  Perfil do Executor
+                  <Tooltip content="Cargo ou qualificação média de quem opera a tarefa manual." />
+                </label>
                 <input
                   type="text"
-                  placeholder="Ex: SAP, SEFAZ, Excel, Navegador Web"
+                  value={formData.perfilExecutor || ''}
+                  onChange={(e) => handleChange('perfilExecutor', e.target.value)}
+                  placeholder="Ex: Analista Fiscal Jr"
+                  className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  Valor da Hora do Executor (R$/HH)
+                  <Tooltip content="Custo da hora de mão de obra direta do profissional executor." />
+                </label>
+                <input
+                  type="number"
+                  step="5"
+                  value={formData.valorHoraExecutor ?? 45}
+                  onChange={(e) => handleChange('valorHoraExecutor', Number(e.target.value))}
+                  className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none font-semibold"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  Tempo Total de Execução (Horas/Mês)
+                  <Tooltip content="Total de horas mensais gastas somando todos os envolvidos nesta rotina." />
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={formData.tempoExecucao ?? 80}
+                  onChange={(e) => handleChange('tempoExecucao', Number(e.target.value))}
+                  className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none font-semibold"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  Sistemas Envolvidos
+                  <Tooltip content="Softwares, portais e ferramentas manipuladas (ex: SAP, SIAFI, Excel, SEFAZ)." />
+                </label>
+                <input
+                  type="text"
                   value={formData.sistemasEnvolvidos || ''}
                   onChange={(e) => handleChange('sistemasEnvolvidos', e.target.value)}
-                  className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Documentos de Apoio</label>
-                <input
-                  type="text"
-                  placeholder="Ex: Manual do Processo.pdf, Procedimento Operacional"
-                  value={formData.documentosApoio || ''}
-                  onChange={(e) => handleChange('documentosApoio', e.target.value)}
-                  className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                  placeholder="Ex: SAP, SIAFI, Excel"
+                  className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none"
                 />
               </div>
             </div>
           </div>
         )}
 
-        {/* Tab 3: Benefícios Intangíveis */}
+        {/* Tab 3: Matriz de Benefícios (7 Critérios Unificados) */}
         {activeSubTab === 'beneficios' && (
-          <div className="space-y-4">
-            <div className="bg-brand-50 border border-brand-200 rounded-xl p-4 flex items-center justify-between">
-              <div>
-                <h4 className="text-sm font-bold text-brand-900">Matriz de Avaliação de Benefícios</h4>
-                <p className="text-xs text-brand-700">
-                  Defina o nível de contribuição da robotização para cada objetivo estratégico.
-                </p>
-              </div>
-              <div className="text-right">
-                <span className="text-xs font-semibold text-brand-700 uppercase tracking-wider">Pontuação Calculada</span>
-                <div className="text-xl font-extrabold text-brand-900">
-                  {calcPreview ? `${calcPreview.pontuacaoBeneficios.toFixed(1)}%` : '0%'}
-                </div>
-              </div>
+          <div className="space-y-3">
+            <div className="bg-brand-50 border border-brand-200 p-3 rounded-xl text-xs text-brand-900 flex items-center justify-between">
+              <span>Classifique o grau de impacto de cada benefício qualitativo e estratégico para a organização.</span>
+              <span className="font-bold text-[10px] bg-white px-2 py-0.5 rounded border border-brand-200">7 Critérios Unificados</span>
             </div>
 
-            <div className="border border-slate-200 rounded-xl overflow-hidden">
-              <table className="min-w-full divide-y divide-slate-200 text-xs">
-                <thead className="bg-slate-50 text-slate-600 font-semibold uppercase">
-                  <tr>
-                    <th className="py-2.5 px-4 text-left">Objetivo / Benefício</th>
-                    <th className="py-2.5 px-3 text-center">Peso</th>
-                    <th className="py-2.5 px-3 text-center">Principal (100%)</th>
-                    <th className="py-2.5 px-3 text-center">Bastante (50%)</th>
-                    <th className="py-2.5 px-3 text-center">Pouco (25%)</th>
-                    <th className="py-2.5 px-3 text-center">Nenhum (0%)</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 bg-white">
-                  {beneficiosList.map((b) => {
-                    const currentVal = formData[b.key] || 'nenhum';
-                    return (
-                      <tr key={b.key} className="hover:bg-slate-50/80 transition-colors">
-                        <td className="py-2.5 px-4 font-medium text-slate-800">{b.label}</td>
-                        <td className="py-2.5 px-3 text-center text-slate-500 font-bold">{b.peso}</td>
-                        <td className="py-2.5 px-3 text-center">
-                          <input
-                            type="radio"
-                            name={b.key}
-                            checked={currentVal === 'principal'}
-                            onChange={() => handleChange(b.key, 'principal')}
-                            className="text-brand-600 focus:ring-brand-500 cursor-pointer"
-                          />
-                        </td>
-                        <td className="py-2.5 px-3 text-center">
-                          <input
-                            type="radio"
-                            name={b.key}
-                            checked={currentVal === 'bastante'}
-                            onChange={() => handleChange(b.key, 'bastante')}
-                            className="text-brand-600 focus:ring-brand-500 cursor-pointer"
-                          />
-                        </td>
-                        <td className="py-2.5 px-3 text-center">
-                          <input
-                            type="radio"
-                            name={b.key}
-                            checked={currentVal === 'pouco'}
-                            onChange={() => handleChange(b.key, 'pouco')}
-                            className="text-brand-600 focus:ring-brand-500 cursor-pointer"
-                          />
-                        </td>
-                        <td className="py-2.5 px-3 text-center">
-                          <input
-                            type="radio"
-                            name={b.key}
-                            checked={currentVal === 'nenhum'}
-                            onChange={() => handleChange(b.key, 'nenhum')}
-                            className="text-slate-400 focus:ring-slate-500 cursor-pointer"
-                          />
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+            <div className="space-y-2.5">
+              {renderRadioBeneficio('benLiberarPessoas', '1. Liberar Capacidade Humana / Realocação', 'Redirecionamento de tempo dos profissionais para atividades de inteligência, planejamento e atendimento de valor público.')}
+              {renderRadioBeneficio('benReduzirCusto', '2. Reduzir Custos Operacionais', 'Economia orçamentária direta decorrente da otimização e automação da rotina.')}
+              {renderRadioBeneficio('benReduzirErros', '3. Redução de Erros & Compliance', 'Prevenção de falhas humanas, multas, conformidade com auditorias de órgãos de controle e eliminação de retrabalho.')}
+              {renderRadioBeneficio('benMelhorarExpCliente', '4. Experiência do Cidadão / Órgãos', 'Aumento da satisfação, clareza e celeridade percebida pelo usuário final do serviço público.')}
+              {renderRadioBeneficio('benAumentarCapacidade', '5. Aumentar Capacidade Operacional', 'Permitir que a organização suporte aumentos expressivos de volume de requisições sem estrangulamento.')}
+              {renderRadioBeneficio('benReduzirTempoResposta', '6. Reduzir Tempo de Resposta (SLA)', 'Diminuição drástica do tempo decorrido entre a solicitação e a entrega da demanda.')}
+              {renderRadioBeneficio('benTransformacaoDigital', '7. Transformação Digital & Inovação', 'Adesão às diretrizes do Governo Digital, modernização de processos e eliminação de burocracia legada.')}
             </div>
           </div>
         )}
 
-        {/* Tab 4: TO BE & Custeio */}
+        {/* Tab 4: Solução TO BE & Esforço */}
         {activeSubTab === 'tobe' && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div className="sm:col-span-2 lg:col-span-3">
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Descrição da Solução Robotizada</label>
-                <textarea
-                  rows={2}
-                  placeholder="Descreva a arquitetura do bot, etapas automatizadas e integrações..."
-                  value={formData.descricaoSolucao || ''}
-                  onChange={(e) => handleChange('descricaoSolucao', e.target.value)}
-                  className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
-                />
+          <div className="space-y-4 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  Plataforma Tecnológica da Solução
+                  <Tooltip content="Tecnologia ou orquestrador que será utilizado para construir e rodar a automação." />
+                </label>
+                <select
+                  value={formData.perfilPlataformaId || ''}
+                  onChange={(e) => handlePlataformaChange(e.target.value)}
+                  className="w-full text-sm px-3 py-2 border border-brand-300 bg-brand-50/40 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none font-bold text-brand-900"
+                >
+                  {perfis.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.isPadrao ? '⭐ ' : ''}{p.nome} ({p.categoria})
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Complexidade Técnica</label>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  Complexidade Técnica Estimada
+                  <Tooltip content="Grau de dificuldade técnica de implementação da automação." />
+                </label>
                 <select
                   value={formData.complexidade || 'Média'}
                   onChange={(e) => handleChange('complexidade', e.target.value)}
-                  className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                  className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none bg-white font-medium"
                 >
-                  <option value="Baixa">Baixa</option>
-                  <option value="Média">Média</option>
-                  <option value="Alta">Alta</option>
+                  <option value="Baixa">Baixa (Rotinas simples e fluxos estáveis)</option>
+                  <option value="Média">Média (Integração com 2 a 3 sistemas ou regras condicionais)</option>
+                  <option value="Alta">Alta (Sistemas legados desktop complexos ou OCR/IA)</option>
                 </select>
               </div>
+            </div>
 
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">
+                Descrição da Solução TO BE
+                <Tooltip content="Como o robô ou fluxo de automação atuará de ponta a ponta." />
+              </label>
+              <textarea
+                rows={2}
+                value={formData.descricaoSolucao || ''}
+                onChange={(e) => handleChange('descricaoSolucao', e.target.value)}
+                placeholder="Descreva a arquitetura da solução automatizada..."
+                className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Turno de Execução do Robô</label>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  Turno de Execução
+                  <Tooltip content="Janela de horário em que o robô executará (impacta a taxa horária calculada)." />
+                </label>
                 <select
                   value={formData.turno || 'Diurno'}
                   onChange={(e) => handleChange('turno', e.target.value)}
-                  className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                  className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none bg-white font-medium"
                 >
                   <option value="Diurno">Diurno (08h às 18h)</option>
                   <option value="Noturno">Noturno (18h às 08h)</option>
-                  <option value="Final de Semana">Final de Semana (Sáb/Dom)</option>
+                  <option value="Final de Semana">Final de Semana</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Recomendação Final</label>
-                <select
-                  value={formData.recomendacao || 'Recomendado'}
-                  onChange={(e) => handleChange('recomendacao', e.target.value)}
-                  className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
-                >
-                  <option value="Recomendado">Recomendado</option>
-                  <option value="Em análise">Em análise</option>
-                  <option value="Não viável">Não viável</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Esforço de Setup (Semanas)</label>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  Esforço de Setup (Semanas)
+                  <Tooltip content="Semanas estimadas de desenvolvimento, homologação e implantação da automação." />
+                </label>
                 <input
                   type="number"
-                  step="0.5"
                   min="0.5"
-                  value={formData.esforcoSetupSemanas ?? 1}
+                  step="0.5"
+                  value={formData.esforcoSetupSemanas ?? 2}
                   onChange={(e) => handleChange('esforcoSetupSemanas', Number(e.target.value))}
-                  className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                  className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none font-semibold"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Horas Robô Estimadas (HH/Mês)</label>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  Horas de Robô (Horas/Mês)
+                  <Tooltip content="Tempo que o robô gastará para processar todo o volume mensal." />
+                </label>
                 <input
                   type="number"
-                  min="0"
-                  value={formData.horasRobo ?? 0}
+                  min="1"
+                  value={formData.horasRobo ?? 60}
                   onChange={(e) => handleChange('horasRobo', Number(e.target.value))}
-                  className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                  className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none font-semibold"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Horas Apoio Negócio (HH/Mês)</label>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  Horas Manutenção (HH/Mês)
+                  <Tooltip content="Estimativa de horas mensais de suporte do NOC para acompanhamento e ajustes." />
+                </label>
                 <input
                   type="number"
                   min="0"
-                  value={formData.horasApoioNegocio ?? 0}
-                  onChange={(e) => handleChange('horasApoioNegocio', Number(e.target.value))}
-                  className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Horas Manutenção Robô (HH/Mês)</label>
-                <input
-                  type="number"
-                  min="0"
-                  value={formData.horasManutencao ?? 0}
+                  value={formData.horasManutencao ?? 4}
                   onChange={(e) => handleChange('horasManutencao', Number(e.target.value))}
-                  className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Redução de Tempo Prevista</label>
-                <input
-                  type="text"
-                  placeholder="Ex: 85%"
-                  value={formData.reducaoTempoPrevista || ''}
-                  onChange={(e) => handleChange('reducaoTempoPrevista', e.target.value)}
-                  className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Redução de Custo Prevista</label>
-                <input
-                  type="text"
-                  placeholder="Ex: 75%"
-                  value={formData.reducaoCustoPrevista || ''}
-                  onChange={(e) => handleChange('reducaoCustoPrevista', e.target.value)}
-                  className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                  className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none font-semibold"
                 />
               </div>
             </div>
           </div>
         )}
 
-        {/* Live Calculation Preview Banner */}
-        {calcPreview && (
-          <div className="bg-slate-900 text-white rounded-2xl p-4 shadow-lg border border-slate-800">
-            <div className="flex items-center justify-between mb-3 border-b border-slate-800 pb-2">
-              <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-cyan-400">
-                <Calculator className="w-4 h-4" />
-                <span>Simulação Financeira Instantânea (Parâmetros Ativos)</span>
-              </div>
-              <span className="text-xs text-slate-400">Fórmulas sincronizadas com a planilha</span>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-center">
-              <div className="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/50">
-                <div className="text-[10px] text-slate-400 font-semibold uppercase">Custo Atual (Mês)</div>
-                <div className="text-sm font-bold text-slate-100">
-                  R$ {calcPreview.custoMensalAtual.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                </div>
-              </div>
-              <div className="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/50">
-                <div className="text-[10px] text-slate-400 font-semibold uppercase">FTE Liberado</div>
-                <div className="text-sm font-bold text-emerald-400">{calcPreview.fteLiberado} FTE</div>
-              </div>
-              <div className="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/50">
-                <div className="text-[10px] text-slate-400 font-semibold uppercase">Custo TO BE (Mês)</div>
-                <div className="text-sm font-bold text-cyan-400">
-                  R$ {calcPreview.custoMensalAno1.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                </div>
-              </div>
-              <div className="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/50">
-                <div className="text-[10px] text-slate-400 font-semibold uppercase">ROI Ano 1</div>
-                <div className={`text-sm font-bold ${calcPreview.roiAno1 >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                  R$ {calcPreview.roiAno1.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                </div>
-              </div>
-              <div className="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/50">
-                <div className="text-[10px] text-slate-400 font-semibold uppercase">ROI 2 Anos</div>
-                <div className={`text-sm font-bold ${calcPreview.roiAno2 >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                  R$ {calcPreview.roiAno2.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                </div>
-              </div>
-              <div className="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/50">
-                <div className="text-[10px] text-slate-400 font-semibold uppercase">Payback</div>
-                <div className="text-sm font-bold text-amber-400">{calcPreview.paybackMeses.toFixed(1)} meses</div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Footer Actions */}
-        <div className="flex items-center justify-end space-x-3 pt-4 border-t border-slate-200">
+        {/* Modal Bottom Actions */}
+        <div className="flex items-center justify-between pt-4 border-t border-slate-200">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+            className="px-4 py-2 text-slate-600 hover:bg-slate-100 font-semibold rounded-xl text-xs transition-colors"
           >
             Cancelar
           </button>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="px-5 py-2 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-xl shadow-md shadow-brand-500/20 transition-all disabled:opacity-50"
-          >
-            {isSubmitting ? 'Salvando...' : initialData ? 'Salvar Alterações' : 'Cadastrar Oportunidade'}
-          </button>
+
+          <div className="flex items-center space-x-3">
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl text-xs shadow-md shadow-brand-500/20 transition-all disabled:opacity-50"
+            >
+              {isSubmitting ? 'Salvando...' : initialData ? 'Atualizar Oportunidade' : 'Cadastrar Oportunidade'}
+            </button>
+          </div>
         </div>
       </form>
     </Modal>

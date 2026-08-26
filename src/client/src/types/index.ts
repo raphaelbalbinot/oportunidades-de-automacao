@@ -1,13 +1,13 @@
 export interface Parametro {
   id: string;
-  pesoAumentarCapacidade: number;
-  pesoTransformacaoDigital: number;
   pesoLiberarPessoas: number;
-  pesoMelhorarExpCliente: number;
   pesoReduzirCusto: number;
   pesoReduzirErros: number;
-  pesoReduzirFte: number;
+  pesoMelhorarExpCliente: number;
+  pesoAumentarCapacidade: number;
   pesoReduzirTempoResposta: number;
+  pesoTransformacaoDigital: number;
+  pesoReduzirFte?: number;
   cargaHorariaPadrao: number;
   operadorSalaControle: number;
   servidor: number;
@@ -18,6 +18,20 @@ export interface Parametro {
   percNoturno: number;
   percFimDeSemana: number;
   custoHoraDesenvolvimento: number;
+  updatedAt?: string;
+}
+
+export interface PerfilPlataforma {
+  id: string;
+  nome: string;
+  categoria: string;
+  descricao: string;
+  custoLicencaMensal: number;
+  custoEstacaoTrabalho: number;
+  custoServidor: number;
+  nrRobosDiluicao: number;
+  isPadrao: boolean;
+  createdAt?: string;
   updatedAt?: string;
 }
 
@@ -47,18 +61,21 @@ export interface Registro {
   sistemasEnvolvidos: string;
   documentosApoio: string;
 
-  // TO BE - Benefícios
-  benAumentarCapacidade: BeneficioNivel;
-  benTransformacaoDigital: BeneficioNivel;
+  // TO BE - Benefícios (7 Critérios Unificados)
   benLiberarPessoas: BeneficioNivel;
-  benMelhorarExpCliente: BeneficioNivel;
   benReduzirCusto: BeneficioNivel;
   benReduzirErros: BeneficioNivel;
-  benReduzirFte: BeneficioNivel;
+  benMelhorarExpCliente: BeneficioNivel;
+  benAumentarCapacidade: BeneficioNivel;
   benReduzirTempoResposta: BeneficioNivel;
+  benTransformacaoDigital: BeneficioNivel;
+  benReduzirFte?: BeneficioNivel;
   pontuacaoBeneficios: number;
 
-  // TO BE - Solução e Esforço
+  // TO BE - Solução e Plataforma
+  perfilPlataformaId?: string | null;
+  perfilPlataforma?: PerfilPlataforma | null;
+  tipoPlataformaNome?: string;
   descricaoSolucao: string;
   pontosAtencao: string;
   fteLiberado: number;
@@ -125,6 +142,7 @@ export interface AnalyticsResumo {
     tempoExecucao: number;
     sistemasEnvolvidos: string;
     complexidade: string;
+    tipoPlataformaNome?: string;
     pontuacaoBeneficios: number;
     fteLiberado: number;
     reducaoCustoPrevista: string;
