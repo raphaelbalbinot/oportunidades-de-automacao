@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Registro } from '../types';
+import { Registro, Parametro } from '../types';
 import { api } from '../services/api';
 import { RegistroFormModal } from '../components/RegistroFormModal';
 import {
@@ -22,6 +22,7 @@ import {
 
 export const RegistrosPage: React.FC = () => {
   const [registros, setRegistros] = useState<Registro[]>([]);
+  const [parametro, setParametro] = useState<Parametro | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [areaFilter, setAreaFilter] = useState('');
@@ -53,8 +54,18 @@ export const RegistrosPage: React.FC = () => {
     }
   };
 
+  const loadParametros = async () => {
+    try {
+      const p = await api.getParametros();
+      setParametro(p);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     loadData();
+    loadParametros();
   }, [search, areaFilter, situacaoFilter, complexidadeFilter]);
 
   const handleOpenCreate = () => {
@@ -65,6 +76,20 @@ export const RegistrosPage: React.FC = () => {
   const handleOpenEdit = (registro: Registro) => {
     setEditingRegistro(registro);
     setModalOpen(true);
+  };
+
+  const handleSave = async (formData: Partial<Registro>) => {
+    try {
+      if (editingRegistro) {
+        await api.updateRegistro(editingRegistro.id, formData);
+      } else {
+        await api.createRegistro(formData);
+      }
+      setModalOpen(false);
+      loadData();
+    } catch (err: any) {
+      alert(err.message || 'Erro ao salvar oportunidade.');
+    }
   };
 
   const handleDelete = async (id: string, nome: string) => {
@@ -100,13 +125,9 @@ export const RegistrosPage: React.FC = () => {
     });
   };
 
-  const toggleExpandAll = () => {
-    if (expandedRows.size === registros.length) {
-      setExpandedRows(new Set());
-    } else {
-      setExpandedRows(new Set(registros.map((r) => r.id)));
-    }
-  };
+  const uniqueAreas = useMemo(() => {
+    return Array.from(new Set(registros.map((r) => r.area))).filter(Boolean);
+  }, [registros]);
 
   const sortedRegistros = useMemo(() => {
     const list = [...registros];
@@ -127,7 +148,16 @@ export const RegistrosPage: React.FC = () => {
     return list;
   }, [registros, sortField, sortDirection]);
 
-  const uniqueAreas = Array.from(new Set(registros.map((r) => r.area))).filter(Boolean);
+  const toggleExpandAll = () => {
+    if (!sortedRegistros.length) return;
+    if (expandedRows.size === sortedRegistros.length) {
+      setExpandedRows(new Set());
+    } else {
+      setExpandedRows(new Set(sortedRegistros.map((r) => r.id)));
+    }
+  };
+
+  const isAllExpanded = sortedRegistros.length > 0 && expandedRows.size === sortedRegistros.length;
 
   const renderSortIcon = (field: string) => {
     if (sortField !== field) {
@@ -139,8 +169,6 @@ export const RegistrosPage: React.FC = () => {
       <ArrowDown className="w-3 h-3 text-brand-600 inline ml-1" />
     );
   };
-
-  const isAllExpanded = registros.length > 0 && expandedRows.size === registros.length;
 
   return (
     <div className="space-y-6">
@@ -155,23 +183,6 @@ export const RegistrosPage: React.FC = () => {
 
         <div className="flex items-center space-x-3 self-start sm:self-auto">
           <button
-            onClick={toggleExpandAll}
-            className="flex items-center space-x-1.5 px-3.5 py-2.5 bg-white hover:bg-slate-100 text-slate-700 font-medium text-xs rounded-xl border border-slate-200 shadow-sm transition-all"
-          >
-            {isAllExpanded ? (
-              <>
-                <Minimize2 className="w-3.5 h-3.5 text-slate-500" />
-                <span>Recolher Todos</span>
-              </>
-            ) : (
-              <>
-                <Maximize2 className="w-3.5 h-3.5 text-slate-500" />
-                <span>Expandir Todos</span>
-              </>
-            )}
-          </button>
-
-          <button
             onClick={handleOpenCreate}
             className="flex items-center space-x-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-sm rounded-xl shadow-md shadow-brand-500/20 transition-all"
           >
@@ -182,9 +193,9 @@ export const RegistrosPage: React.FC = () => {
       </div>
 
       {/* Filters Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-3">
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center gap-3">
         {/* Search */}
-        <div className="relative flex-1">
+        <div className="relative flex-1 w-full">
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 transform -translate-y-1/2 text-slate-400" />
           <input
             type="text"
@@ -196,11 +207,11 @@ export const RegistrosPage: React.FC = () => {
         </div>
 
         {/* Filter Area */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 w-full md:w-auto">
           <select
             value={areaFilter}
             onChange={(e) => setAreaFilter(e.target.value)}
-            className="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 outline-none cursor-pointer focus:ring-2 focus:ring-brand-500"
+            className="w-full md:w-auto text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 outline-none cursor-pointer focus:ring-2 focus:ring-brand-500"
           >
             <option value="">Todas as Áreas</option>
             {uniqueAreas.map((a) => (
@@ -212,11 +223,11 @@ export const RegistrosPage: React.FC = () => {
         </div>
 
         {/* Filter Situação */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 w-full md:w-auto">
           <select
             value={situacaoFilter}
             onChange={(e) => setSituacaoFilter(e.target.value)}
-            className="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 outline-none cursor-pointer focus:ring-2 focus:ring-brand-500"
+            className="w-full md:w-auto text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 outline-none cursor-pointer focus:ring-2 focus:ring-brand-500"
           >
             <option value="">Todas as Situações</option>
             <option value="Em levantamento">Em levantamento</option>
@@ -228,11 +239,11 @@ export const RegistrosPage: React.FC = () => {
         </div>
 
         {/* Filter Complexidade */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 w-full md:w-auto">
           <select
             value={complexidadeFilter}
             onChange={(e) => setComplexidadeFilter(e.target.value)}
-            className="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 outline-none cursor-pointer focus:ring-2 focus:ring-brand-500"
+            className="w-full md:w-auto text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 outline-none cursor-pointer focus:ring-2 focus:ring-brand-500"
           >
             <option value="">Todas as Complexidades</option>
             <option value="Baixa">Baixa</option>
@@ -240,6 +251,24 @@ export const RegistrosPage: React.FC = () => {
             <option value="Alta">Alta</option>
           </select>
         </div>
+
+        {/* Expand / Collapse All */}
+        <button
+          onClick={toggleExpandAll}
+          className="w-full md:w-auto flex items-center justify-center space-x-1.5 px-3.5 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold text-xs rounded-xl border border-slate-200 shadow-xs transition-all whitespace-nowrap"
+        >
+          {isAllExpanded ? (
+            <>
+              <Minimize2 className="w-3.5 h-3.5 text-slate-500" />
+              <span>Recolher Todos</span>
+            </>
+          ) : (
+            <>
+              <Maximize2 className="w-3.5 h-3.5 text-slate-500" />
+              <span>Expandir Todos</span>
+            </>
+          )}
+        </button>
       </div>
 
       {/* Table (Master-Detail Inline / Opção 1) */}
@@ -524,8 +553,9 @@ export const RegistrosPage: React.FC = () => {
       <RegistroFormModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
-        onSaved={loadData}
-        registroParaEditar={editingRegistro}
+        onSave={handleSave}
+        initialData={editingRegistro}
+        parametro={parametro}
       />
     </div>
   );
