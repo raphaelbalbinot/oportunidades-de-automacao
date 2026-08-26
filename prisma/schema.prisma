@@ -9,129 +9,144 @@ generator client {
 }
 
 model Parametro {
-  id                         String   @id @default("singleton")
+  id                             String   @id @default("singleton")
   
-  // Matriz de Benefícios Ponderados (Unificada para o Setor Público)
-  pesoLiberarPessoas         Float    @default(3.0) // Liberar Capacidade Humana / Realocação de Pessoas
-  pesoReduzirCusto           Float    @default(3.0) // Redução de Custos Operacionais
-  pesoReduzirErros           Float    @default(3.0) // Redução de Erros & Conformidade/Compliance
-  pesoMelhorarExpCliente     Float    @default(3.0) // Experiência do Cidadão e Órgãos Públicos
-  pesoAumentarCapacidade     Float    @default(2.0) // Aumento de Capacidade Operacional
-  pesoReduzirTempoResposta   Float    @default(2.0) // Redução do Tempo de Resposta (SLA)
-  pesoTransformacaoDigital   Float    @default(1.0) // Fomento à Transformação Digital
-  pesoReduzirFte             Float    @default(0.0) // Unificado em pesoLiberarPessoas
+  // Matriz de Benefícios Estratégicos Corporativos (12 Critérios Universais)
+  pesoLiberarPessoas             Float    @default(3.0) // Liberar Capacidade Humana / Realocação de Pessoas
+  pesoReduzirCusto               Float    @default(3.0) // Redução de Custos Operacionais
+  pesoReduzirErros               Float    @default(3.0) // Redução de Erros Operacionais
+  pesoSegurancaPrivacidade       Float    @default(3.0) // Segurança da Informação & Privacidade de Dados
+  pesoRastreabilidadeCompliance  Float    @default(3.0) // Rastreabilidade & Conformidade (Compliance Empresarial)
+  pesoKeyPersonRisk              Float    @default(2.0) // Mitigação de Dependência de Pessoas (Key-Person Risk)
+  pesoMelhorarExpCliente         Float    @default(2.0) // Experiência do Cliente / Usuário
+  pesoAumentarCapacidade         Float    @default(2.0) // Aumento de Capacidade Operacional & Escalabilidade
+  pesoReduzirTempoResposta       Float    @default(2.0) // Redução do Tempo de Resposta (SLA)
+  pesoInteroperabilidade         Float    @default(2.0) // Interoperabilidade & Integração entre Sistemas
+  pesoTransformacaoDigital       Float    @default(1.0) // Transformação Digital & Inovação
+  pesoSustentabilidadeEsg        Float    @default(1.0) // Sustentabilidade Operacional (ESG)
+  pesoReduzirFte                 Float    @default(0.0) // Legado unificado em pesoLiberarPessoas
 
   // Carga Horária Padrão
-  cargaHorariaPadrao         Float    @default(160.0) // HH/mês
+  cargaHorariaPadrao             Float    @default(160.0) // HH/mês
 
   // Infraestrutura Robótica Padrão / Sustentação
-  operadorSalaControle       Float    @default(7500.0) // Posto de sustentação NOC 24x7 com encargos
-  servidor                   Float    @default(1150.70) // VM / Cluster Nuvem Corporativa
-  licencaRobo                Float    @default(0.0)     // Licença padrão (Open Source = 0)
-  estacaoTrabalhoRobo        Float    @default(0.0)     // Estação de trabalho dedicada
-  nrRobos                    Float    @default(5.0)     // Quantidade de robôs no parque para rateio
+  operadorSalaControle           Float    @default(7500.0) // Posto de sustentação NOC 24x7 com encargos
+  servidor                       Float    @default(1150.70) // VM / Cluster Nuvem Corporativa
+  licencaRobo                    Float    @default(0.0)     // Licença padrão (Open Source = 0)
+  estacaoTrabalhoRobo            Float    @default(0.0)     // Estação de trabalho dedicada
+  nrRobos                        Float    @default(5.0)     // Quantidade de robôs no parque para rateio
 
   // Distribuição Percentual de Custo por Turno
-  percDiurno                 Float    @default(0.60)
-  percNoturno                Float    @default(0.30)
-  percFimDeSemana            Float    @default(0.10)
+  percDiurno                     Float    @default(0.60)
+  percNoturno                    Float    @default(0.30)
+  percFimDeSemana                Float    @default(0.10)
 
   // Investimento de Engenharia / Desenvolvimento
-  custoHoraDesenvolvimento   Float    @default(185.0) // Custo pleno analista/desenvolvedor
+  custoHoraDesenvolvimento       Float    @default(185.0) // Custo pleno analista/desenvolvedor
 
-  createdAt                  DateTime @default(now())
-  updatedAt                  DateTime @updatedAt
+  createdAt                      DateTime @default(now())
+  updatedAt                      DateTime @updatedAt
 }
 
 model PerfilPlataforma {
-  id                         String   @id @default(uuid())
-  nome                       String
-  categoria                  String   @default("Open Source / Scripting") // "Open Source / Scripting", "Workflow & iPaaS", "RPA Proprietário", "Low-Code / RAD"
-  descricao                  String   @default("")
-  custoLicencaMensal         Float    @default(0.0)
-  custoEstacaoTrabalho       Float    @default(0.0)
-  custoServidor              Float    @default(1150.70)
-  nrRobosDiluicao            Float    @default(5.0)
-  isPadrao                   Boolean  @default(false)
+  id                             String   @id @default(uuid())
+  nome                           String
+  categoria                      String   @default("Open Source / Scripting") // "Open Source / Scripting", "Workflow & iPaaS", "RPA Proprietário", "Low-Code / RAD"
+  descricao                      String   @default("")
+  custoLicencaMensal             Float    @default(0.0)
+  custoEstacaoTrabalho           Float    @default(0.0)
+  custoServidor                  Float    @default(1150.70)
+  nrRobosDiluicao                Float    @default(5.0)
+  isPadrao                       Boolean  @default(false)
   
-  registros                  Registro[]
-  createdAt                  DateTime @default(now())
-  updatedAt                  DateTime @updatedAt
+  registros                      Registro[]
+  createdAt                      DateTime @default(now())
+  updatedAt                      DateTime @updatedAt
 }
 
 model Registro {
-  id                         String   @id @default(uuid())
+  id                             String   @id @default(uuid())
   
   // Identificação & Contexto
-  idOrigem                   String   @default("")
-  idAnalise                  String   @default("P1")
-  area                       String   @default("")
-  nomeProcesso               String
-  dataLevantamento           String   @default("")
-  participantes              String   @default("")
-  situacao                   String   @default("Em levantamento") // "Em levantamento", "Aprovado", "Em implantação", "Concluído", "Descartado"
+  idOrigem                       String   @default("")
+  idAnalise                      String   @default("P1")
+  area                           String   @default("")
+  nomeProcesso                   String
+  dataLevantamento               String   @default("")
+  participantes                  String   @default("")
+  situacao                       String   @default("Em levantamento") // "Em levantamento", "Aprovado", "Em implantação", "Concluído", "Descartado"
 
   // AS IS (Situação Atual)
-  areasEnvolvidas            String   @default("")
-  descricaoProcesso          String   @default("")
-  numExecucoes               Float    @default(0.0)
-  periodicidade              String   @default("Mensal") // "Diária", "Semanal", "Mensal", "Sob demanda"
-  numPessoasEnvolvidas       Float    @default(1.0)
-  tipoAlocacao               String   @default("Parcial") // "Dedicada", "Parcial"
-  perfilExecutor             String   @default("Analista")
-  valorHoraExecutor          Float    @default(0.0)
-  tempoExecucao              Float    @default(0.0) // horas/mês
-  custoMensalAtual           Float    @default(0.0)
-  sistemasEnvolvidos         String   @default("")
-  documentosApoio            String   @default("")
+  areasEnvolvidas                String   @default("")
+  descricaoProcesso              String   @default("")
+  numExecucoes                   Float    @default(0.0)
+  periodicidade                  String   @default("Mensal") // "Diária", "Semanal", "Mensal", "Sob demanda"
+  numPessoasEnvolvidas           Float    @default(1.0)
+  tipoAlocacao                   String   @default("Parcial") // "Dedicada", "Parcial"
+  perfilExecutor                 String   @default("Analista")
+  valorHoraExecutor              Float    @default(0.0)
+  tempoExecucao                  Float    @default(0.0) // horas/mês
+  custoMensalAtual               Float    @default(0.0)
+  sistemasEnvolvidos             String   @default("")
+  documentosApoio                String   @default("")
 
-  // TO BE - Benefícios (Impacto: "principal", "bastante", "pouco", "nenhum")
-  benLiberarPessoas          String   @default("nenhum") // Liberar Capacidade Humana / Realocação de Pessoas
-  benReduzirCusto            String   @default("nenhum") // Reduzir Custos Operacionais
-  benReduzirErros            String   @default("nenhum") // Redução de Erros & Conformidade
-  benMelhorarExpCliente      String   @default("nenhum") // Experiência do Cidadão e Órgãos
-  benAumentarCapacidade      String   @default("nenhum") // Aumentar Capacidade
-  benReduzirTempoResposta    String   @default("nenhum") // Reduzir Tempo de Resposta
-  benTransformacaoDigital    String   @default("nenhum") // Transformação Digital
-  benReduzirFte              String   @default("nenhum") // Legado mantido para compatibilidade
-  pontuacaoBeneficios        Float    @default(0.0)
+  // TO BE - Matriz de Benefícios (12 Critérios Corporativos: "principal", "bastante", "pouco", "nenhum")
+  benLiberarPessoas              String   @default("nenhum") // Liberar Capacidade Humana / Realocação
+  benReduzirCusto                String   @default("nenhum") // Reduzir Custos Operacionais
+  benReduzirErros                String   @default("nenhum") // Redução de Erros Operacionais
+  benSegurancaPrivacidade        String   @default("nenhum") // Segurança da Informação & Privacidade
+  benRastreabilidadeCompliance   String   @default("nenhum") // Rastreabilidade & Compliance
+  benKeyPersonRisk               String   @default("nenhum") // Mitigação de Dependência de Pessoas
+  benMelhorarExpCliente          String   @default("nenhum") // Experiência do Cliente / Usuário
+  benAumentarCapacidade          String   @default("nenhum") // Aumentar Capacidade Operacional
+  benReduzirTempoResposta        String   @default("nenhum") // Reduzir Tempo de Resposta (SLA)
+  benInteroperabilidade          String   @default("nenhum") // Interoperabilidade entre Sistemas
+  benTransformacaoDigital        String   @default("nenhum") // Transformação Digital & Inovação
+  benSustentabilidadeEsg         String   @default("nenhum") // Sustentabilidade Operacional (ESG)
+  benReduzirFte                  String   @default("nenhum") // Legado
+  pontuacaoBeneficios            Float    @default(0.0)
 
   // TO BE - Solução Técnica e Plataforma
-  perfilPlataformaId         String?
-  perfilPlataforma           PerfilPlataforma? @relation(fields: [perfilPlataformaId], references: [id])
-  tipoPlataformaNome         String   @default("Python & Robot Framework (Open Source)")
+  perfilPlataformaId             String?
+  perfilPlataforma               PerfilPlataforma? @relation(fields: [perfilPlataformaId], references: [id])
+  tipoPlataformaNome             String   @default("Python & Robot Framework (Open Source)")
   
-  descricaoSolucao           String   @default("")
-  pontosAtencao              String   @default("")
-  fteLiberado                Float    @default(0.0)
-  reducaoTempoPrevista       String   @default("0%")
-  complexidade               String   @default("Média") // "Baixa", "Média", "Alta"
-  reducaoCustoPrevista       String   @default("0%")
-  numRotinas                 Float    @default(1.0)
-  turno                      String   @default("Diurno") // "Diurno", "Noturno", "Final de Semana"
-  recomendacao               String   @default("Recomendado") // "Recomendado", "Em análise", "Não viável"
+  descricaoSolucao               String   @default("")
+  pontosAtencao                  String   @default("")
+  fteLiberado                    Float    @default(0.0)
+  reducaoTempoPrevista           String   @default("0%")
+  complexidade                   String   @default("Média") // "Baixa", "Média", "Alta"
+  reducaoCustoPrevista           String   @default("0%")
+  numRotinas                     Float    @default(1.0)
+  turno                          String   @default("Diurno") // "Diurno", "Noturno", "Final de Semana", "Múltiplos Turnos"
+  recomendacao                   String   @default("Recomendado") // "Recomendado", "Em análise", "Não viável"
 
-  // Custo e Investimento
-  esforcoSetupSemanas        Float    @default(1.0)
-  investimentoSetup          Float    @default(0.0)
-  horasRobo                  Float    @default(0.0)
-  custoHorasRobo             Float    @default(0.0)
-  horasApoioNegocio          Float    @default(0.0)
-  custoHorasNegocio          Float    @default(0.0)
-  horasManutencao            Float    @default(0.0)
-  custoManutencao            Float    @default(0.0)
+  // Custo, Esforço e Alocação de Múltiplos Turnos
+  esforcoSetupSemanas            Float    @default(1.0)
+  investimentoSetup              Float    @default(0.0)
+  
+  horasRoboDiurno                Float    @default(0.0) // Horas no turno Diurno (08h às 18h)
+  horasRoboNoturno               Float    @default(0.0) // Horas no turno Noturno (18h às 08h)
+  horasRoboFimDeSemana           Float    @default(0.0) // Horas no turno Fim de Semana
+  horasRobo                      Float    @default(0.0) // Total de horas mensais de robô
+  
+  custoHorasRobo                 Float    @default(0.0) // Custo total de execução do robô
+  horasApoioNegocio              Float    @default(0.0)
+  custoHorasNegocio              Float    @default(0.0)
+  horasManutencao                Float    @default(0.0)
+  custoManutencao                Float    @default(0.0)
 
   // Totais Mensais e Anuais
-  custoMensalAno1            Float    @default(0.0)
-  custoMensalAno2            Float    @default(0.0)
-  custoAnualAno1             Float    @default(0.0)
-  custoAnualAno2             Float    @default(0.0)
+  custoMensalAno1                Float    @default(0.0)
+  custoMensalAno2                Float    @default(0.0)
+  custoAnualAno1                 Float    @default(0.0)
+  custoAnualAno2                 Float    @default(0.0)
 
   // ROI & Payback
-  roiAno1                    Float    @default(0.0)
-  roiAno2                    Float    @default(0.0)
-  paybackMeses               Float    @default(0.0)
+  roiAno1                        Float    @default(0.0)
+  roiAno2                        Float    @default(0.0)
+  paybackMeses                   Float    @default(0.0)
 
-  createdAt                  DateTime @default(now())
-  updatedAt                  DateTime @updatedAt
+  createdAt                      DateTime @default(now())
+  updatedAt                      DateTime @updatedAt
 }

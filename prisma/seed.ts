@@ -3,19 +3,24 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('Populando banco de dados com calibração governamental...');
+  console.log('Populando banco de dados com parametrização corporativa expandida...');
 
-  // 1. Parametrização Singleton
+  // 1. Parametrização Singleton (12 Critérios Corporativos)
   const defaultParametro = await prisma.parametro.upsert({
     where: { id: 'singleton' },
     update: {
       pesoLiberarPessoas: 3,
       pesoReduzirCusto: 3,
       pesoReduzirErros: 3,
-      pesoMelhorarExpCliente: 3,
+      pesoSegurancaPrivacidade: 3,
+      pesoRastreabilidadeCompliance: 3,
+      pesoKeyPersonRisk: 2,
+      pesoMelhorarExpCliente: 2,
       pesoAumentarCapacidade: 2,
       pesoReduzirTempoResposta: 2,
+      pesoInteroperabilidade: 2,
       pesoTransformacaoDigital: 1,
+      pesoSustentabilidadeEsg: 1,
       pesoReduzirFte: 0,
       cargaHorariaPadrao: 160,
       operadorSalaControle: 7500,
@@ -33,10 +38,15 @@ async function main() {
       pesoLiberarPessoas: 3,
       pesoReduzirCusto: 3,
       pesoReduzirErros: 3,
-      pesoMelhorarExpCliente: 3,
+      pesoSegurancaPrivacidade: 3,
+      pesoRastreabilidadeCompliance: 3,
+      pesoKeyPersonRisk: 2,
+      pesoMelhorarExpCliente: 2,
       pesoAumentarCapacidade: 2,
       pesoReduzirTempoResposta: 2,
+      pesoInteroperabilidade: 2,
       pesoTransformacaoDigital: 1,
+      pesoSustentabilidadeEsg: 1,
       pesoReduzirFte: 0,
       cargaHorariaPadrao: 160,
       operadorSalaControle: 7500,
@@ -110,7 +120,7 @@ async function main() {
     console.log(`Perfil de Plataforma sincronizado: ${p.nome}`);
   }
 
-  // 3. Registros de Exemplo
+  // 3. Registros de Exemplo com Múltiplos Turnos e 12 Critérios
   const registrosExemplo = [
     {
       idOrigem: 'FIN-001',
@@ -128,18 +138,26 @@ async function main() {
       tipoAlocacao: 'Dedicada',
       perfilExecutor: 'Analista Fiscal Jr',
       valorHoraExecutor: 45,
-      tempoExecucao: 240, // 240 horas/mês
-      custoMensalAtual: 10800, // 240 * 45
+      tempoExecucao: 240,
+      custoMensalAtual: 10800,
       sistemasEnvolvidos: 'SAP ERP, Portal SEFAZ, Excel, Outlook',
       documentosApoio: 'Manual de Lançamento de NFs v3.pdf',
+      
+      // 12 Critérios
       benLiberarPessoas: 'principal',
       benReduzirCusto: 'principal',
       benReduzirErros: 'principal',
+      benSegurancaPrivacidade: 'principal',
+      benRastreabilidadeCompliance: 'principal',
+      benKeyPersonRisk: 'bastante',
       benMelhorarExpCliente: 'bastante',
       benAumentarCapacidade: 'principal',
       benReduzirTempoResposta: 'bastante',
+      benInteroperabilidade: 'principal',
       benTransformacaoDigital: 'bastante',
-      pontuacaoBeneficios: 0.91,
+      benSustentabilidadeEsg: 'bastante',
+      pontuacaoBeneficios: 0.92,
+
       tipoPlataformaNome: 'Python & Robot Framework (Open Source / Cloud Native)',
       perfilPlataformaId: 'perfil-python-robot',
       descricaoSolucao: 'Robô RPA executando em background, capturando XML via API/portal, processando no SAP e gerando relatório de divergências.',
@@ -149,23 +167,29 @@ async function main() {
       complexidade: 'Média',
       reducaoCustoPrevista: '75%',
       numRotinas: 2,
-      turno: 'Diurno',
+      
+      // Múltiplos Turnos: 60h Diurno + 100h Noturno
+      horasRoboDiurno: 60,
+      horasRoboNoturno: 100,
+      horasRoboFimDeSemana: 0,
+      horasRobo: 160,
+      turno: 'Múltiplos Turnos',
+
       recomendacao: 'Recomendado',
       esforcoSetupSemanas: 3,
       investimentoSetup: 1850,
-      horasRobo: 160,
-      custoHorasRobo: 789.05,
+      custoHorasRobo: 236.19, // (60 * 2.47) + (100 * 0.88)
       horasApoioNegocio: 8,
       custoHorasNegocio: 360,
       horasManutencao: 10,
       custoManutencao: 714.28,
-      custoMensalAno1: 3713.33,
-      custoMensalAno2: 1863.33,
-      custoAnualAno1: 44560.00,
-      custoAnualAno2: 22360.00,
-      roiAno1: 85040.00,
-      roiAno2: 107240.00,
-      paybackMeses: 4.1,
+      custoMensalAno1: 3160.47,
+      custoMensalAno2: 1310.47,
+      custoAnualAno1: 37925.64,
+      custoAnualAno2: 15725.64,
+      roiAno1: 91674.36,
+      roiAno2: 113874.36,
+      paybackMeses: 3.5,
     },
     {
       idOrigem: 'RH-002',
@@ -187,14 +211,22 @@ async function main() {
       custoMensalAtual: 4800,
       sistemasEnvolvidos: 'Senior RH, ADP, Ponto Eletrônico',
       documentosApoio: 'Checklist Folha.xlsx',
+      
+      // 12 Critérios
       benLiberarPessoas: 'principal',
       benReduzirCusto: 'bastante',
       benReduzirErros: 'principal',
+      benSegurancaPrivacidade: 'principal',
+      benRastreabilidadeCompliance: 'principal',
+      benKeyPersonRisk: 'principal',
       benMelhorarExpCliente: 'pouco',
       benAumentarCapacidade: 'pouco',
       benReduzirTempoResposta: 'bastante',
+      benInteroperabilidade: 'bastante',
       benTransformacaoDigital: 'bastante',
-      pontuacaoBeneficios: 0.76,
+      benSustentabilidadeEsg: 'bastante',
+      pontuacaoBeneficios: 0.82,
+
       tipoPlataformaNome: 'n8n Workflow Automation (Self-Hosted Nuvem Gov)',
       perfilPlataformaId: 'perfil-n8n',
       descricaoSolucao: 'Automação de extração e validação de regras de inconsistências em planilha com envio de alertas automáticos.',
@@ -204,23 +236,29 @@ async function main() {
       complexidade: 'Baixa',
       reducaoCustoPrevista: '60%',
       numRotinas: 1,
+      
+      // Turno Noturno exclusivo
+      horasRoboDiurno: 0,
+      horasRoboNoturno: 40,
+      horasRoboFimDeSemana: 0,
+      horasRobo: 40,
       turno: 'Noturno',
+
       recomendacao: 'Recomendado',
       esforcoSetupSemanas: 2,
       investimentoSetup: 1233.33,
-      horasRobo: 40,
-      custoHorasRobo: 140.91,
+      custoHorasRobo: 35.24,
       horasApoioNegocio: 4,
       custoHorasNegocio: 240,
       horasManutencao: 4,
       custoManutencao: 285.71,
-      custoMensalAno1: 1899.95,
-      custoMensalAno2: 666.62,
-      custoAnualAno1: 22799.40,
-      custoAnualAno2: 7999.44,
-      roiAno1: 34800.60,
-      roiAno2: 49600.56,
-      paybackMeses: 4.7,
+      custoMensalAno1: 1794.28,
+      custoMensalAno2: 560.95,
+      custoAnualAno1: 21531.36,
+      custoAnualAno2: 6731.40,
+      roiAno1: 36068.64,
+      roiAno2: 50868.60,
+      paybackMeses: 4.5,
     },
     {
       idOrigem: 'TES-003',
@@ -242,14 +280,22 @@ async function main() {
       custoMensalAtual: 5600,
       sistemasEnvolvidos: 'Banco do Brasil, Itaú, ERP Interno',
       documentosApoio: 'Fluxo de Cobrança.docx',
+      
+      // 12 Critérios
       benLiberarPessoas: 'principal',
       benReduzirCusto: 'principal',
       benReduzirErros: 'principal',
+      benSegurancaPrivacidade: 'principal',
+      benRastreabilidadeCompliance: 'principal',
+      benKeyPersonRisk: 'principal',
       benMelhorarExpCliente: 'principal',
       benAumentarCapacidade: 'principal',
       benReduzirTempoResposta: 'principal',
+      benInteroperabilidade: 'principal',
       benTransformacaoDigital: 'principal',
+      benSustentabilidadeEsg: 'principal',
       pontuacaoBeneficios: 1.0,
+
       tipoPlataformaNome: 'Microsoft Power Automate Desktop',
       perfilPlataformaId: 'perfil-power-automate',
       descricaoSolucao: 'Processamento automático de arquivos CNAB240, geração de links de pagamento e disparo WhatsApp/E-mail.',
@@ -259,23 +305,29 @@ async function main() {
       complexidade: 'Média',
       reducaoCustoPrevista: '80%',
       numRotinas: 3,
-      turno: 'Final de Semana',
+      
+      // Múltiplos Turnos: 40h Diurno + 80h Fim de Semana
+      horasRoboDiurno: 40,
+      horasRoboNoturno: 0,
+      horasRoboFimDeSemana: 80,
+      horasRobo: 120,
+      turno: 'Múltiplos Turnos',
+
       recomendacao: 'Recomendado',
       esforcoSetupSemanas: 4,
       investimentoSetup: 2466.67,
-      horasRobo: 120,
-      custoHorasRobo: 166.42,
+      custoHorasRobo: 412.35,
       horasApoioNegocio: 6,
       custoHorasNegocio: 210,
       horasManutencao: 8,
       custoManutencao: 571.43,
-      custoMensalAno1: 3414.52,
-      custoMensalAno2: 947.85,
-      custoAnualAno1: 40974.24,
-      custoAnualAno2: 11374.20,
-      roiAno1: 26225.76,
-      roiAno2: 55825.80,
-      paybackMeses: 7.3,
+      custoMensalAno1: 3660.45,
+      custoMensalAno2: 1193.78,
+      custoAnualAno1: 43925.40,
+      custoAnualAno2: 14325.36,
+      roiAno1: 23274.60,
+      roiAno2: 52874.64,
+      paybackMeses: 7.8,
     },
   ];
 
@@ -297,7 +349,7 @@ async function main() {
     }
   }
 
-  console.log('Seed governamental finalizado com sucesso.');
+  console.log('Seed corporativo finalizado com sucesso.');
 }
 
 main()

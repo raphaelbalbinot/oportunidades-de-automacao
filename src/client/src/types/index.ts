@@ -1,13 +1,20 @@
 export interface Parametro {
   id: string;
+  // 12 Critérios Corporativos
   pesoLiberarPessoas: number;
   pesoReduzirCusto: number;
   pesoReduzirErros: number;
+  pesoSegurancaPrivacidade: number;
+  pesoRastreabilidadeCompliance: number;
+  pesoKeyPersonRisk: number;
   pesoMelhorarExpCliente: number;
   pesoAumentarCapacidade: number;
   pesoReduzirTempoResposta: number;
+  pesoInteroperabilidade: number;
   pesoTransformacaoDigital: number;
+  pesoSustentabilidadeEsg: number;
   pesoReduzirFte?: number;
+
   cargaHorariaPadrao: number;
   operadorSalaControle: number;
   servidor: number;
@@ -61,14 +68,19 @@ export interface Registro {
   sistemasEnvolvidos: string;
   documentosApoio: string;
 
-  // TO BE - Benefícios (7 Critérios Unificados)
+  // TO BE - Benefícios (12 Critérios Corporativos)
   benLiberarPessoas: BeneficioNivel;
   benReduzirCusto: BeneficioNivel;
   benReduzirErros: BeneficioNivel;
+  benSegurancaPrivacidade: BeneficioNivel;
+  benRastreabilidadeCompliance: BeneficioNivel;
+  benKeyPersonRisk: BeneficioNivel;
   benMelhorarExpCliente: BeneficioNivel;
   benAumentarCapacidade: BeneficioNivel;
   benReduzirTempoResposta: BeneficioNivel;
+  benInteroperabilidade: BeneficioNivel;
   benTransformacaoDigital: BeneficioNivel;
+  benSustentabilidadeEsg: BeneficioNivel;
   benReduzirFte?: BeneficioNivel;
   pontuacaoBeneficios: number;
 
@@ -83,12 +95,15 @@ export interface Registro {
   complexidade: string; // 'Baixa' | 'Média' | 'Alta'
   reducaoCustoPrevista: string;
   numRotinas: number;
-  turno: string; // 'Diurno' | 'Noturno' | 'Final de Semana'
+  turno: string;
   recomendacao: string;
 
-  // Custos e Totais
+  // Custos e Múltiplos Turnos
   esforcoSetupSemanas: number;
   investimentoSetup: number;
+  horasRoboDiurno: number;
+  horasRoboNoturno: number;
+  horasRoboFimDeSemana: number;
   horasRobo: number;
   custoHorasRobo: number;
   horasApoioNegocio: number;
@@ -148,6 +163,11 @@ export interface AnalyticsResumo {
     reducaoCustoPrevista: string;
     reducaoTempoPrevista: string;
     investimentoSetup: number;
+    horasRoboDiurno?: number;
+    horasRoboNoturno?: number;
+    horasRoboFimDeSemana?: number;
+    horasRobo?: number;
+    turno?: string;
     custoToBeMensalAno1: number;
     custoToBeMensalAno2: number;
     economiaMensalAno1: number;

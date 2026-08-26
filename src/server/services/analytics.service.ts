@@ -63,16 +63,34 @@ export class AnalyticsService {
       value,
     }));
 
-    // 3. Gráfico: Distribuição por Turno
-    const turnoCounts: Record<string, number> = { Diurno: 0, Noturno: 0, 'Final de Semana': 0 };
+    // 3. Gráfico: Distribuição por Turno (Total de Horas de Execução)
+    let totalHorasDiurno = 0;
+    let totalHorasNoturno = 0;
+    let totalHorasFimSemana = 0;
+
     dataset.forEach((r: any) => {
-      const t = r.turno || 'Diurno';
-      turnoCounts[t] = (turnoCounts[t] || 0) + 1;
+      const hd = Number(r.horasRoboDiurno || 0);
+      const hn = Number(r.horasRoboNoturno || 0);
+      const hf = Number(r.horasRoboFimDeSemana || 0);
+      const hr = Number(r.horasRobo || 0);
+
+      if (hd === 0 && hn === 0 && hf === 0 && hr > 0) {
+        const t = (r.turno || 'Diurno').toLowerCase();
+        if (t.includes('noturno')) totalHorasNoturno += hr;
+        else if (t.includes('fim') || t.includes('semana')) totalHorasFimSemana += hr;
+        else totalHorasDiurno += hr;
+      } else {
+        totalHorasDiurno += hd;
+        totalHorasNoturno += hn;
+        totalHorasFimSemana += hf;
+      }
     });
-    const distribuicaoTurno = Object.entries(turnoCounts).map(([name, value]) => ({
-      name,
-      value,
-    }));
+
+    const distribuicaoTurno = [
+      { name: 'Diurno', value: Number(totalHorasDiurno.toFixed(1)) },
+      { name: 'Noturno', value: Number(totalHorasNoturno.toFixed(1)) },
+      { name: 'Final de Semana', value: Number(totalHorasFimSemana.toFixed(1)) },
+    ];
 
     // 4. Gráfico: Distribuição por Situação
     const situacaoCounts: Record<string, number> = {};

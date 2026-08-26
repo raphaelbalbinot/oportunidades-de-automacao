@@ -100,14 +100,19 @@ export class RegistroService {
         sistemasEnvolvidos: data.sistemasEnvolvidos ?? '',
         documentosApoio: data.documentosApoio ?? '',
 
-        // Benefícios Unificados
+        // 12 Benefícios Corporativos
         benLiberarPessoas: data.benLiberarPessoas ?? 'nenhum',
         benReduzirCusto: data.benReduzirCusto ?? 'nenhum',
         benReduzirErros: data.benReduzirErros ?? 'nenhum',
+        benSegurancaPrivacidade: data.benSegurancaPrivacidade ?? 'nenhum',
+        benRastreabilidadeCompliance: data.benRastreabilidadeCompliance ?? 'nenhum',
+        benKeyPersonRisk: data.benKeyPersonRisk ?? 'nenhum',
         benMelhorarExpCliente: data.benMelhorarExpCliente ?? 'nenhum',
         benAumentarCapacidade: data.benAumentarCapacidade ?? 'nenhum',
         benReduzirTempoResposta: data.benReduzirTempoResposta ?? 'nenhum',
+        benInteroperabilidade: data.benInteroperabilidade ?? 'nenhum',
         benTransformacaoDigital: data.benTransformacaoDigital ?? 'nenhum',
+        benSustentabilidadeEsg: data.benSustentabilidadeEsg ?? 'nenhum',
         benReduzirFte: data.benReduzirFte ?? 'nenhum',
 
         // Plataforma e Solução
@@ -119,10 +124,16 @@ export class RegistroService {
         complexidade: data.complexidade ?? 'Média',
         reducaoCustoPrevista: data.reducaoCustoPrevista ?? '0%',
         numRotinas: Number(data.numRotinas ?? 1),
-        turno: data.turno ?? 'Diurno',
+        turno: calculated.turno,
         recomendacao: data.recomendacao ?? 'Recomendado',
         esforcoSetupSemanas: Number(data.esforcoSetupSemanas ?? 1),
-        horasRobo: Number(data.horasRobo ?? 0),
+        
+        // Multi-Turno & Horas de Robô
+        horasRoboDiurno: calculated.horasRoboDiurno,
+        horasRoboNoturno: calculated.horasRoboNoturno,
+        horasRoboFimDeSemana: calculated.horasRoboFimDeSemana,
+        horasRobo: calculated.horasRobo,
+        
         horasApoioNegocio: Number(data.horasApoioNegocio ?? 0),
         horasManutencao: Number(data.horasManutencao ?? 0),
 
@@ -192,14 +203,19 @@ export class RegistroService {
         ...(data.sistemasEnvolvidos !== undefined && { sistemasEnvolvidos: data.sistemasEnvolvidos }),
         ...(data.documentosApoio !== undefined && { documentosApoio: data.documentosApoio }),
 
-        // Benefícios Unificados
+        // 12 Benefícios Corporativos
         ...(data.benLiberarPessoas !== undefined && { benLiberarPessoas: data.benLiberarPessoas }),
         ...(data.benReduzirCusto !== undefined && { benReduzirCusto: data.benReduzirCusto }),
         ...(data.benReduzirErros !== undefined && { benReduzirErros: data.benReduzirErros }),
+        ...(data.benSegurancaPrivacidade !== undefined && { benSegurancaPrivacidade: data.benSegurancaPrivacidade }),
+        ...(data.benRastreabilidadeCompliance !== undefined && { benRastreabilidadeCompliance: data.benRastreabilidadeCompliance }),
+        ...(data.benKeyPersonRisk !== undefined && { benKeyPersonRisk: data.benKeyPersonRisk }),
         ...(data.benMelhorarExpCliente !== undefined && { benMelhorarExpCliente: data.benMelhorarExpCliente }),
         ...(data.benAumentarCapacidade !== undefined && { benAumentarCapacidade: data.benAumentarCapacidade }),
         ...(data.benReduzirTempoResposta !== undefined && { benReduzirTempoResposta: data.benReduzirTempoResposta }),
+        ...(data.benInteroperabilidade !== undefined && { benInteroperabilidade: data.benInteroperabilidade }),
         ...(data.benTransformacaoDigital !== undefined && { benTransformacaoDigital: data.benTransformacaoDigital }),
+        ...(data.benSustentabilidadeEsg !== undefined && { benSustentabilidadeEsg: data.benSustentabilidadeEsg }),
         ...(data.benReduzirFte !== undefined && { benReduzirFte: data.benReduzirFte }),
 
         // Plataforma e Solução
@@ -211,14 +227,20 @@ export class RegistroService {
         ...(data.complexidade !== undefined && { complexidade: data.complexidade }),
         ...(data.reducaoCustoPrevista !== undefined && { reducaoCustoPrevista: data.reducaoCustoPrevista }),
         ...(data.numRotinas !== undefined && { numRotinas: Number(data.numRotinas) }),
-        ...(data.turno !== undefined && { turno: data.turno }),
+        turno: calculated.turno,
         ...(data.recomendacao !== undefined && { recomendacao: data.recomendacao }),
         ...(data.esforcoSetupSemanas !== undefined && { esforcoSetupSemanas: Number(data.esforcoSetupSemanas) }),
-        ...(data.horasRobo !== undefined && { horasRobo: Number(data.horasRobo) }),
+        
+        // Multi-Turno
+        horasRoboDiurno: calculated.horasRoboDiurno,
+        horasRoboNoturno: calculated.horasRoboNoturno,
+        horasRoboFimDeSemana: calculated.horasRoboFimDeSemana,
+        horasRobo: calculated.horasRobo,
+        
         ...(data.horasApoioNegocio !== undefined && { horasApoioNegocio: Number(data.horasApoioNegocio) }),
         ...(data.horasManutencao !== undefined && { horasManutencao: Number(data.horasManutencao) }),
 
-        // Atualiza campos calculados com base no perfil e parâmetros
+        // Atualiza campos calculados
         custoMensalAtual: calculated.custoMensalAtual,
         fteLiberado: calculated.fteLiberado,
         pontuacaoBeneficios: calculated.pontuacaoBeneficios,

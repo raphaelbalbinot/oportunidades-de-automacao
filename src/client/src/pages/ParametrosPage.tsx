@@ -153,15 +153,20 @@ export const ParametrosPage: React.FC = () => {
     );
   }
 
-  // Cálculos dinâmicos dos parâmetros
+  // Cálculos dinâmicos dos parâmetros (12 Critérios Corporativos)
   const somaPesos =
-    parametro.pesoLiberarPessoas +
-    parametro.pesoReduzirCusto +
-    parametro.pesoReduzirErros +
-    parametro.pesoMelhorarExpCliente +
-    parametro.pesoAumentarCapacidade +
-    parametro.pesoReduzirTempoResposta +
-    parametro.pesoTransformacaoDigital;
+    (parametro.pesoLiberarPessoas || 3) +
+    (parametro.pesoReduzirCusto || 3) +
+    (parametro.pesoReduzirErros || 3) +
+    (parametro.pesoSegurancaPrivacidade || 3) +
+    (parametro.pesoRastreabilidadeCompliance || 3) +
+    (parametro.pesoKeyPersonRisk || 2) +
+    (parametro.pesoMelhorarExpCliente || 2) +
+    (parametro.pesoAumentarCapacidade || 2) +
+    (parametro.pesoReduzirTempoResposta || 2) +
+    (parametro.pesoInteroperabilidade || 2) +
+    (parametro.pesoTransformacaoDigital || 1) +
+    (parametro.pesoSustentabilidadeEsg || 1);
 
   const custoHoraManutencao = (parametro.operadorSalaControle * 1.6) / 168;
   const custoSetup1SemanaMensal = (parametro.custoHoraDesenvolvimento * 40) / 12;
@@ -173,7 +178,7 @@ export const ParametrosPage: React.FC = () => {
         <div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">Parametrização e Configurações Globais</h1>
           <p className="text-sm text-slate-500 mt-1">
-            Governança de pesos da matriz pública, taxas operacionais globais e catálogo de plataformas tecnológicas.
+            Governança de pesos da matriz corporativa, taxas operacionais globais e catálogo de plataformas tecnológicas.
           </p>
         </div>
 
@@ -181,7 +186,7 @@ export const ParametrosPage: React.FC = () => {
           <button
             onClick={handleSaveParametros}
             disabled={saving}
-            className="flex items-center space-x-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-sm rounded-xl shadow-md shadow-brand-500/20 transition-all self-start sm:self-auto disabled:opacity-50"
+            className="flex items-center justify-center space-x-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white text-sm font-bold rounded-xl shadow-md shadow-brand-500/20 transition-all disabled:opacity-50"
           >
             <Save className="w-4 h-4" />
             <span>{saving ? 'Salvando...' : 'Salvar Alterações'}</span>
@@ -236,9 +241,9 @@ export const ParametrosPage: React.FC = () => {
           <form onSubmit={handleSaveParametros} className="p-6 space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-brand-50 border border-brand-200 rounded-xl p-4">
               <div>
-                <h3 className="text-sm font-bold text-brand-900">Matriz de Priorização do Setor Público</h3>
+                <h3 className="text-sm font-bold text-brand-900">Matriz de Priorização Estratégica Corporativa</h3>
                 <p className="text-xs text-brand-700 mt-0.5">
-                  Pesos estratégicos (1 a 3) calibrados para a realidade governamental, com unificação de capacidade humana liberada.
+                  12 critérios universais calibrados para avaliação qualitativa, governança e conformidade empresarial.
                 </p>
               </div>
               <div className="self-start sm:self-auto px-3 py-1.5 rounded-lg bg-white border border-brand-200 text-brand-900 font-extrabold text-xs shadow-sm">
@@ -247,11 +252,12 @@ export const ParametrosPage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {/* 1. Liberar Capacidade */}
               <div className="bg-slate-50/50 p-3.5 rounded-xl border border-slate-200">
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="text-xs font-semibold text-slate-700 flex items-center">
                     Liberar Capacidade / Pessoas
-                    <Tooltip content="Peso dado ao redirecionamento de esforço humano de tarefas repetitivas para análises e atividades de alto valor público (sem premissa de demissão)." />
+                    <Tooltip content="Redirecionamento de esforço humano de tarefas repetitivas para análises estratégicas e atividades de alto valor." />
                   </label>
                   <span className="text-[10px] font-bold text-brand-600 bg-brand-50 px-2 py-0.5 rounded">Peso 1 a 3</span>
                 </div>
@@ -265,6 +271,7 @@ export const ParametrosPage: React.FC = () => {
                 />
               </div>
 
+              {/* 2. Reduzir Custo */}
               <div className="bg-slate-50/50 p-3.5 rounded-xl border border-slate-200">
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="text-xs font-semibold text-slate-700 flex items-center">
@@ -283,11 +290,12 @@ export const ParametrosPage: React.FC = () => {
                 />
               </div>
 
+              {/* 3. Redução de Erros */}
               <div className="bg-slate-50/50 p-3.5 rounded-xl border border-slate-200">
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="text-xs font-semibold text-slate-700 flex items-center">
-                    Redução de Erros & Compliance
-                    <Tooltip content="Mitigação de falhas humanas, prevenção de autuações de órgãos de controle (TCU/CGU), glosas e retrabalho." />
+                    Redução de Erros Operacionais
+                    <Tooltip content="Eliminação de falhas humanas na digitação, validação de regras de negócio, inconsistências e retrabalho." />
                   </label>
                   <span className="text-[10px] font-bold text-brand-600 bg-brand-50 px-2 py-0.5 rounded">Peso 1 a 3</span>
                 </div>
@@ -301,11 +309,69 @@ export const ParametrosPage: React.FC = () => {
                 />
               </div>
 
+              {/* 4. Segurança & Privacidade */}
               <div className="bg-slate-50/50 p-3.5 rounded-xl border border-slate-200">
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="text-xs font-semibold text-slate-700 flex items-center">
-                    Experiência do Cidadão / Órgãos
-                    <Tooltip content="Melhoria na qualidade, celeridade e satisfação do cidadão ou ministérios conveniados atendidos pelo serviço." />
+                    Segurança & Privacidade (LGPD)
+                    <Tooltip content="Proteção contra vazamento de dados confidenciais, execução segura em cofre de credenciais e compliance LGPD/GDPR." />
+                  </label>
+                  <span className="text-[10px] font-bold text-brand-600 bg-brand-50 px-2 py-0.5 rounded">Peso 1 a 3</span>
+                </div>
+                <input
+                  type="number"
+                  min="1"
+                  max="3"
+                  value={parametro.pesoSegurancaPrivacidade || 3}
+                  onChange={(e) => handleParamChange('pesoSegurancaPrivacidade', Number(e.target.value))}
+                  className="w-full text-sm font-bold px-3 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none"
+                />
+              </div>
+
+              {/* 5. Rastreabilidade & Compliance */}
+              <div className="bg-slate-50/50 p-3.5 rounded-xl border border-slate-200">
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-semibold text-slate-700 flex items-center">
+                    Rastreabilidade & Compliance
+                    <Tooltip content="Trilha de auditoria digital completa, carimbos de tempo, evidências imutáveis e conformidade corporativa e regulatória." />
+                  </label>
+                  <span className="text-[10px] font-bold text-brand-600 bg-brand-50 px-2 py-0.5 rounded">Peso 1 a 3</span>
+                </div>
+                <input
+                  type="number"
+                  min="1"
+                  max="3"
+                  value={parametro.pesoRastreabilidadeCompliance || 3}
+                  onChange={(e) => handleParamChange('pesoRastreabilidadeCompliance', Number(e.target.value))}
+                  className="w-full text-sm font-bold px-3 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none"
+                />
+              </div>
+
+              {/* 6. Key-Person Risk */}
+              <div className="bg-slate-50/50 p-3.5 rounded-xl border border-slate-200">
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-semibold text-slate-700 flex items-center">
+                    Mitigação de Key-Person Risk
+                    <Tooltip content="Eliminação de gargalos e riscos operacionais decorrentes de conhecimento tácito concentrado em poucas pessoas-chave." />
+                  </label>
+                  <span className="text-[10px] font-bold text-brand-600 bg-brand-50 px-2 py-0.5 rounded">Peso 1 a 3</span>
+                </div>
+                <input
+                  type="number"
+                  min="1"
+                  max="3"
+                  value={parametro.pesoKeyPersonRisk || 2}
+                  onChange={(e) => handleParamChange('pesoKeyPersonRisk', Number(e.target.value))}
+                  className="w-full text-sm font-bold px-3 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none"
+                />
+              </div>
+
+              {/* 7. Experiência do Cliente / Usuário */}
+              <div className="bg-slate-50/50 p-3.5 rounded-xl border border-slate-200">
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-semibold text-slate-700 flex items-center">
+                    Experiência do Cliente / Usuário
+                    <Tooltip content="Melhoria na percepção de qualidade, padronização e agilidade percebida pelo cliente ou usuário final." />
                   </label>
                   <span className="text-[10px] font-bold text-brand-600 bg-brand-50 px-2 py-0.5 rounded">Peso 1 a 3</span>
                 </div>
@@ -319,11 +385,12 @@ export const ParametrosPage: React.FC = () => {
                 />
               </div>
 
+              {/* 8. Aumentar Capacidade */}
               <div className="bg-slate-50/50 p-3.5 rounded-xl border border-slate-200">
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="text-xs font-semibold text-slate-700 flex items-center">
-                    Aumentar Capacidade Operacional
-                    <Tooltip content="Capacidade de absorver aumentos de volume e picos sazonais de demanda sem necessidade de contratações emergenciais." />
+                    Capacidade & Escalabilidade
+                    <Tooltip content="Capacidade de absorver aumentos bruscos de volume e picos sazonais de demanda sem novos gargalos." />
                   </label>
                   <span className="text-[10px] font-bold text-brand-600 bg-brand-50 px-2 py-0.5 rounded">Peso 1 a 3</span>
                 </div>
@@ -337,11 +404,12 @@ export const ParametrosPage: React.FC = () => {
                 />
               </div>
 
+              {/* 9. Reduzir SLA */}
               <div className="bg-slate-50/50 p-3.5 rounded-xl border border-slate-200">
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="text-xs font-semibold text-slate-700 flex items-center">
                     Reduzir Tempo de Resposta (SLA)
-                    <Tooltip content="Aceleração drástica do tempo de ciclo de entrega da solicitação ao usuário final." />
+                    <Tooltip content="Diminuição drástica do tempo de ciclo entre a entrada do pedido e a conclusão final do processo." />
                   </label>
                   <span className="text-[10px] font-bold text-brand-600 bg-brand-50 px-2 py-0.5 rounded">Peso 1 a 3</span>
                 </div>
@@ -355,11 +423,31 @@ export const ParametrosPage: React.FC = () => {
                 />
               </div>
 
+              {/* 10. Interoperabilidade entre Sistemas */}
+              <div className="bg-slate-50/50 p-3.5 rounded-xl border border-slate-200">
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-semibold text-slate-700 flex items-center">
+                    Interoperabilidade entre Sistemas
+                    <Tooltip content="Integração ágil e não invasiva entre múltiplos softwares, ERPs, bancos legados, planilhas e portais web." />
+                  </label>
+                  <span className="text-[10px] font-bold text-brand-600 bg-brand-50 px-2 py-0.5 rounded">Peso 1 a 3</span>
+                </div>
+                <input
+                  type="number"
+                  min="1"
+                  max="3"
+                  value={parametro.pesoInteroperabilidade || 2}
+                  onChange={(e) => handleParamChange('pesoInteroperabilidade', Number(e.target.value))}
+                  className="w-full text-sm font-bold px-3 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none"
+                />
+              </div>
+
+              {/* 11. Transformação Digital & Inovação */}
               <div className="bg-slate-50/50 p-3.5 rounded-xl border border-slate-200">
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="text-xs font-semibold text-slate-700 flex items-center">
                     Transformação Digital & Inovação
-                    <Tooltip content="Aderência à Estratégia de Governo Digital, eliminando formulários em papel e rotinas arcaicas." />
+                    <Tooltip content="Modernização tecnológica contínua, fomento à cultura de automação e eliminação de rotinas analógicas." />
                   </label>
                   <span className="text-[10px] font-bold text-brand-600 bg-brand-50 px-2 py-0.5 rounded">Peso 1 a 3</span>
                 </div>
@@ -372,13 +460,32 @@ export const ParametrosPage: React.FC = () => {
                   className="w-full text-sm font-bold px-3 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none"
                 />
               </div>
+
+              {/* 12. Sustentabilidade ESG */}
+              <div className="bg-slate-50/50 p-3.5 rounded-xl border border-slate-200">
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-semibold text-slate-700 flex items-center">
+                    Sustentabilidade Operacional (ESG)
+                    <Tooltip content="Desmaterialização de documentos físicos, redução drástica do consumo de papel e governança sustentável." />
+                  </label>
+                  <span className="text-[10px] font-bold text-brand-600 bg-brand-50 px-2 py-0.5 rounded">Peso 1 a 3</span>
+                </div>
+                <input
+                  type="number"
+                  min="1"
+                  max="3"
+                  value={parametro.pesoSustentabilidadeEsg || 1}
+                  onChange={(e) => handleParamChange('pesoSustentabilidadeEsg', Number(e.target.value))}
+                  className="w-full text-sm font-bold px-3 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none"
+                />
+              </div>
             </div>
 
-            <div className="flex justify-end pt-4 border-t border-slate-100">
+            <div className="flex justify-end pt-4 border-t border-slate-200">
               <button
                 type="submit"
                 disabled={saving}
-                className="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-sm rounded-xl shadow transition-all flex items-center space-x-2"
+                className="flex items-center space-x-2 px-6 py-2.5 bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white text-sm font-bold rounded-xl shadow-md shadow-brand-500/20 transition-all disabled:opacity-50"
               >
                 <Save className="w-4 h-4" />
                 <span>{saving ? 'Salvando...' : 'Salvar Pesos da Matriz'}</span>

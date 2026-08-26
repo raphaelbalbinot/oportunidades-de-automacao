@@ -2,10 +2,15 @@ export interface ParametroData {
   pesoLiberarPessoas: number;
   pesoReduzirCusto: number;
   pesoReduzirErros: number;
+  pesoSegurancaPrivacidade: number;
+  pesoRastreabilidadeCompliance: number;
+  pesoKeyPersonRisk: number;
   pesoMelhorarExpCliente: number;
   pesoAumentarCapacidade: number;
   pesoReduzirTempoResposta: number;
+  pesoInteroperabilidade: number;
   pesoTransformacaoDigital: number;
+  pesoSustentabilidadeEsg: number;
   pesoReduzirFte?: number;
   cargaHorariaPadrao: number;
   operadorSalaControle: number;
@@ -32,17 +37,30 @@ export interface RegistroInput {
   custoMensalAtual?: number;
   turno?: string;
   esforcoSetupSemanas?: number;
+  
+  horasRoboDiurno?: number;
+  horasRoboNoturno?: number;
+  horasRoboFimDeSemana?: number;
   horasRobo?: number;
+  
   horasApoioNegocio?: number;
   horasManutencao?: number;
+  
+  // 12 Critérios Corporativos
   benLiberarPessoas?: string;
   benReduzirCusto?: string;
   benReduzirErros?: string;
+  benSegurancaPrivacidade?: string;
+  benRastreabilidadeCompliance?: string;
+  benKeyPersonRisk?: string;
   benMelhorarExpCliente?: string;
   benAumentarCapacidade?: string;
   benReduzirTempoResposta?: string;
+  benInteroperabilidade?: string;
   benTransformacaoDigital?: string;
+  benSustentabilidadeEsg?: string;
   benReduzirFte?: string;
+  
   perfilPlataforma?: PerfilPlataformaData | null;
 }
 
@@ -51,7 +69,12 @@ export interface CalculatedFields {
   fteLiberado: number;
   pontuacaoBeneficios: number;
   investimentoSetup: number;
+  horasRoboDiurno: number;
+  horasRoboNoturno: number;
+  horasRoboFimDeSemana: number;
+  horasRobo: number;
   custoHorasRobo: number;
+  turno: string;
   custoHorasNegocio: number;
   custoManutencao: number;
   custoMensalAno1: number;
@@ -140,35 +163,84 @@ export class CalculationService {
     const cargaHoraria = param.cargaHorariaPadrao > 0 ? param.cargaHorariaPadrao : 160;
     const fteLiberado = Number((tempoExecucao / cargaHoraria).toFixed(2));
 
-    // 2. Pontuação de Benefícios (7 Critérios Estratégicos do Setor Público)
+    // 2. Pontuação de Benefícios (12 Critérios Corporativos Universais)
     const pMax =
-      param.pesoLiberarPessoas +
-      param.pesoReduzirCusto +
-      param.pesoReduzirErros +
-      param.pesoMelhorarExpCliente +
-      param.pesoAumentarCapacidade +
-      param.pesoReduzirTempoResposta +
-      param.pesoTransformacaoDigital;
+      (param.pesoLiberarPessoas || 3) +
+      (param.pesoReduzirCusto || 3) +
+      (param.pesoReduzirErros || 3) +
+      (param.pesoSegurancaPrivacidade || 3) +
+      (param.pesoRastreabilidadeCompliance || 3) +
+      (param.pesoKeyPersonRisk || 2) +
+      (param.pesoMelhorarExpCliente || 2) +
+      (param.pesoAumentarCapacidade || 2) +
+      (param.pesoReduzirTempoResposta || 2) +
+      (param.pesoInteroperabilidade || 2) +
+      (param.pesoTransformacaoDigital || 1) +
+      (param.pesoSustentabilidadeEsg || 1);
 
     const somaPontos =
-      this.getBeneficioFactor(input.benLiberarPessoas) * param.pesoLiberarPessoas +
-      this.getBeneficioFactor(input.benReduzirCusto) * param.pesoReduzirCusto +
-      this.getBeneficioFactor(input.benReduzirErros) * param.pesoReduzirErros +
-      this.getBeneficioFactor(input.benMelhorarExpCliente) * param.pesoMelhorarExpCliente +
-      this.getBeneficioFactor(input.benAumentarCapacidade) * param.pesoAumentarCapacidade +
-      this.getBeneficioFactor(input.benReduzirTempoResposta) * param.pesoReduzirTempoResposta +
-      this.getBeneficioFactor(input.benTransformacaoDigital) * param.pesoTransformacaoDigital;
+      this.getBeneficioFactor(input.benLiberarPessoas) * (param.pesoLiberarPessoas || 3) +
+      this.getBeneficioFactor(input.benReduzirCusto) * (param.pesoReduzirCusto || 3) +
+      this.getBeneficioFactor(input.benReduzirErros) * (param.pesoReduzirErros || 3) +
+      this.getBeneficioFactor(input.benSegurancaPrivacidade) * (param.pesoSegurancaPrivacidade || 3) +
+      this.getBeneficioFactor(input.benRastreabilidadeCompliance) * (param.pesoRastreabilidadeCompliance || 3) +
+      this.getBeneficioFactor(input.benKeyPersonRisk) * (param.pesoKeyPersonRisk || 2) +
+      this.getBeneficioFactor(input.benMelhorarExpCliente) * (param.pesoMelhorarExpCliente || 2) +
+      this.getBeneficioFactor(input.benAumentarCapacidade) * (param.pesoAumentarCapacidade || 2) +
+      this.getBeneficioFactor(input.benReduzirTempoResposta) * (param.pesoReduzirTempoResposta || 2) +
+      this.getBeneficioFactor(input.benInteroperabilidade) * (param.pesoInteroperabilidade || 2) +
+      this.getBeneficioFactor(input.benTransformacaoDigital) * (param.pesoTransformacaoDigital || 1) +
+      this.getBeneficioFactor(input.benSustentabilidadeEsg) * (param.pesoSustentabilidadeEsg || 1);
 
     const pontuacaoBeneficios = pMax > 0 ? Number((somaPontos / pMax).toFixed(4)) : 0;
 
-    // 3. Custos de Setup e Operação TO BE com Perfil Tecnológico
+    // 3. Custos de Setup
     const esforcoSetupSemanas = Number(input.esforcoSetupSemanas) || 0;
     const custoSetupPorSemana = this.getCustoSetupMensalPorSemana(param);
     const investimentoSetup = Number((esforcoSetupSemanas * custoSetupPorSemana).toFixed(2));
 
-    const horasRobo = Number(input.horasRobo) || 0;
-    const custoHoraRobo = this.getCustoHoraRoboPorTurno(param, input.turno, input.perfilPlataforma);
-    const custoHorasRobo = Number((horasRobo * custoHoraRobo).toFixed(2));
+    // 4. Multi-Turno & Custos de Operação do Robô
+    let horasRoboDiurno = Number(input.horasRoboDiurno) || 0;
+    let horasRoboNoturno = Number(input.horasRoboNoturno) || 0;
+    let horasRoboFimDeSemana = Number(input.horasRoboFimDeSemana) || 0;
+    let horasRobo = Number(input.horasRobo) || 0;
+
+    // Se as horas específicas de turnos não foram detalhadas, mas horasRobo foi informada:
+    if (horasRoboDiurno === 0 && horasRoboNoturno === 0 && horasRoboFimDeSemana === 0 && horasRobo > 0) {
+      const normalTurno = (input.turno || 'Diurno').toLowerCase();
+      if (normalTurno.includes('noturno')) horasRoboNoturno = horasRobo;
+      else if (normalTurno.includes('fim') || normalTurno.includes('semana')) horasRoboFimDeSemana = horasRobo;
+      else horasRoboDiurno = horasRobo;
+    } else {
+      horasRobo = Number((horasRoboDiurno + horasRoboNoturno + horasRoboFimDeSemana).toFixed(2));
+    }
+
+    const taxaDiurna = this.getCustoHoraRoboPorTurno(param, 'Diurno', input.perfilPlataforma);
+    const taxaNoturna = this.getCustoHoraRoboPorTurno(param, 'Noturno', input.perfilPlataforma);
+    const taxaFimSemana = this.getCustoHoraRoboPorTurno(param, 'Final de Semana', input.perfilPlataforma);
+
+    const custoHorasRobo = Number(
+      (
+        horasRoboDiurno * taxaDiurna +
+        horasRoboNoturno * taxaNoturna +
+        horasRoboFimDeSemana * taxaFimSemana
+      ).toFixed(2)
+    );
+
+    // Rótulo descritivo do turno
+    let turno = 'Diurno';
+    const turnosAtivos = [];
+    if (horasRoboDiurno > 0) turnosAtivos.push('Diurno');
+    if (horasRoboNoturno > 0) turnosAtivos.push('Noturno');
+    if (horasRoboFimDeSemana > 0) turnosAtivos.push('Fim de Semana');
+
+    if (turnosAtivos.length > 1) {
+      turno = 'Múltiplos Turnos';
+    } else if (turnosAtivos.length === 1) {
+      turno = turnosAtivos[0];
+    } else {
+      turno = input.turno || 'Diurno';
+    }
 
     const horasApoioNegocio = Number(input.horasApoioNegocio) || 0;
     const custoHorasNegocio = Number((horasApoioNegocio * valorHoraExecutor).toFixed(2));
@@ -177,7 +249,7 @@ export class CalculationService {
     const custoHoraManutencao = this.getCustoHoraManutencao(param);
     const custoManutencao = Number((horasManutencao * custoHoraManutencao).toFixed(2));
 
-    // 4. Totais Mensais e Anuais
+    // 5. Totais Mensais e Anuais
     const custoMensalAno1 = Number(
       (investimentoSetup + custoHorasRobo + custoHorasNegocio + custoManutencao).toFixed(2)
     );
@@ -186,7 +258,7 @@ export class CalculationService {
     const custoAnualAno1 = Number((custoMensalAno1 * 12).toFixed(2));
     const custoAnualAno2 = Number((custoMensalAno2 * 12).toFixed(2));
 
-    // 5. ROI e Payback
+    // 6. ROI e Payback
     const roiAno1 = Number(((custoMensalAtual * 12) - custoAnualAno1).toFixed(2));
     const roiAno2 = Number(((custoMensalAtual * 24) - custoAnualAno1 - custoAnualAno2 - roiAno1).toFixed(2));
 
@@ -198,7 +270,12 @@ export class CalculationService {
       fteLiberado,
       pontuacaoBeneficios,
       investimentoSetup,
+      horasRoboDiurno,
+      horasRoboNoturno,
+      horasRoboFimDeSemana,
+      horasRobo,
       custoHorasRobo,
+      turno,
       custoHorasNegocio,
       custoManutencao,
       custoMensalAno1,

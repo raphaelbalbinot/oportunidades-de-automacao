@@ -496,6 +496,10 @@ export const RegistrosPage: React.FC = () => {
                                     <span className="text-slate-500">FTE Poupado:</span>
                                     <span className="font-bold text-emerald-600">{item.fteLiberado} FTE</span>
                                   </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-slate-500">Turno de Operação:</span>
+                                    <span className="font-semibold text-slate-800">{item.turno || 'Diurno'}</span>
+                                  </div>
                                   <div className="flex justify-between pt-1 border-t border-slate-50">
                                     <span className="text-slate-500">Recomendação:</span>
                                     <span className="font-semibold text-slate-800">{item.recomendacao}</span>
