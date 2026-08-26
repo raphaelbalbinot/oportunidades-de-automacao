@@ -221,14 +221,15 @@ export const ParametrosPage: React.FC = () => {
         {/* Tab 1: Matriz de Benefícios */}
         {activeTab === 'beneficios' && (
           <form onSubmit={handleSaveParametros} className="p-6 space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-blue-50 border border-blue-200 rounded-md p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h3 className="text-xs font-bold text-blue-900 m-0">Matriz de Priorização Estratégica Corporativa</h3>
-                <p className="text-[11px] text-blue-800 mt-0.5 m-0">
+                <h3 className="text-sm font-bold text-slate-900 m-0">Matriz de Priorização Estratégica Corporativa</h3>
+                <p className="text-xs text-slate-600 mt-0.5 m-0">
                   12 critérios universais calibrados para avaliação qualitativa, governança e conformidade empresarial.
                 </p>
               </div>
-              <div className="self-start sm:self-auto px-3 py-1.5 rounded bg-white border border-blue-200 text-blue-950 font-bold text-xs shadow-xs">
+
+              <div className="self-start sm:self-auto px-3.5 py-1.5 rounded-md bg-blue-50 text-[#1351b4] font-bold text-xs border border-blue-200 shadow-xs whitespace-nowrap">
                 Soma de Pesos: {somaPesos} pontos
               </div>
             </div>
@@ -479,6 +480,15 @@ export const ParametrosPage: React.FC = () => {
         {/* Tab 2: Taxas Operacionais & Turnos */}
         {activeTab === 'taxas' && (
           <form onSubmit={handleSaveParametros} className="p-6 space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 m-0">Taxas Operacionais & Turnos de Execução</h3>
+                <p className="text-xs text-slate-600 mt-0.5 m-0">
+                  Configure a carga horária de referência, custos operacionais de NOC, valor hora de desenvolvimento e percentuais de turno.
+                </p>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               <div>
                 <label className="block text-xs font-semibold text-slate-800 mb-1.5">
@@ -580,12 +590,12 @@ export const ParametrosPage: React.FC = () => {
                 <span className="text-[11px] text-slate-500 mt-1 block">Fórmula: Operador NOC x 1.6 / 168h</span>
               </div>
 
-              <div className="bg-green-50 p-4 rounded-md border border-green-200">
-                <span className="text-[11px] font-bold text-green-900 uppercase tracking-wider">Custo Setup por Semana de Esforço</span>
-                <div className="text-xl font-bold text-green-900 mt-0.5">
+              <div className="bg-emerald-50 p-4 rounded-md border border-emerald-200 stat-box-emerald">
+                <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block stat-title">Custo Setup por Semana de Esforço</span>
+                <div className="text-xl font-bold text-emerald-950 mt-0.5 stat-value">
                   R$ {custoSetup1SemanaMensal.toFixed(2)} / mês (12 meses)
                 </div>
-                <span className="text-[11px] text-green-800 mt-1 block">Fórmula: Hora Dev x 40h / 12 meses</span>
+                <span className="text-[11px] text-emerald-700 mt-1 block stat-desc">Fórmula: Hora Dev x 40h / 12 meses</span>
               </div>
             </div>
 

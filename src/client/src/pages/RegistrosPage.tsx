@@ -259,41 +259,41 @@ export const RegistrosPage: React.FC = () => {
       {/* Table (Master-Detail Inline com padrão GOV.BR DS) */}
       <div className="br-table bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
         <div className="w-full overflow-x-auto">
-          <table className="w-full text-xs text-left border-collapse">
+          <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-100 text-slate-700 font-bold uppercase text-[11px] border-b border-slate-200">
-                <th className="py-3 px-3 w-10 text-center"></th>
-                <th onClick={() => handleSort('idAnalise')} className="py-3 px-3 cursor-pointer hover:bg-slate-200/70 transition-colors">
+              <tr className="bg-slate-100/90 text-slate-600 font-semibold uppercase text-[10px] tracking-wider border-b border-slate-200">
+                <th className="py-2 px-2.5 w-9 text-center"></th>
+                <th onClick={() => handleSort('idAnalise')} className="py-2 px-2.5 cursor-pointer hover:bg-slate-200/70 transition-colors">
                   ID {renderSortIcon('idAnalise')}
                 </th>
-                <th onClick={() => handleSort('nomeProcesso')} className="py-3 px-4 cursor-pointer hover:bg-slate-200/70 transition-colors">
+                <th onClick={() => handleSort('nomeProcesso')} className="py-2 px-3 cursor-pointer hover:bg-slate-200/70 transition-colors">
                   Processo & Área {renderSortIcon('nomeProcesso')}
                 </th>
-                <th onClick={() => handleSort('custoMensalAtual')} className="py-3 px-3 text-right cursor-pointer hover:bg-slate-200/70 transition-colors">
+                <th onClick={() => handleSort('custoMensalAtual')} className="py-2 px-2.5 text-right cursor-pointer hover:bg-slate-200/70 transition-colors">
                   Custo Atual {renderSortIcon('custoMensalAtual')}
                 </th>
-                <th onClick={() => handleSort('fteLiberado')} className="py-3 px-3 text-right cursor-pointer hover:bg-slate-200/70 transition-colors">
+                <th onClick={() => handleSort('fteLiberado')} className="py-2 px-2.5 text-right cursor-pointer hover:bg-slate-200/70 transition-colors">
                   FTE Liberado {renderSortIcon('fteLiberado')}
                 </th>
-                <th onClick={() => handleSort('complexidade')} className="py-3 px-3 text-center cursor-pointer hover:bg-slate-200/70 transition-colors">
+                <th onClick={() => handleSort('complexidade')} className="py-2 px-2.5 text-center cursor-pointer hover:bg-slate-200/70 transition-colors">
                   Complexidade {renderSortIcon('complexidade')}
                 </th>
-                <th onClick={() => handleSort('roiAno1')} className="py-3 px-3 text-right cursor-pointer hover:bg-slate-200/70 transition-colors">
+                <th onClick={() => handleSort('roiAno1')} className="py-2 px-2.5 text-right cursor-pointer hover:bg-slate-200/70 transition-colors">
                   ROI 1 Ano {renderSortIcon('roiAno1')}
                 </th>
-                <th onClick={() => handleSort('paybackMeses')} className="py-3 px-3 text-center cursor-pointer hover:bg-slate-200/70 transition-colors">
+                <th onClick={() => handleSort('paybackMeses')} className="py-2 px-2.5 text-center cursor-pointer hover:bg-slate-200/70 transition-colors">
                   Payback {renderSortIcon('paybackMeses')}
                 </th>
-                <th onClick={() => handleSort('situacao')} className="py-3 px-3 text-center cursor-pointer hover:bg-slate-200/70 transition-colors">
+                <th onClick={() => handleSort('situacao')} className="py-2 px-2.5 text-center cursor-pointer hover:bg-slate-200/70 transition-colors">
                   Status {renderSortIcon('situacao')}
                 </th>
-                <th className="py-3 px-4 text-center">
+                <th className="py-2 px-3 text-center">
                   Ações
                 </th>
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-slate-100 bg-white font-medium text-slate-800">
+            <tbody className="divide-y divide-slate-100 bg-white font-medium text-slate-800 text-[11px]">
               {loading ? (
                 <tr>
                   <td colSpan={10} className="py-12 text-center text-slate-500">
@@ -320,47 +320,47 @@ export const RegistrosPage: React.FC = () => {
                         }`}
                       >
                         {/* Chevron */}
-                        <td className="py-3.5 px-3 text-center">
+                        <td className="py-2.5 px-2.5 text-center">
                           <button
                             type="button"
                             onClick={(e) => toggleExpandRow(item.id, e)}
-                            className="p-1.5 rounded text-slate-400 hover:text-[#1351b4] hover:bg-blue-50/50 transition-colors bg-transparent border-0 shadow-none cursor-pointer"
+                            className="p-1 rounded text-slate-400 hover:text-[#1351b4] hover:bg-blue-50/50 transition-colors bg-transparent border-0 shadow-none cursor-pointer"
                             aria-label="Expandir detalhes"
                           >
-                            <i className={`fas fa-chevron-${isExpanded ? 'down text-[#1351b4]' : 'right text-slate-400'} text-xs`}></i>
+                            <i className={`fas fa-chevron-${isExpanded ? 'down text-[#1351b4]' : 'right text-slate-400'} text-[10px]`}></i>
                           </button>
                         </td>
 
                         {/* ID */}
-                        <td className="py-3.5 px-3 whitespace-nowrap">
+                        <td className="py-2.5 px-2.5 whitespace-nowrap">
                           <div className="flex items-center space-x-1.5">
-                            <span className="font-bold text-[#1351b4]">{item.idAnalise}</span>
+                            <span className="font-bold text-[#1351b4] text-[11px]">{item.idAnalise}</span>
                             {item.idOrigem && item.idOrigem !== '-' && (
-                              <span className="text-[10px] text-slate-400 font-mono">({item.idOrigem})</span>
+                              <span className="text-[9.5px] text-slate-400 font-mono">({item.idOrigem})</span>
                             )}
                           </div>
                         </td>
 
                         {/* Processo & Área */}
-                        <td className="py-3.5 px-4">
-                          <div className="font-bold text-slate-900 text-xs">{item.nomeProcesso}</div>
-                          <div className="text-[11px] text-slate-500 font-normal">{item.area}</div>
+                        <td className="py-2.5 px-3">
+                          <div className="font-semibold text-slate-900 text-[11px] leading-tight">{item.nomeProcesso}</div>
+                          <div className="text-[10px] text-slate-500 font-normal">{item.area}</div>
                         </td>
 
                         {/* Custo Atual */}
-                        <td className="py-3.5 px-3 text-right font-semibold text-red-700 whitespace-nowrap">
+                        <td className="py-2.5 px-2.5 text-right font-medium text-red-700 whitespace-nowrap text-[11px]">
                           R$ {item.custoMensalAtual.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/mês
                         </td>
 
                         {/* FTE Liberado */}
-                        <td className="py-3.5 px-3 text-right font-bold text-green-700 whitespace-nowrap">
+                        <td className="py-2.5 px-2.5 text-right font-bold text-green-700 whitespace-nowrap text-[11px]">
                           {item.fteLiberado} FTE
                         </td>
 
                         {/* Complexidade */}
-                        <td className="py-3.5 px-3 text-center whitespace-nowrap">
+                        <td className="py-2.5 px-2.5 text-center whitespace-nowrap">
                           <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full font-bold text-[10px] ${
+                            className={`inline-flex items-center px-2 py-0.5 rounded-full font-bold text-[9.5px] ${
                               item.complexidade === 'Baixa'
                                 ? 'bg-green-100 text-green-800'
                                 : item.complexidade === 'Média'
@@ -373,18 +373,18 @@ export const RegistrosPage: React.FC = () => {
                         </td>
 
                         {/* ROI 1 Ano */}
-                        <td className="py-3.5 px-3 text-right font-bold text-green-700 whitespace-nowrap">
+                        <td className="py-2.5 px-2.5 text-right font-bold text-green-700 whitespace-nowrap text-[11px]">
                           R$ {item.roiAno1.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </td>
 
                         {/* Payback */}
-                        <td className="py-3.5 px-3 text-center font-semibold text-slate-700 whitespace-nowrap">
+                        <td className="py-2.5 px-2.5 text-center font-medium text-slate-700 whitespace-nowrap text-[11px]">
                           {item.paybackMeses.toFixed(1)} meses
                         </td>
 
                         {/* Status */}
-                        <td className="py-3.5 px-3 text-center whitespace-nowrap">
-                          <span className="inline-flex items-center px-2.5 py-1 rounded font-medium text-[11px] bg-slate-100 text-slate-700 border border-slate-200">
+                        <td className="py-2.5 px-2.5 text-center whitespace-nowrap">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded font-medium text-[10px] bg-slate-100 text-slate-700 border border-slate-200">
                             {item.situacao}
                           </span>
                         </td>

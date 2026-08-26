@@ -45,166 +45,172 @@ export const Layout: React.FC<LayoutProps> = ({ activeTab, setActiveTab, childre
         {children}
       </main>
 
-      {/* Rodapé Oficial Serpro (GOV.BR DS br-footer Oficial de serpro.gov.br) */}
+      {/* Rodapé Oficial Serpro (GOV.BR DS br-footer) */}
       <footer className="br-footer bg-[#071d41] text-white pt-12 pb-8 mt-16 border-t border-slate-800 font-['Rawline','Raleway',sans-serif]">
         <div className="container-lg max-w-7xl mx-auto px-4 sm:px-8">
           <div className="logo-rodape pb-8">
-            <img src="/assets/marca-serpro-rodape.png" alt="Serpro" className="h-10 w-auto object-contain brightness-100" />
+            <img src="/assets/marca-serpro-rodape.png" alt="Serpro" className="h-12 max-h-[48px] max-w-[180px] w-auto object-contain brightness-100" />
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 text-[14px]">
-            {/* Coluna 1: SOLUÇÕES */}
-            <div>
+          <div className="br-list horizontal grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 text-[14px]">
+            <div className="col-2">
               <a className="br-item header font-bold text-white uppercase text-[14px] flex items-center justify-between pb-2 border-b border-white/10" href="javascript:void(0)">
-                <span className="content text-bold text-uppercase">Soluções</span>
-                <span className="support"><i className="fas fa-angle-down text-xs" aria-hidden="true"></i></span>
+                <div className="content text-down-01 text-bold text-uppercase">Soluções</div>
+                <div className="support"><i className="fas fa-angle-down text-xs" aria-hidden="true"></i></div>
               </a>
-              <div className="space-y-3 pt-3" style={{ display: 'block' }}>
+              <div className="br-list space-y-3 pt-3" style={{ display: 'block' }}>
+                <span className="br-divider d-md-none"></span>
                 <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://loja.serpro.gov.br/?utm_source=portal&utm_medium=rodape&utm_campaign=home-serpro" target="_blank" rel="noreferrer">
-                  <span className="content">Loja Serpro</span>
+                  <div className="content">Loja Serpro</div>
                 </a>
                 <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.ventures.serpro.gov.br" target="_blank" rel="noreferrer">
-                  <span className="content">Inovação aberta</span>
+                  <div className="content">Inovação aberta</div>
                 </a>
                 <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.serpro.gov.br/insights" target="_blank" rel="noreferrer">
-                  <span className="content">Insights e Notícias</span>
+                  <div className="content">Insights e Notícias</div>
                 </a>
+                <span className="br-divider d-md-none"></span>
               </div>
             </div>
 
-            {/* Coluna 2: SUPORTE */}
-            <div>
+            <div className="col-2">
               <a className="br-item header font-bold text-white uppercase text-[14px] flex items-center justify-between pb-2 border-b border-white/10" href="javascript:void(0)">
-                <span className="content text-bold text-uppercase">Suporte</span>
-                <span className="support"><i className="fas fa-angle-down text-xs" aria-hidden="true"></i></span>
+                <div className="content text-down-01 text-bold text-uppercase">Suporte</div>
+                <div className="support"><i className="fas fa-angle-down text-xs" aria-hidden="true"></i></div>
               </a>
-              <div className="space-y-3 pt-3" style={{ display: 'block' }}>
+              <div className="br-list space-y-3 pt-3" style={{ display: 'block' }}>
+                <span className="br-divider d-md-none"></span>
                 <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.serpro.gov.br/menu/suporte/ajuda-ao-cliente" target="_blank" rel="noreferrer">
-                  <span className="content">Ajuda ao cliente</span>
+                  <div className="content">Ajuda ao cliente</div>
                 </a>
                 <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://centraldeajuda.serpro.gov.br/duvidas/pt/atendimento/atendimento/?utm_source=portal&utm_medium=rodape&utm_campaign=home-serpro" target="_blank" rel="noreferrer">
-                  <span className="content">Central de Ajuda</span>
+                  <div className="content">Central de Ajuda</div>
                 </a>
                 <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.serpro.gov.br/menu/suporte/css" target="_blank" rel="noreferrer">
-                  <span className="content">Central de Serviços</span>
+                  <div className="content">Central de Serviços</div>
                 </a>
                 <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.serpro.gov.br/menu/suporte/escritorio-de-atendimento-ao-mercado" target="_blank" rel="noreferrer">
-                  <span className="content">Consignatárias</span>
+                  <div className="content">Consignatárias</div>
                 </a>
                 <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.serpro.gov.br/menu/suporte/central-de-servicos-transformacao-digital-da-justica" target="_blank" rel="noreferrer">
-                  <span className="content">Transformação Digital da Justiça</span>
+                  <div className="content">Transformação Digital da Justiça</div>
                 </a>
                 <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.serpro.gov.br/menu/suporte/downloads/downloads-e-softwares" target="_blank" rel="noreferrer">
-                  <span className="content">Downloads</span>
+                  <div className="content">Downloads</div>
                 </a>
+                <span className="br-divider d-md-none"></span>
               </div>
             </div>
 
-            {/* Coluna 3: INSTITUCIONAL */}
-            <div>
+            <div className="col-2">
               <a className="br-item header font-bold text-white uppercase text-[14px] flex items-center justify-between pb-2 border-b border-white/10" href="javascript:void(0)">
-                <span className="content text-bold text-uppercase">Institucional</span>
-                <span className="support"><i className="fas fa-angle-down text-xs" aria-hidden="true"></i></span>
+                <div className="content text-down-01 text-bold text-uppercase">Institucional</div>
+                <div className="support"><i className="fas fa-angle-down text-xs" aria-hidden="true"></i></div>
               </a>
-              <div className="space-y-3 pt-3" style={{ display: 'block' }}>
+              <div className="br-list space-y-3 pt-3" style={{ display: 'block' }}>
+                <span className="br-divider d-md-none"></span>
                 <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.serpro.gov.br/menu/institucional/quem-somos" target="_blank" rel="noreferrer">
-                  <span className="content">Quem Somos</span>
+                  <div className="content">Quem Somos</div>
                 </a>
                 <a className="br-item block py-1 text-white hover:underline transition-colors" href="http://www.serpro.gov.br/marca-serpro/" target="_blank" rel="noreferrer">
-                  <span className="content">Marca Serpro</span>
+                  <div className="content">Marca Serpro</div>
                 </a>
                 <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.serpro.gov.br/menu/quem-somos/iniciativas-sociais" target="_blank" rel="noreferrer">
-                  <span className="content">Iniciativas Sociais</span>
+                  <div className="content">Iniciativas Sociais</div>
                 </a>
                 <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.transparencia.serpro.gov.br/" target="_blank" rel="noreferrer">
-                  <span className="content">Governança</span>
+                  <div className="content">Governança</div>
                 </a>
                 <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.transparencia.serpro.gov.br/etica-e-integridade/?utm_source=portal&utm_medium=rodape&utm_campaign=home-serpro" target="_blank" rel="noreferrer">
-                  <span className="content">Ética e Integridade</span>
+                  <div className="content">Ética e Integridade</div>
                 </a>
                 <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.transparencia.serpro.gov.br/acesso-a-informacao/?utm_source=portal&utm_medium=rodape&utm_campaign=home-serpro" target="_blank" rel="noreferrer">
-                  <span className="content">Acesso à Informação</span>
+                  <div className="content">Acesso à Informação</div>
                 </a>
                 <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.serpro.gov.br/privacidade-protecao-dados" target="_blank" rel="noreferrer">
-                  <span className="content">Privacidade</span>
+                  <div className="content">Privacidade</div>
                 </a>
+                <span className="br-divider d-md-none"></span>
               </div>
             </div>
 
-            {/* Coluna 4: CONTATO */}
-            <div>
+            <div className="col-2">
               <a className="br-item header font-bold text-white uppercase text-[14px] flex items-center justify-between pb-2 border-b border-white/10" href="javascript:void(0)">
-                <span className="content text-bold text-uppercase">Contato</span>
-                <span className="support"><i className="fas fa-angle-down text-xs" aria-hidden="true"></i></span>
+                <div className="content text-down-01 text-bold text-uppercase">Contato</div>
+                <div className="support"><i className="fas fa-angle-down text-xs" aria-hidden="true"></i></div>
               </a>
-              <div className="space-y-3 pt-3" style={{ display: 'block' }}>
+              <div className="br-list space-y-3 pt-3" style={{ display: 'block' }}>
+                <span className="br-divider d-md-none"></span>
                 <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.transparencia.serpro.gov.br/acesso-a-informacao/institucional/enderecos" target="_blank" rel="noreferrer">
-                  <span className="content">Endereços</span>
+                  <div className="content">Endereços</div>
                 </a>
                 <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.serpro.gov.br/menu/contato/cliente/cliente/@@template_contato" target="_blank" rel="noreferrer">
-                  <span className="content">Fale conosco</span>
+                  <div className="content">Fale conosco</div>
                 </a>
                 <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://serpro.gov.br/menu/imprensa" target="_blank" rel="noreferrer">
-                  <span className="content">Imprensa</span>
+                  <div className="content">Imprensa</div>
                 </a>
                 <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.serpro.gov.br/corregedoria" target="_blank" rel="noreferrer">
-                  <span className="content">Corregedoria</span>
+                  <div className="content">Corregedoria</div>
                 </a>
                 <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.transparencia.serpro.gov.br/etica-e-integridade/ouvidoria/fale-com-a-ouvidoria" target="_blank" rel="noreferrer">
-                  <span className="content">Ouvidoria</span>
+                  <div className="content">Ouvidoria</div>
                 </a>
                 <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://falabr.cgu.gov.br/web/home" target="_blank" rel="noreferrer">
-                  <span className="content">Fala BR</span>
+                  <div className="content">Fala BR</div>
                 </a>
+                <span className="br-divider d-md-none"></span>
               </div>
             </div>
 
-            {/* Coluna 5: EMPREGADOS */}
-            <div>
+            <div className="col-2">
               <a className="br-item header font-bold text-white uppercase text-[14px] flex items-center justify-between pb-2 border-b border-white/10" href="javascript:void(0)">
-                <span className="content text-bold text-uppercase">Empregados</span>
-                <span className="support"><i className="fas fa-angle-down text-xs" aria-hidden="true"></i></span>
+                <div className="content text-down-01 text-bold text-uppercase">Empregados</div>
+                <div className="support"><i className="fas fa-angle-down text-xs" aria-hidden="true"></i></div>
               </a>
-              <div className="space-y-3 pt-3" style={{ display: 'block' }}>
+              <div className="br-list space-y-3 pt-3" style={{ display: 'block' }}>
+                <span className="br-divider d-md-none"></span>
                 <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://intra.serpro.gov.br/login/?utm_source=portal&utm_medium=rodape&utm_campaign=home-serpro" target="_blank" rel="noreferrer">
-                  <span className="content">Intranet</span>
+                  <div className="content">Intranet</div>
                 </a>
                 <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://passerpro.impactomedica.com.br/" target="_blank" rel="noreferrer">
-                  <span className="content">PAS Serpro</span>
+                  <div className="content">PAS Serpro</div>
                 </a>
                 <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://intra.serpro.gov.br/minha-empresa/beneficios/plano-odontologico" target="_blank" rel="noreferrer">
-                  <span className="content">Plano Odontológico</span>
+                  <div className="content">Plano Odontológico</div>
                 </a>
                 <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.transparencia.serpro.gov.br/acesso-a-informacao/empregados/?utm_source=portal&utm_medium=rodape&utm_campaign=home-serpro" target="_blank" rel="noreferrer">
-                  <span className="content">Carreira</span>
+                  <div className="content">Carreira</div>
                 </a>
+                <span className="br-divider d-md-none"></span>
               </div>
             </div>
 
-            {/* Coluna 6: SUSTENTABILIDADE */}
-            <div>
+            <div className="col-2">
               <a className="br-item header font-bold text-white uppercase text-[14px] flex items-center justify-between pb-2 border-b border-white/10" href="javascript:void(0)">
-                <span className="content text-bold text-uppercase">SUSTENTABILIDADE</span>
-                <span className="support"><i className="fas fa-angle-down text-xs" aria-hidden="true"></i></span>
+                <div className="content text-down-01 text-bold text-uppercase">SUSTENTABILIDADE</div>
+                <div className="support"><i className="fas fa-angle-down text-xs" aria-hidden="true"></i></div>
               </a>
-              <div className="space-y-3 pt-3" style={{ display: 'block' }}>
+              <div className="br-list space-y-3 pt-3" style={{ display: 'block' }}>
+                <span className="br-divider d-md-none"></span>
                 <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.serpro.gov.br/menu/sustentabilidade/esg-serpro" target="_blank" rel="noreferrer">
-                  <span className="content">ESG</span>
+                  <div className="content">ESG</div>
                 </a>
                 <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.serpro.gov.br/menu/sustentabilidade/jornada-ser-esg" target="_blank" rel="noreferrer">
-                  <span className="content">Jornada Ser ESG</span>
+                  <div className="content">Jornada Ser ESG</div>
                 </a>
                 <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.serpro.gov.br/menu/sustentabilidade/ods" target="_blank" rel="noreferrer">
-                  <span className="content">Objetivos de desenvolvimento Sustentável</span>
+                  <div className="content">Objetivos de desenvolvimento Sustentável</div>
                 </a>
+                <span className="br-divider d-md-none"></span>
               </div>
             </div>
           </div>
 
           {/* Redes Sociais & Selo Acesso à Informação */}
-          <div className="d-block pt-10 border-t border-white/10">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-6 py-4">
+          <div className="d-none d-sm-block pt-10 border-t border-white/10">
+            <div className="row flex items-end justify-between py-5">
               <div className="col">
-                <div className="social-network space-y-3 text-center sm:text-left">
+                <div className="social-network space-y-3 text-left">
                   <div className="social-network-title font-bold text-[14px] text-white uppercase tracking-wider">Redes Sociais</div>
                   <div className="d-flex flex items-center space-x-3 text-base">
                     <a className="br-button circle w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all" href="http://facebook.com/SerproBrasil" aria-label="Visite o Serpro no Facebook" target="_blank" rel="noreferrer">
@@ -244,11 +250,15 @@ export const Layout: React.FC<LayoutProps> = ({ activeTab, setActiveTab, childre
 
         <span className="br-divider my-3 border-t border-white/10 block max-w-7xl mx-auto"></span>
 
-        <div className="container-lg max-w-7xl mx-auto px-4 sm:px-8 text-center space-y-4 pt-4">
-          <div className="info flex flex-col items-center justify-center space-y-3">
-            <img src="/assets/assinatura-serpro-mf.png" alt="Serpro - Ministério da Fazenda - Governo Federal" className="img-fluid py-2 h-10 md:h-12 w-auto object-contain mx-auto brightness-100" />
-            <div className="text-down-01 text-medium text-[14px] text-slate-300 font-normal">
-              Serpro Sede - SGAN Quadra 601 Módulo "V" Brasília - DF CEP: 70836-900 <br /> Horário de atendimento: 8h às 18h
+        <div className="container-lg max-w-7xl mx-auto px-4 sm:px-8 text-center pt-2">
+          <div className="info flex flex-col items-center justify-center">
+            <img
+              src="/assets/assinatura-serpro-mf.png"
+              alt="Serpro - Ministério da Fazenda - Governo Federal"
+              className="img-fluid py-6 w-full max-w-[387px] h-auto object-contain mx-auto block"
+            />
+            <div className="text-down-01 text-medium text-[13px] text-slate-300 font-normal pb-4 mt-1">
+              Serpro Sede - SGAN Quadra 601 Módulo &quot;V&quot; Brasília - DF CEP: 70836-900 <br /> Horário de atendimento: 8h às 18h
             </div>
           </div>
         </div>
