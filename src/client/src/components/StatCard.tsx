@@ -1,11 +1,10 @@
 import React from 'react';
-import { LucideIcon } from 'lucide-react';
 
 interface StatCardProps {
   title: string;
   value: string | number;
   subtitle?: string;
-  icon: LucideIcon;
+  iconFa?: string;
   trend?: {
     value: string;
     isPositive: boolean;
@@ -17,53 +16,58 @@ export const StatCard: React.FC<StatCardProps> = ({
   title,
   value,
   subtitle,
-  icon: Icon,
+  iconFa = 'fas fa-chart-bar',
   trend,
   colorScheme = 'blue',
 }) => {
+
   const schemeClasses = {
     blue: {
-      bg: 'bg-blue-50/70 text-blue-600 border-blue-200/60',
-      border: 'border-slate-200 hover:border-blue-300',
+      iconBg: 'bg-blue-50 text-blue-700 border-blue-200',
+      border: 'border-l-4 border-l-blue-600 border-slate-200',
     },
     emerald: {
-      bg: 'bg-emerald-50/70 text-emerald-600 border-emerald-200/60',
-      border: 'border-slate-200 hover:border-emerald-300',
+      iconBg: 'bg-green-50 text-green-700 border-green-200',
+      border: 'border-l-4 border-l-green-600 border-slate-200',
     },
     violet: {
-      bg: 'bg-violet-50/70 text-violet-600 border-violet-200/60',
-      border: 'border-slate-200 hover:border-violet-300',
+      iconBg: 'bg-purple-50 text-purple-700 border-purple-200',
+      border: 'border-l-4 border-l-purple-600 border-slate-200',
     },
     amber: {
-      bg: 'bg-amber-50/70 text-amber-600 border-amber-200/60',
-      border: 'border-slate-200 hover:border-amber-300',
+      iconBg: 'bg-amber-50 text-amber-700 border-amber-200',
+      border: 'border-l-4 border-l-amber-500 border-slate-200',
     },
     rose: {
-      bg: 'bg-rose-50/70 text-rose-600 border-rose-200/60',
-      border: 'border-slate-200 hover:border-rose-300',
+      iconBg: 'bg-red-50 text-red-700 border-red-200',
+      border: 'border-l-4 border-l-red-600 border-slate-200',
     },
     cyan: {
-      bg: 'bg-cyan-50/70 text-cyan-600 border-cyan-200/60',
-      border: 'border-slate-200 hover:border-cyan-300',
+      iconBg: 'bg-cyan-50 text-cyan-700 border-cyan-200',
+      border: 'border-l-4 border-l-cyan-600 border-slate-200',
     },
   };
 
   const currentScheme = schemeClasses[colorScheme] || schemeClasses.blue;
 
   return (
-    <div className={`bg-white rounded-2xl p-5 border ${currentScheme.border} shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between`}>
+    <div className={`br-card bg-white rounded-lg p-5 border ${currentScheme.border} shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between`}>
       <div className="flex items-center justify-between mb-3">
-        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">{title}</span>
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${currentScheme.bg}`}>
-          <Icon className="w-5 h-5" />
+        <span className="text-xs font-bold uppercase tracking-wider text-slate-600">{title}</span>
+        <div className={`w-10 h-10 rounded-full flex items-center justify-center border ${currentScheme.iconBg}`}>
+          {iconFa && <i className={`${iconFa} text-base`}></i>}
         </div>
       </div>
+
       <div>
-        <div className="text-2xl font-extrabold text-slate-900 tracking-tight">{value}</div>
+        <div className="text-2xl font-bold text-slate-900 tracking-tight">{value}</div>
         {subtitle && <p className="text-xs text-slate-500 mt-1 font-medium">{subtitle}</p>}
         {trend && (
-          <div className="flex items-center mt-2 text-xs">
-            <span className={`font-semibold ${trend.isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
+          <div className="flex items-center mt-2.5 text-xs">
+            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold ${
+              trend.isPositive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+            }`}>
+              <i className={`fas fa-arrow-${trend.isPositive ? 'up' : 'down'} mr-1 text-[10px]`}></i>
               {trend.value}
             </span>
           </div>
@@ -72,3 +76,4 @@ export const StatCard: React.FC<StatCardProps> = ({
     </div>
   );
 };
+

@@ -2,13 +2,13 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Modal } from './Modal';
 import { Registro, Parametro, BeneficioNivel, PerfilPlataforma } from '../types';
 import { api } from '../services/api';
-import { Calculator, Sparkles, Cpu, Clock, Sun, Moon, Calendar, ShieldCheck, FileCheck, Users, Globe, Leaf } from 'lucide-react';
 import { Tooltip } from './Tooltip';
 
 interface RegistroFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess?: () => void;
+  onSave?: (formData: Partial<Registro>) => Promise<void> | void;
   initialData?: Registro | null;
   parametro?: Parametro | null;
 }
@@ -17,9 +17,11 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
   isOpen,
   onClose,
   onSuccess,
+  onSave,
   initialData,
   parametro,
 }) => {
+
   const [perfis, setPerfis] = useState<PerfilPlataforma[]>([]);
   const [formData, setFormData] = useState<Partial<Registro>>({
     idOrigem: '',
@@ -307,12 +309,16 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
 
     try {
       setIsSubmitting(true);
-      if (initialData) {
-        await api.updateRegistro(initialData.id, formData);
+      if (onSave) {
+        await onSave(formData);
       } else {
-        await api.createRegistro(formData);
+        if (initialData) {
+          await api.updateRegistro(initialData.id, formData);
+        } else {
+          await api.createRegistro(formData);
+        }
       }
-      onSuccess();
+      if (onSuccess) onSuccess();
       onClose();
     } catch (err: any) {
       alert(err.message || 'Erro ao salvar oportunidade.');
@@ -320,6 +326,7 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
       setIsSubmitting(false);
     }
   };
+
 
   const renderRadioBeneficio = (
     field: keyof Registro,
@@ -329,21 +336,21 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
   ) => {
     const value = formData[field] || 'nenhum';
     const options: { val: BeneficioNivel; label: string; desc: string; color: string }[] = [
-      { val: 'principal', label: 'Principal (100%)', desc: 'Objetivo central e determinante', color: 'bg-emerald-50 text-emerald-700 border-emerald-300' },
-      { val: 'bastante', label: 'Bastante (50%)', desc: 'Impacto forte e perceptível', color: 'bg-blue-50 text-blue-700 border-blue-300' },
-      { val: 'pouco', label: 'Pouco (25%)', desc: 'Benefício secundário/marginal', color: 'bg-amber-50 text-amber-700 border-amber-300' },
-      { val: 'nenhum', label: 'Nenhum (0%)', desc: 'Sem impacto nesta dimensão', color: 'bg-slate-50 text-slate-600 border-slate-200' },
+      { val: 'principal', label: 'Principal (100%)', desc: 'Objetivo central', color: 'bg-green-50 text-green-900 border-green-400' },
+      { val: 'bastante', label: 'Bastante (50%)', desc: 'Impacto forte', color: 'bg-blue-50 text-[#1351b4] border-blue-400' },
+      { val: 'pouco', label: 'Pouco (25%)', desc: 'Secundário', color: 'bg-amber-50 text-amber-900 border-amber-400' },
+      { val: 'nenhum', label: 'Nenhum (0%)', desc: 'Sem impacto', color: 'bg-slate-50 text-slate-600 border-slate-200' },
     ];
 
     return (
-      <div className="bg-slate-50/70 p-3.5 rounded-xl border border-slate-200 hover:border-slate-300 transition-all">
+      <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 hover:border-slate-300 transition-colors">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-2">
           <div>
             <span className="font-bold text-xs text-slate-800 flex items-center">
               {label}
               {tooltipText && <Tooltip content={tooltipText} />}
             </span>
-            <p className="text-[11px] text-slate-500">{descricao}</p>
+            <p className="text-[11px] text-slate-500 m-0">{descricao}</p>
           </div>
         </div>
 
@@ -351,23 +358,21 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
           {options.map((opt) => (
             <label
               key={opt.val}
-              className={`flex flex-col p-2 rounded-lg border text-xs cursor-pointer transition-all ${
+              className={`flex items-center space-x-2 p-2 rounded border text-xs cursor-pointer transition-colors ${
                 value === opt.val
-                  ? `${opt.color} font-bold ring-2 ring-brand-500 shadow-xs`
-                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                  ? `${opt.color} font-bold shadow-xs border-2`
+                  : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
               }`}
             >
-              <div className="flex items-center space-x-1.5">
-                <input
-                  type="radio"
-                  name={field as string}
-                  value={opt.val}
-                  checked={value === opt.val}
-                  onChange={() => handleChange(field, opt.val)}
-                  className="text-brand-600 focus:ring-brand-500 h-3.5 w-3.5"
-                />
-                <span className="text-[11px] leading-tight">{opt.label}</span>
-              </div>
+              <input
+                type="radio"
+                name={field as string}
+                value={opt.val}
+                checked={value === opt.val}
+                onChange={() => handleChange(field, opt.val)}
+                className="text-[#1351b4] focus:ring-[#1351b4] h-3.5 w-3.5 cursor-pointer"
+              />
+              <span className="text-[11px] leading-tight">{opt.label}</span>
             </label>
           ))}
         </div>
@@ -383,68 +388,69 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
       maxWidth="4xl"
     >
       <form onSubmit={handleSubmit} className="space-y-5">
-        {/* Navigation Tabs */}
+        {/* Navigation Tabs (Estilo br-tab) */}
         <div className="flex border-b border-slate-200 space-x-1 pb-1 text-xs">
           {[
-            { id: 'geral', label: '1. Identificação Geral' },
-            { id: 'asis', label: '2. Diagnóstico AS IS' },
-            { id: 'beneficios', label: '3. Matriz de Benefícios' },
-            { id: 'tobe', label: '4. Solução TO BE & Multi-Turnos' },
+            { id: 'geral', label: '1. Identificação Geral', icon: 'fa-id-card' },
+            { id: 'asis', label: '2. Diagnóstico AS IS', icon: 'fa-file-alt' },
+            { id: 'beneficios', label: '3. Matriz de Benefícios', icon: 'fa-award' },
+            { id: 'tobe', label: '4. Solução TO BE & Multi-Turnos', icon: 'fa-robot' },
           ].map((tab) => (
             <button
               type="button"
               key={tab.id}
               onClick={() => setActiveSubTab(tab.id as any)}
-              className={`px-3 py-2 font-bold rounded-lg transition-all ${
+              className={`px-3 py-2 font-bold rounded transition-colors cursor-pointer flex items-center space-x-1.5 ${
                 activeSubTab === tab.id
-                  ? 'bg-brand-600 text-white shadow-sm'
-                  : 'text-slate-600 hover:bg-slate-100'
+                  ? 'bg-[#1351b4] text-white shadow-xs'
+                  : 'text-slate-700 hover:bg-slate-100'
               }`}
             >
-              {tab.label}
+              <i className={`fas ${tab.icon} text-xs mr-1`}></i>
+              <span>{tab.label}</span>
             </button>
           ))}
         </div>
 
-        {/* Dynamic Calculation Live Banner */}
+        {/* Dynamic Calculation Live Banner (GovBR Navy) */}
         {calcPreview && (
-          <div className="bg-gradient-to-r from-slate-900 to-brand-950 p-4 rounded-xl text-white shadow-md">
-            <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-3">
-              <span className="text-xs font-semibold text-brand-300 flex items-center space-x-1">
-                <Calculator className="w-3.5 h-3.5" />
+          <div className="bg-[#0c326f] p-4 rounded-lg text-white border border-[#1351b4] shadow-sm">
+            <div className="flex items-center justify-between border-b border-blue-400/30 pb-2 mb-3">
+              <span className="text-xs font-bold text-blue-200 flex items-center space-x-1.5">
+                <i className="fas fa-calculator mr-1"></i>
                 <span>Simulação Instantânea de Retorno & Viabilidade</span>
               </span>
-              <span className="text-xs font-bold px-2 py-0.5 rounded bg-brand-500/30 text-brand-200 border border-brand-400/30">
-                Score: {calcPreview.pontuacaoBeneficios.toFixed(0)}%
+              <span className="text-xs font-bold px-2 py-0.5 rounded bg-blue-900 text-blue-100 border border-blue-400">
+                Score de Benefícios: {calcPreview.pontuacaoBeneficios.toFixed(0)}%
               </span>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center text-xs">
               <div>
-                <span className="text-[10px] text-slate-400 block font-medium">Custo Atual (AS IS)</span>
-                <span className="font-extrabold text-white text-sm">
+                <span className="text-[10px] text-blue-200 block font-medium">Custo Atual (AS IS)</span>
+                <span className="font-bold text-white text-sm">
                   R$ {calcPreview.custoMensalAtual.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mês
                 </span>
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 block font-medium">FTE Liberável</span>
-                <span className="font-extrabold text-emerald-400 text-sm">{calcPreview.fteLiberado} FTE</span>
+                <span className="text-[10px] text-blue-200 block font-medium">FTE Liberável</span>
+                <span className="font-bold text-green-300 text-sm">{calcPreview.fteLiberado} FTE</span>
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 block font-medium">Custo TO BE (Ano 1)</span>
-                <span className="font-extrabold text-amber-300 text-sm">
+                <span className="text-[10px] text-blue-200 block font-medium">Custo TO BE (Ano 1)</span>
+                <span className="font-bold text-amber-300 text-sm">
                   R$ {calcPreview.custoMensalAno1.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mês
                 </span>
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 block font-medium">ROI Líquido (Ano 1)</span>
-                <span className="font-extrabold text-emerald-300 text-sm">
+                <span className="text-[10px] text-blue-200 block font-medium">ROI Líquido (Ano 1)</span>
+                <span className="font-bold text-green-300 text-sm">
                   R$ {calcPreview.roiAno1.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 block font-medium">Payback Estimado</span>
-                <span className="font-extrabold text-sky-300 text-sm">{calcPreview.paybackMeses} meses</span>
+                <span className="text-[10px] text-blue-200 block font-medium">Payback Estimado</span>
+                <span className="font-bold text-cyan-300 text-sm">{calcPreview.paybackMeses} meses</span>
               </div>
             </div>
           </div>
@@ -465,7 +471,7 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
                   value={formData.nomeProcesso || ''}
                   onChange={(e) => handleChange('nomeProcesso', e.target.value)}
                   placeholder="Ex: Conciliação Bancária de Arrecadação"
-                  className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none"
+                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none"
                 />
               </div>
 
@@ -479,7 +485,7 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
                   value={formData.area || ''}
                   onChange={(e) => handleChange('area', e.target.value)}
                   placeholder="Ex: Contabilidade, Financeiro, Gestão de Pessoas"
-                  className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none"
+                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none"
                 />
               </div>
             </div>
@@ -495,7 +501,7 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
                   value={formData.idOrigem || ''}
                   onChange={(e) => handleChange('idOrigem', e.target.value)}
                   placeholder="Ex: DEM-2026-089"
-                  className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none"
+                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none"
                 />
               </div>
 
@@ -507,7 +513,7 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
                 <select
                   value={formData.situacao || 'Em levantamento'}
                   onChange={(e) => handleChange('situacao', e.target.value)}
-                  className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none bg-white"
+                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none bg-white cursor-pointer"
                 >
                   <option value="Em levantamento">Em levantamento</option>
                   <option value="Aprovado">Aprovado</option>
@@ -528,7 +534,7 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
                   type="date"
                   value={formData.dataLevantamento || ''}
                   onChange={(e) => handleChange('dataLevantamento', e.target.value)}
-                  className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none"
+                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none"
                 />
               </div>
 
@@ -542,7 +548,7 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
                   value={formData.participantes || ''}
                   onChange={(e) => handleChange('participantes', e.target.value)}
                   placeholder="Ex: Maria Souza (Analista), João Silva (Líder)"
-                  className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none"
+                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none"
                 />
               </div>
             </div>
@@ -562,7 +568,7 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
                 value={formData.descricaoProcesso || ''}
                 onChange={(e) => handleChange('descricaoProcesso', e.target.value)}
                 placeholder="Descreva as etapas operacionais manuais..."
-                className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none"
+                className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none"
               />
             </div>
 
@@ -575,7 +581,7 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
                 <select
                   value={formData.periodicidade || 'Mensal'}
                   onChange={(e) => handleChange('periodicidade', e.target.value)}
-                  className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none bg-white"
+                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none bg-white cursor-pointer"
                 >
                   <option value="Diária">Diária</option>
                   <option value="Semanal">Semanal</option>
@@ -594,7 +600,7 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
                   min="1"
                   value={formData.numExecucoes ?? 100}
                   onChange={(e) => handleChange('numExecucoes', Number(e.target.value))}
-                  className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none"
+                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none"
                 />
               </div>
 
@@ -608,7 +614,7 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
                   value={formData.perfilExecutor || ''}
                   onChange={(e) => handleChange('perfilExecutor', e.target.value)}
                   placeholder="Ex: Analista Fiscal Jr"
-                  className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none"
+                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none"
                 />
               </div>
             </div>
@@ -624,7 +630,7 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
                   step="5"
                   value={formData.valorHoraExecutor ?? 45}
                   onChange={(e) => handleChange('valorHoraExecutor', Number(e.target.value))}
-                  className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none font-semibold"
+                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none font-semibold"
                 />
               </div>
 
@@ -638,7 +644,7 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
                   min="1"
                   value={formData.tempoExecucao ?? 80}
                   onChange={(e) => handleChange('tempoExecucao', Number(e.target.value))}
-                  className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none font-semibold"
+                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none font-semibold"
                 />
               </div>
 
@@ -652,7 +658,7 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
                   value={formData.sistemasEnvolvidos || ''}
                   onChange={(e) => handleChange('sistemasEnvolvidos', e.target.value)}
                   placeholder="Ex: SAP, SIAFI, Excel"
-                  className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none"
+                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none"
                 />
               </div>
             </div>
@@ -662,14 +668,14 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
         {/* Tab 3: Matriz de Benefícios (12 Critérios Corporativos) */}
         {activeSubTab === 'beneficios' && (
           <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
-            <div className="bg-brand-50 border border-brand-200 p-3 rounded-xl text-xs text-brand-900 flex items-center justify-between">
+            <div className="bg-blue-50 border border-blue-200 p-3 rounded text-xs text-blue-900 flex items-center justify-between">
               <span>Classifique o grau de impacto de cada benefício estratégico corporativo para o negócio.</span>
-              <span className="font-bold text-[10px] bg-white px-2 py-0.5 rounded border border-brand-200">12 Critérios Corporativos</span>
+              <span className="font-bold text-[10px] bg-white px-2 py-0.5 rounded border border-blue-200">12 Critérios Corporativos</span>
             </div>
 
             {/* 1. Eficiência Operacional */}
             <div className="space-y-2">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">1. Eficiência & Otimização Operacional</span>
+              <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block">1. Eficiência & Otimização Operacional</span>
               {renderRadioBeneficio('benLiberarPessoas', '1. Liberar Capacidade Humana / Realocação', 'Redirecionamento de tempo dos profissionais para atividades de inteligência, planejamento e análises estratégicas.', 'Foco na produtividade e agregação de valor sem premissa de corte de pessoal.')}
               {renderRadioBeneficio('benReduzirCusto', '2. Reduzir Custos Operacionais', 'Economia orçamentária direta decorrente da otimização e automação da rotina manual.', 'Redução de despesas operacionais e custos com retrabalho.')}
               {renderRadioBeneficio('benReduzirErros', '3. Redução de Erros Operacionais', 'Eliminação de falhas humanas na digitação, validação de regras de negócio e retrabalho.', 'Garante precisão matemática e conformidade na execução das rotinas.')}
@@ -677,7 +683,7 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
 
             {/* 2. Governança, Risco & Compliance */}
             <div className="space-y-2 pt-2 border-t border-slate-200">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">2. Governança, Risco & Compliance</span>
+              <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block">2. Governança, Risco & Compliance</span>
               {renderRadioBeneficio('benSegurancaPrivacidade', '4. Segurança da Informação & Privacidade (LGPD)', 'Proteção contra vazamento de dados, execução em cofre de credenciais e sigilo.', 'Execução segura em background sem contato humano desnecessário com dados confidenciais.')}
               {renderRadioBeneficio('benRastreabilidadeCompliance', '5. Rastreabilidade & Conformidade (Compliance)', 'Trilha de auditoria digital completa, carimbos de tempo, evidências imutáveis e compliance.', 'Facilita auditorias externas/internas e prestação de contas com logs estruturados.')}
               {renderRadioBeneficio('benKeyPersonRisk', '6. Mitigação de Key-Person Risk (Pessoa-Chave)', 'Eliminação de gargalos decorrentes de conhecimento tácito concentrado em pessoas-chave.', 'Garante resiliência e continuidade operacional independente de ausências ou rotatividade.')}
@@ -685,7 +691,7 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
 
             {/* 3. Qualidade, Atendimento & SLA */}
             <div className="space-y-2 pt-2 border-t border-slate-200">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">3. Qualidade, Atendimento & SLA</span>
+              <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block">3. Qualidade, Atendimento & SLA</span>
               {renderRadioBeneficio('benMelhorarExpCliente', '7. Experiência do Cliente / Usuário', 'Aumento da satisfação, padronização e agilidade percebida pelo usuário final do serviço.', 'Respostas instantâneas e maior qualidade percebida.')}
               {renderRadioBeneficio('benAumentarCapacidade', '8. Capacidade & Escalabilidade Operacional', 'Capacidade de absorver aumentos expressivos de volume e picos sazonais sem estrangulamento.', 'Escalabilidade elástica sem necessidade de novas contratações emergenciais.')}
               {renderRadioBeneficio('benReduzirTempoResposta', '9. Reduzir Tempo de Resposta (SLA)', 'Diminuição drástica do tempo decorrido entre a solicitação e a entrega final da demanda.', 'Melhora expressiva nos indicadores de nível de serviço.')}
@@ -693,7 +699,7 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
 
             {/* 4. Estratégia & Sustentabilidade */}
             <div className="space-y-2 pt-2 border-t border-slate-200">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">4. Estratégia & Sustentabilidade</span>
+              <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block">4. Estratégia & Sustentabilidade</span>
               {renderRadioBeneficio('benInteroperabilidade', '10. Interoperabilidade entre Sistemas', 'Integração ágil e não invasiva entre múltiplos softwares, ERPs, CRMs, portais web e bases legadas.', 'Conecta ecossistemas heterogêneos sem necessidade de APIs customizadas complexas.')}
               {renderRadioBeneficio('benTransformacaoDigital', '11. Transformação Digital & Inovação', 'Modernização de rotinas, fomento à cultura de automação e eliminação de burocracia.', 'Acelera a maturidade digital corporativa.')}
               {renderRadioBeneficio('benSustentabilidadeEsg', '12. Sustentabilidade Operacional (ESG)', 'Desmaterialização de documentos, eliminação do uso de papel e sustentabilidade corporativa.', 'Redução da pegada ecológica e suporte às diretrizes ESG.')}
@@ -713,7 +719,7 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
                 <select
                   value={formData.perfilPlataformaId || ''}
                   onChange={(e) => handlePlataformaChange(e.target.value)}
-                  className="w-full text-sm px-3 py-2 border border-brand-300 bg-brand-50/40 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none font-bold text-brand-900"
+                  className="w-full text-xs px-3 py-2 border border-blue-300 bg-blue-50/50 rounded focus:border-[#1351b4] focus:outline-none font-bold text-slate-900 cursor-pointer"
                 >
                   {perfis.map((p) => (
                     <option key={p.id} value={p.id}>
@@ -731,7 +737,7 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
                 <select
                   value={formData.complexidade || 'Média'}
                   onChange={(e) => handleChange('complexidade', e.target.value)}
-                  className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none bg-white font-medium"
+                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none bg-white font-medium cursor-pointer"
                 >
                   <option value="Baixa">Baixa (Rotinas simples e fluxos estáveis)</option>
                   <option value="Média">Média (Integração com 2 a 3 sistemas ou regras condicionais)</option>
@@ -750,100 +756,100 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
                 value={formData.descricaoSolucao || ''}
                 onChange={(e) => handleChange('descricaoSolucao', e.target.value)}
                 placeholder="Descreva a arquitetura da solução automatizada..."
-                className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none"
+                className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none"
               />
             </div>
 
             {/* Painel de Dimensionamento com Múltiplos Turnos */}
-            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+            <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="font-bold text-slate-800 flex items-center space-x-1.5">
-                  <Clock className="w-4 h-4 text-brand-600" />
+                  <i className="fas fa-clock text-[#1351b4] mr-1"></i>
                   <span>Alocação de Horas em Múltiplos Turnos (Dimensionamento do Robô)</span>
                   <Tooltip content="Aloque as horas mensais estimadas de execução do robô em cada janela horária. O custo total é calculado com a taxa exata de cada turno." />
                 </span>
-                <span className="text-[11px] font-bold text-brand-700 bg-brand-50 px-2.5 py-1 rounded-lg border border-brand-200">
+                <span className="text-[11px] font-bold text-[#1351b4] bg-blue-50 px-2.5 py-1 rounded border border-blue-200">
                   Total: {formData.horasRobo || 0} h/mês
                 </span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {/* Diurno */}
-                <div className="bg-white p-3 rounded-lg border border-amber-200/80 shadow-xs">
+                <div className="bg-white p-3 rounded border border-amber-200 shadow-xs">
                   <div className="flex items-center justify-between mb-1">
                     <span className="font-bold text-amber-900 flex items-center space-x-1">
-                      <Sun className="w-3.5 h-3.5 text-amber-500" />
+                      <i className="fas fa-sun text-amber-500 mr-1"></i>
                       <span>Turno Diurno</span>
                     </span>
-                    <span className="text-[10px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded font-semibold">
+                    <span className="text-[10px] text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded font-semibold">
                       R$ {calcPreview?.taxaDiurna.toFixed(2)}/h
                     </span>
                   </div>
-                  <span className="text-[10px] text-slate-400 block mb-1.5">08h às 18h (Dias Úteis)</span>
+                  <span className="text-[10px] text-slate-500 block mb-1.5">08h às 18h (Dias Úteis)</span>
                   <input
                     type="number"
                     min="0"
                     value={formData.horasRoboDiurno ?? 0}
                     onChange={(e) => handleChange('horasRoboDiurno', Number(e.target.value))}
-                    className="w-full text-sm font-bold px-2.5 py-1.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-amber-500 outline-none"
+                    className="w-full text-xs font-bold px-2.5 py-1.5 border border-slate-300 rounded focus:border-[#1351b4] outline-none"
                   />
-                  <span className="text-[10px] text-slate-500 block mt-1">
-                    Subtotal: <strong className="text-slate-800">R$ {calcPreview?.custoHorasRoboDiurno.toFixed(2)}/mês</strong>
+                  <span className="text-[10px] text-slate-600 block mt-1">
+                    Subtotal: <strong className="text-slate-900">R$ {calcPreview?.custoHorasRoboDiurno.toFixed(2)}/mês</strong>
                   </span>
                 </div>
 
                 {/* Noturno */}
-                <div className="bg-white p-3 rounded-lg border border-indigo-200/80 shadow-xs">
+                <div className="bg-white p-3 rounded border border-blue-200 shadow-xs">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="font-bold text-indigo-900 flex items-center space-x-1">
-                      <Moon className="w-3.5 h-3.5 text-indigo-500" />
+                    <span className="font-bold text-blue-950 flex items-center space-x-1">
+                      <i className="fas fa-moon text-blue-700 mr-1"></i>
                       <span>Turno Noturno</span>
                     </span>
-                    <span className="text-[10px] text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded font-semibold">
+                    <span className="text-[10px] text-blue-800 bg-blue-50 px-1.5 py-0.5 rounded font-semibold">
                       R$ {calcPreview?.taxaNoturna.toFixed(2)}/h
                     </span>
                   </div>
-                  <span className="text-[10px] text-slate-400 block mb-1.5">18h às 08h (Madrugada)</span>
+                  <span className="text-[10px] text-slate-500 block mb-1.5">18h às 08h (Madrugada)</span>
                   <input
                     type="number"
                     min="0"
                     value={formData.horasRoboNoturno ?? 0}
                     onChange={(e) => handleChange('horasRoboNoturno', Number(e.target.value))}
-                    className="w-full text-sm font-bold px-2.5 py-1.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500 outline-none"
+                    className="w-full text-xs font-bold px-2.5 py-1.5 border border-slate-300 rounded focus:border-[#1351b4] outline-none"
                   />
-                  <span className="text-[10px] text-slate-500 block mt-1">
-                    Subtotal: <strong className="text-slate-800">R$ {calcPreview?.custoHorasRoboNoturno.toFixed(2)}/mês</strong>
+                  <span className="text-[10px] text-slate-600 block mt-1">
+                    Subtotal: <strong className="text-slate-900">R$ {calcPreview?.custoHorasRoboNoturno.toFixed(2)}/mês</strong>
                   </span>
                 </div>
 
                 {/* Fim de Semana */}
-                <div className="bg-white p-3 rounded-lg border border-purple-200/80 shadow-xs">
+                <div className="bg-white p-3 rounded border border-purple-200 shadow-xs">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="font-bold text-purple-900 flex items-center space-x-1">
-                      <Calendar className="w-3.5 h-3.5 text-purple-500" />
+                    <span className="font-bold text-purple-950 flex items-center space-x-1">
+                      <i className="fas fa-calendar-alt text-purple-600 mr-1"></i>
                       <span>Fim de Semana</span>
                     </span>
-                    <span className="text-[10px] text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded font-semibold">
+                    <span className="text-[10px] text-purple-800 bg-purple-50 px-1.5 py-0.5 rounded font-semibold">
                       R$ {calcPreview?.taxaFimSemana.toFixed(2)}/h
                     </span>
                   </div>
-                  <span className="text-[10px] text-slate-400 block mb-1.5">Sábados e Domingos 24h</span>
+                  <span className="text-[10px] text-slate-500 block mb-1.5">Sábados e Domingos 24h</span>
                   <input
                     type="number"
                     min="0"
                     value={formData.horasRoboFimDeSemana ?? 0}
                     onChange={(e) => handleChange('horasRoboFimDeSemana', Number(e.target.value))}
-                    className="w-full text-sm font-bold px-2.5 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                    className="w-full text-xs font-bold px-2.5 py-1.5 border border-slate-300 rounded focus:border-[#1351b4] outline-none"
                   />
-                  <span className="text-[10px] text-slate-500 block mt-1">
-                    Subtotal: <strong className="text-slate-800">R$ {calcPreview?.custoHorasRoboFimSemana.toFixed(2)}/mês</strong>
+                  <span className="text-[10px] text-slate-600 block mt-1">
+                    Subtotal: <strong className="text-slate-900">R$ {calcPreview?.custoHorasRoboFimSemana.toFixed(2)}/mês</strong>
                   </span>
                 </div>
               </div>
 
-              <div className="flex justify-between items-center bg-white p-2.5 rounded-lg border border-slate-200 text-[11px]">
-                <span className="text-slate-600 font-medium">Custo Total de Operação do Robô (Ponderado):</span>
-                <span className="font-extrabold text-brand-700 text-sm">
+              <div className="flex justify-between items-center bg-white p-2.5 rounded border border-slate-200 text-[11px]">
+                <span className="text-slate-700 font-semibold">Custo Total de Operação do Robô (Ponderado):</span>
+                <span className="font-bold text-[#1351b4] text-xs">
                   R$ {calcPreview?.custoHorasRobo.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mês
                 </span>
               </div>
@@ -861,7 +867,7 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
                   step="0.5"
                   value={formData.esforcoSetupSemanas ?? 2}
                   onChange={(e) => handleChange('esforcoSetupSemanas', Number(e.target.value))}
-                  className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none font-semibold"
+                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] outline-none font-semibold"
                 />
               </div>
 
@@ -875,7 +881,7 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
                   min="0"
                   value={formData.horasApoioNegocio ?? 4}
                   onChange={(e) => handleChange('horasApoioNegocio', Number(e.target.value))}
-                  className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none font-semibold"
+                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] outline-none font-semibold"
                 />
               </div>
 
@@ -889,7 +895,7 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
                   min="0"
                   value={formData.horasManutencao ?? 4}
                   onChange={(e) => handleChange('horasManutencao', Number(e.target.value))}
-                  className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none font-semibold"
+                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] outline-none font-semibold"
                 />
               </div>
             </div>
@@ -901,7 +907,7 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-slate-600 hover:bg-slate-100 font-semibold rounded-xl text-xs transition-colors"
+            className="px-4 py-2 text-slate-700 hover:bg-slate-100 font-semibold rounded text-xs transition-colors cursor-pointer"
           >
             Cancelar
           </button>
@@ -909,9 +915,9 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
           <button
             type="submit"
             disabled={isSubmitting}
-            className="flex items-center space-x-2 px-6 py-2.5 bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white font-bold rounded-xl text-xs shadow-md shadow-brand-500/20 transition-all disabled:opacity-50"
+            className="flex items-center space-x-2 px-6 py-2.5 bg-[#1351b4] hover:bg-[#0c326f] active:bg-[#0c326f] text-white font-bold rounded text-xs shadow-xs transition-colors disabled:opacity-50 cursor-pointer"
           >
-            <Sparkles className="w-4 h-4" />
+            <i className="fas fa-save mr-1.5"></i>
             <span>{isSubmitting ? 'Salvando...' : initialData ? 'Salvar Oportunidade' : 'Cadastrar Oportunidade'}</span>
           </button>
         </div>
@@ -919,3 +925,4 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
     </Modal>
   );
 };
+

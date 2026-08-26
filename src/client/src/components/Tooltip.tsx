@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { HelpCircle } from 'lucide-react';
 
 interface TooltipProps {
   content: string;
@@ -11,7 +10,7 @@ export const Tooltip: React.FC<TooltipProps> = ({ content, className = '' }) => 
 
   return (
     <span
-      className={`relative inline-flex items-center ml-1 text-slate-400 hover:text-brand-600 cursor-help transition-colors ${className}`}
+      className={`relative inline-flex items-center ml-1 text-blue-warm-vivid-70 hover:text-blue-warm-vivid-90 cursor-pointer transition-colors ${className}`}
       onMouseEnter={() => setVisible(true)}
       onMouseLeave={() => setVisible(false)}
       onClick={(e) => {
@@ -19,14 +18,16 @@ export const Tooltip: React.FC<TooltipProps> = ({ content, className = '' }) => 
         e.stopPropagation();
         setVisible(!visible);
       }}
+      aria-label="Ajuda contextual"
     >
-      <HelpCircle className="w-3.5 h-3.5" />
+      <i className="fas fa-question-circle text-xs text-blue-600 hover:text-blue-800"></i>
       {visible && (
-        <span className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-2.5 bg-slate-900/95 text-white text-xs leading-relaxed font-normal rounded-xl shadow-xl backdrop-blur-sm pointer-events-none transition-all duration-200 border border-slate-700/50">
+        <span className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-slate-900 text-white text-xs leading-relaxed font-normal rounded-lg shadow-xl pointer-events-none transition-all duration-200 border border-slate-700">
           {content}
-          <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900/95"></span>
+          <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900"></span>
         </span>
       )}
     </span>
   );
 };
+

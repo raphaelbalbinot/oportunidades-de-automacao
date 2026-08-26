@@ -1,16 +1,483 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "./rawline.css";
+@import "@govbr-ds/core/dist/core.min.css";
+@import "@fortawesome/fontawesome-free/css/all.min.css";
+
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+@font-face {
+  font-family: 'Rawline';
+  src: url('/fonts/rawline/rawline-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Rawline';
+  src: url('/fonts/rawline/rawline-500.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Rawline';
+  src: url('/fonts/rawline/rawline-600.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Rawline';
+  src: url('/fonts/rawline/rawline-700.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
 
 :root {
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-family: 'Rawline', 'rawline', sans-serif;
+  --font-family-base: 'Rawline', 'rawline', sans-serif;
+  --govbr-blue-warm-vivid-90: #0c326f;
+  --govbr-blue-warm-vivid-80: #0f4089;
+  --govbr-blue-warm-vivid-70: #1351b4;
+  --govbr-blue-warm-vivid-60: #1967d2;
+  --govbr-blue-warm-vivid-50: #2670e8;
+  --govbr-blue-warm-vivid-10: #e0f2fe;
+  --govbr-gray-warm-05: #f8f9fa;
+  --govbr-gray-warm-10: #f1f5f9;
+  --govbr-gray-warm-20: #e2e8f0;
+  --govbr-gray-warm-80: #334155;
+  --govbr-gray-warm-90: #0f172a;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
-  background-color: #f8fafc;
-  color: #0f172a;
+  background-color: var(--govbr-gray-warm-05);
+  color: #1e293b;
+  font-family: var(--font-family-base);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ==========================================================================
+   RESET GLOBAL DE BOTÕES (EVITA CAIXAS CINZAS DO USER-AGENT DO NAVEGADOR)
+   ========================================================================== */
+button {
+  background: transparent;
+  background-color: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  box-shadow: none;
+  outline: none;
+}
+
+button:focus {
+  outline: none;
+}
+
+.search-submit-btn {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+td button,
+th button,
+table button {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* ==========================================================================
+   RODAPÉ OFICIAL SERPRO (FONTES 100% BRANCAS NO MODO CLARO E ESCURO)
+   ========================================================================== */
+footer,
+footer p,
+footer a,
+footer h4,
+footer li,
+footer div,
+footer span:not([class*="fa-"]) {
+  font-family: 'Rawline', 'rawline', sans-serif;
+}
+
+i.fa, i.fas, i.far, [class*="fa-"] {
+  font-family: "Font Awesome 5 Free" !important;
+}
+
+i.fab {
+  font-family: "Font Awesome 5 Brands" !important;
+}
+
+
+footer {
+  background-color: #071d41 !important;
+  color: #ffffff !important;
+}
+
+footer a,
+footer a:link,
+footer a:visited,
+footer a:hover,
+footer span,
+footer p,
+footer h4,
+footer li,
+footer i,
+footer div {
+  color: #ffffff !important;
+}
+
+footer a:hover {
+  color: #93c5fa !important;
+  text-decoration: underline !important;
+}
+
+/* ==========================================================================
+   MODO ALTO CONTRASTE & SERPRO DARK MODE (WCAG AAA)
+   ========================================================================== */
+
+body.dark-mode,
+html.dark-mode,
+body.dark-mode #root,
+body.dark-mode .min-h-screen {
+  background-color: #071126 !important;
+  color: #ffffff !important;
+}
+
+/* 1. Header Oficial no Dark Mode: TODAS as linhas, fontes, links e ícones 100% BRANCOS */
+body.dark-mode header,
+body.dark-mode header > div,
+body.dark-mode .header-main-line,
+body.dark-mode .header-title-line,
+body.dark-mode .header-tabs-bar {
+  background-color: #111e38 !important;
+  border-color: #2a3d66 !important;
+}
+
+body.dark-mode header a,
+body.dark-mode header a:link,
+body.dark-mode header a:visited,
+body.dark-mode header span,
+body.dark-mode header button,
+body.dark-mode header p,
+body.dark-mode header h1,
+body.dark-mode header h2,
+body.dark-mode header h3,
+body.dark-mode header i,
+body.dark-mode .header-title,
+body.dark-mode .accessibility-bar,
+body.dark-mode .accessibility-bar a,
+body.dark-mode .accessibility-bar a:link,
+body.dark-mode .accessibility-bar a:visited,
+body.dark-mode .accessibility-bar span,
+body.dark-mode .accessibility-bar button,
+body.dark-mode .accessibility-bar i {
+  color: #ffffff !important;
+}
+
+body.dark-mode .accessibility-bar {
+  background-color: #0c1833 !important;
+  border-color: #2a3d66 !important;
+}
+
+body.dark-mode .divider-line {
+  background-color: #334155 !important;
+}
+
+body.dark-mode .btn-font-scale {
+  background-color: #1e293b !important;
+  border-color: #ffffff !important;
+  color: #ffffff !important;
+}
+
+body.dark-mode .btn-font-scale:hover {
+  background-color: #334155 !important;
+  color: #93c5fd !important;
+}
+
+body.dark-mode .btn-menu-trigger,
+body.dark-mode header button[aria-label="Menu de Navegação"] {
+  background-color: transparent !important;
+  border-color: transparent !important;
+  color: #ffffff !important;
+}
+
+body.dark-mode .btn-menu-trigger i,
+body.dark-mode header button[aria-label="Menu de Navegação"] i {
+  color: #ffffff !important;
+}
+
+body.dark-mode .btn-area-cliente {
+  background-color: transparent !important;
+  border-color: #ffffff !important;
+  color: #ffffff !important;
+}
+
+body.dark-mode .btn-area-cliente i,
+body.dark-mode .btn-area-cliente span {
+  color: #ffffff !important;
+}
+
+body.dark-mode .btn-area-cliente:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: #93c5fd !important;
+}
+
+body.dark-mode header a:hover,
+body.dark-mode header button:hover,
+body.dark-mode .accessibility-bar a:hover {
+  color: #93c5fd !important;
+}
+
+/* Campo de busca no dark mode */
+body.dark-mode .search-input {
+  background-color: #0c1833 !important;
+  border-color: #475569 !important;
+  color: #ffffff !important;
+}
+
+body.dark-mode .search-input::placeholder {
+  color: #cbd5e1 !important;
+}
+
+body.dark-mode .search-input:focus {
+  border-color: #ffffff !important;
+}
+
+body.dark-mode .search-submit-btn,
+body.dark-mode .search-submit-btn i {
+  color: #ffffff !important;
+}
+
+/* 2. Abas de Navegação (br-tab) no Dark Mode */
+body.dark-mode .header-tabs-bar {
+  background-color: #0c1833 !important;
+}
+
+body.dark-mode nav[aria-label="Navegação do Sistema"] button {
+  background-color: transparent !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+}
+
+body.dark-mode nav[aria-label="Navegação do Sistema"] button span,
+body.dark-mode nav[aria-label="Navegação do Sistema"] button i {
+  color: #ffffff !important;
+}
+
+body.dark-mode nav[aria-label="Navegação do Sistema"] button:hover {
+  color: #93c5fd !important;
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+body.dark-mode nav[aria-label="Navegação do Sistema"] button.tab-active {
+  background-color: #111e38 !important;
+  color: #ffffff !important;
+  border-bottom: 2px solid #ffffff !important;
+}
+
+body.dark-mode nav[aria-label="Navegação do Sistema"] button.tab-active span,
+body.dark-mode nav[aria-label="Navegação do Sistema"] button.tab-active i {
+  color: #ffffff !important;
+}
+
+/* 3. Breadcrumb no Dark Mode ("Dashboard Analítico & Viabilidade" BRANCO) */
+body.dark-mode .breadcrumb-bar {
+  background-color: transparent !important;
+  border-color: #2a3d66 !important;
+}
+
+body.dark-mode .breadcrumb-bar span,
+body.dark-mode .breadcrumb-bar button,
+body.dark-mode .breadcrumb-current {
+  color: #ffffff !important;
+}
+
+body.dark-mode .breadcrumb-bar button:hover {
+  color: #93c5fd !important;
+}
+
+/* 4. Escopo da Análise no Dark Mode */
+body.dark-mode .scope-selector-box {
+  background-color: #111e38 !important;
+  border-color: #2a3d66 !important;
+}
+
+body.dark-mode .scope-selector-box i,
+body.dark-mode .scope-label {
+  color: #ffffff !important;
+}
+
+body.dark-mode .scope-select {
+  background-color: #0c1833 !important;
+  color: #ffffff !important;
+  border-color: #3b5284 !important;
+}
+
+/* 5. Resolução dos Textos, Títulos & Valores no Dark Mode */
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode h4,
+body.dark-mode h5,
+body.dark-mode h6,
+body.dark-mode header h1,
+body.dark-mode .text-\[var\(--govbr-blue-warm-vivid-90\)\],
+body.dark-mode .text-slate-900,
+body.dark-mode .text-slate-800,
+body.dark-mode .text-slate-700 {
+  color: #ffffff !important;
+}
+
+body.dark-mode .text-slate-600,
+body.dark-mode .text-slate-500,
+body.dark-mode .text-slate-400 {
+  color: #cbd5e1 !important;
+}
+
+body.dark-mode .text-\[var\(--govbr-blue-warm-vivid-70\)\],
+body.dark-mode .text-\[\#1351b4\],
+body.dark-mode .text-blue-700,
+body.dark-mode .text-blue-600 {
+  color: #60a5fa !important;
+}
+
+body.dark-mode .bg-blue-50,
+body.dark-mode .bg-blue-100 {
+  background-color: rgba(96, 165, 250, 0.2) !important;
+  color: #93c5fd !important;
+}
+
+body.dark-mode .bg-red-50 {
+  background-color: rgba(239, 68, 68, 0.2) !important;
+}
+
+body.dark-mode .bg-emerald-50,
+body.dark-mode .bg-green-50 {
+  background-color: rgba(16, 185, 129, 0.2) !important;
+}
+
+body.dark-mode .text-red-600,
+body.dark-mode .text-red-700 {
+  color: #f87171 !important;
+}
+
+body.dark-mode .text-emerald-600,
+body.dark-mode .text-green-700 {
+  color: #34d399 !important;
+}
+
+body.dark-mode .border-blue-200 {
+  border-color: #3b5284 !important;
+}
+
+body.dark-mode .border-slate-200,
+body.dark-mode .border-slate-300,
+body.dark-mode .border-slate-100 {
+  border-color: #2a3d66 !important;
+}
+
+body.dark-mode .br-card,
+body.dark-mode .bg-white {
+  background-color: #111e38 !important;
+  border-color: #2a3d66 !important;
+  color: #ffffff !important;
+}
+
+body.dark-mode .bg-slate-50,
+body.dark-mode .bg-slate-100 {
+  background-color: #0c1833 !important;
+  border-color: #2a3d66 !important;
+  color: #ffffff !important;
+}
+
+/* 6. Tabela Consolidada (thead, th, tr, td) no Dark Mode */
+body.dark-mode table,
+body.dark-mode .br-table {
+  background-color: #111e38 !important;
+  color: #ffffff !important;
+  border-color: #2a3d66 !important;
+}
+
+body.dark-mode thead,
+body.dark-mode thead tr,
+body.dark-mode th {
+  background-color: #1a2c4e !important;
+  color: #ffffff !important;
+  border-color: #2a3d66 !important;
+}
+
+body.dark-mode tbody tr {
+  background-color: #111e38 !important;
+  border-color: #24355a !important;
+}
+
+body.dark-mode tbody tr:hover {
+  background-color: #182848 !important;
+}
+
+body.dark-mode td {
+  border-color: #24355a !important;
+  color: #f1f5f9 !important;
+}
+
+body.dark-mode td button,
+body.dark-mode table button {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: #cbd5e1 !important;
+}
+
+body.dark-mode td button:hover,
+body.dark-mode table button:hover {
+  color: #60a5fa !important;
+  background-color: rgba(96, 165, 250, 0.15) !important;
+}
+
+body.dark-mode td .text-\[\#1351b4\] {
+  color: #60a5fa !important;
+}
+
+/* 7. Formulários, Inputs & Selects no Dark Mode */
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea {
+  background-color: #0c1833 !important;
+  color: #ffffff !important;
+  border-color: #3b5284 !important;
+}
+
+body.dark-mode input::placeholder,
+body.dark-mode textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+body.dark-mode input:focus,
+body.dark-mode select:focus,
+body.dark-mode textarea:focus {
+  border-color: #60a5fa !important;
+  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.25) !important;
+}
+
+/* 8. Modais e Drawers no Dark Mode */
+body.dark-mode .br-modal,
+body.dark-mode [role="dialog"] {
+  background-color: #111e38 !important;
+  color: #ffffff !important;
+  border-color: #2a3d66 !important;
 }
 
 /* Custom Scrollbars */
@@ -25,9 +492,10 @@ body {
 
 ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
-  border-radius: 9999px;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+

@@ -4,6 +4,9 @@ export default {
     "./src/client/**/*.{js,ts,jsx,tsx,html}",
     "./src/client/index.html",
   ],
+  corePlugins: {
+    preflight: false,
+  },
   theme: {
     extend: {
       colors: {
@@ -19,6 +22,16 @@ export default {
           800: '#054685',
           900: '#0a3a6e',
           950: '#072549',
+        },
+        govbr: {
+          blue: '#1351b4',
+          'blue-warm': '#0c326f',
+          'blue-light': '#2670e8',
+          gray: '#333333',
+          'gray-light': '#f8f8f8',
+          green: '#168821',
+          yellow: '#ffcd07',
+          red: '#e52207',
         },
       },
     },

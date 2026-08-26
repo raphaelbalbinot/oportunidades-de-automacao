@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { X } from 'lucide-react';
 
 interface ModalProps {
   isOpen: boolean;
@@ -46,36 +45,40 @@ export const Modal: React.FC<ModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      {/* Backdrop */}
+    <div className="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true">
+      {/* Backdrop com escurecimento padrão DSGov */}
       <div
-        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity"
         onClick={onClose}
+        aria-hidden="true"
       />
 
       <div className="flex min-h-full items-center justify-center p-4 sm:p-6">
         <div
-          className={`relative w-full ${maxWidthClasses[maxWidth]} bg-white rounded-2xl shadow-2xl border border-slate-200/80 overflow-hidden transform transition-all`}
+          className={`relative w-full ${maxWidthClasses[maxWidth]} bg-white rounded-lg shadow-2xl border border-slate-200 overflow-hidden transform transition-all`}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50/50">
+          {/* Header padrão DSGov */}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50">
             <div>
-              <h3 className="text-lg font-bold text-slate-900">{title}</h3>
-              {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
+              <h2 className="text-lg font-bold text-slate-900 m-0 tracking-tight">{title}</h2>
+              {subtitle && <p className="text-xs text-slate-600 mt-1 m-0">{subtitle}</p>}
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+              type="button"
+              className="br-button circle small"
+              aria-label="Fechar modal"
             >
-              <X className="w-5 h-5" />
+              <i className="fas fa-times text-slate-600"></i>
             </button>
           </div>
 
           {/* Body */}
-          <div className="p-6 max-h-[80vh] overflow-y-auto">{children}</div>
+          <div className="p-6 max-h-[82vh] overflow-y-auto">{children}</div>
         </div>
       </div>
     </div>
   );
 };
+
