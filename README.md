@@ -1,40 +1,66 @@
-# 🤖 Oportunidades de Automação (RPA Suite)
+# ⚡ Oportunidades de Automação (Automação Suite)
 
-> Boilerplate Fullstack moderno, modular e pronto para produção para levantamento, parametrização e análise de viabilidade de oportunidades de automação de processos robotizados (RPA).
+<p align="center">
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/React_19-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React 19" />
+  <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" />
+  <img src="https://img.shields.io/badge/Fastify-000000?style=for-the-badge&logo=fastify&logoColor=white" alt="Fastify" />
+  <img src="https://img.shields.io/badge/Prisma_ORM-2D3748?style=for-the-badge&logo=prisma&logoColor=white" alt="Prisma" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white" alt="SQLite" />
+  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
+  <img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js" />
+</p>
+
+> Plataforma corporativa Fullstack para gestão estratégica, levantamento operacional, modelagem financeira e análise de viabilidade de oportunidades de automação de processos.
 
 ---
 
 ## 📋 Visão Geral da Aplicação
 
-Esta aplicação replica com fidelidade matemática as regras de negócio da planilha analítica [`docs/Oportunidades-de-Automação.xlsx`](docs/Oportunidades-de-Automação.xlsx), organizada em três áreas principais:
+O **Oportunidades de Automação** é um sistema projetado para apoiar centros de excelência (CoE), líderes de operações e equipes de tecnologia na qualificação, priorização e acompanhamento de iniciativas de automação de processos. 
 
-1. **Parametrização (Configuração Global):** Tabela singleton com taxas de infraestrutura de robôs, custos de servidores, operadores, valores de desenvolvimento, percentuais de custo por turnos e pesos de benefícios intangíveis (aba *Parâmetros*).
-2. **CRUD Operacional de Processos:** Cadastro detalhado do processo AS IS (situação manual atual), avaliação na matriz de benefícios intangíveis e estimativas TO BE (solução de robô, esforço de setup, horas de manutenção). Os valores calculados são congelados no momento do cadastro/edição (aba *Levantamento*).
-3. **Dashboard Analítico & Viabilidade:** KPIs executivos consolidados (total de FTE liberado, ROI Ano 1, ROI 2 Anos, Payback em meses), comparativos gráficos de custos mensais AS IS vs TO BE, distribuição por complexidade e turno, com suporte a **visão global agregada** ou **foco por projeto específico selecionado** (aba *Análise*).
+A plataforma consolida o ciclo de vida analítico da oportunidade em três pilares fundamentais:
+
+### 1. 📊 Dashboard Analítico & Painel Executivo
+* **Métricas Consolidadas de Negócio:** Visão em tempo real de FTEs liberáveis, retorno financeiro líquido (*ROI Ano 1 e Ano 2*), Payback médio e pontuação média de benefícios intangíveis.
+* **Análise Comparativa de Custos (AS IS vs TO BE):** Gráficos dinâmicos que demonstram visualmente o custo operacional manual atual frente ao custo pós-automação no primeiro ano (com setup diluído) e nos anos subsequentes (custo recorrente).
+* **Tabela de Priorização com Linhas Expansíveis (Master-Detail Inline):** Estrutura 100% responsiva (sem estouro de rolagem horizontal) com sincronização bidirecional de foco entre linhas e gráficos, além de expansão instantânea dos dossiês de diagnóstico, automação e retorno financeiro.
+* **Filtros Avançados e Busca Global:** Segmentação imediata por área, status do processo, complexidade e busca textual com reatividade simultânea em todos os indicadores.
+
+### 2. 📝 Levantamento e Dimensionamento Operacional
+* **Diagnóstico AS IS (Situação Atual):** Mapeamento de periodicidade, tempo despendido (HH/mês), perfil do executor, custo hora de mão de obra e sistemas legados envolvidos.
+* **Matriz Multidimensional de Benefícios:** Qualificação de ganhos qualitativos (aumento de capacidade, transformação digital, redução de erros, tempo de resposta, experiência do cliente e liberação de pessoas).
+* **Solução TO BE & Simulador Instantâneo:** Definição da complexidade, turnos de execução (diurno, noturno, fins de semana) e dimensionamento de esforço de setup com recálculo matemático imediato durante o preenchimento.
+
+### 3. ⚙️ Parametrização e Governança Financeira Global
+* **Taxas de Custeio por Turno:** Modelagem precisa dos custos de infraestrutura de robôs, estações de trabalho, licenças, servidores e operadores de sala de controle ponderados por turno de execução.
+* **Custos de Setup & Manutenção:** Gestão unificada do valor de hora de desenvolvimento e suporte operacional.
+* **Pesos Ponderados de Benefícios:** Customização dos fatores de ponderação da matriz de decisão de acordo com as diretrizes estratégicas da organização.
 
 ---
 
 ## 🛠️ Stack Tecnológica
 
 * **Linguagem:** TypeScript (End-to-End no backend e frontend).
-* **Backend:** Node.js com Fastify estruturado em camadas (`routes`, `controllers`, `services`, `lib`).
-* **ORM & Banco de Dados:** Prisma ORM com SQLite para desenvolvimento local (arquivo `dev.db`) e preparado para PostgreSQL via `DATABASE_URL`.
-* **Frontend:** React 19 + Vite + Tailwind CSS + Lucide Icons + Recharts.
-* **DevOps & Containers:** Dockerfile multi-stage, `docker-compose.yml` e `.gitlab-ci.yml`.
+* **Backend:** Node.js com Fastify estruturado em arquitetura modular limpa (`routes`, `controllers`, `services`, `lib`).
+* **ORM & Banco de Dados:** Prisma ORM com SQLite para desenvolvimento local (`dev.db`) e suporte nativo a PostgreSQL para produção via `DATABASE_URL`.
+* **Frontend:** React 19 + Vite + Tailwind CSS + Lucide Icons + Recharts (Componentes modulares de alto desempenho).
+* **DevOps & Containers:** Dockerfile multi-stage, `docker-compose.yml` e esteira automatizada `.gitlab-ci.yml`.
 
 ---
 
 ## 📐 Fórmulas Matemáticas Implementadas
 
-### 1. Custo por Turno de Operação do Robô (R$/HH)
+### 1. Custo por Turno de Operação da Automação (R$/HH)
 $$\text{Base} = \frac{\text{Servidor}}{\text{NrRobôs}} + (\text{Licença} + \text{Estação}) + \frac{\text{Operador}}{\text{NrRobôs}}$$
-* **Turno Diurno (08h às 18h):** $\frac{\text{Base} \times \%_{\text{Diurno}}}{21 \times 10}$ (Padrão: ~R$ 24,57/h)
-* **Turno Noturno (18h às 08h):** $\frac{\text{Base} \times \%_{\text{Noturno}}}{21 \times 14}$ (Padrão: ~R$ 8,78/h)
-* **Turno Final de Semana:** $\frac{\text{Base} \times \%_{\text{FimDeSemana}}}{8 \times 24}$ (Padrão: ~R$ 4,48/h)
+* **Turno Diurno (08h às 18h):** $\frac{\text{Base} \times \%_{\text{Diurno}}}{21 \times 10}$
+* **Turno Noturno (18h às 08h):** $\frac{\text{Base} \times \%_{\text{Noturno}}}{21 \times 14}$
+* **Turno Final de Semana:** $\frac{\text{Base} \times \%_{\text{FimDeSemana}}}{8 \times 24}$
 
 ### 2. Custo de Setup e Manutenção
-* **Setup Mensal Diluído (12 meses):** $\text{Semanas} \times \frac{\text{CustoHoraDev} \times 40}{12}$ (Ex: R$ 550,00/mês por semana de esforço)
-* **Hora de Manutenção:** $\frac{\text{Operador} \times 1.6}{168}$ (Padrão: ~R$ 38,10/h)
+* **Setup Mensal Diluído (12 meses):** $\text{Semanas} \times \frac{\text{CustoHoraDev} \times 40}{12}$
+* **Hora de Manutenção:** $\frac{\text{Operador} \times 1.6}{168}$
 
 ### 3. ROI e Payback
 * **FTE Liberado:** $\frac{\text{TempoExecução (h)}}{\text{CargaHorariaPadrao (160h)}}$
@@ -49,7 +75,7 @@ $$\text{Base} = \frac{\text{Servidor}}{\text{NrRobôs}} + (\text{Licença} + \te
 ### Pré-requisitos
 * Node.js v20+ ou v22+
 * npm v10+
-* Docker e Docker Compose (opcional para rodar conteinerizado)
+* Docker e Docker Compose (opcional)
 
 ### 1. Instalação e Preparação Local
 
@@ -116,17 +142,19 @@ A aplicação estará disponível em **http://localhost:8080** (a API Fastify se
 │   │   ├── services/          # Regras de negócio e motor de cálculos
 │   │   ├── routes/            # Definição de rotas
 │   │   ├── lib/               # Instância singleton do Prisma
-│   │   └── index.ts           # Inicialização do servidor e static handler
+│   │   └── index.ts           # Servidor HTTP e static files handler
 │   └── client/                # Frontend React + Vite + Tailwind + Recharts
 │       ├── src/
 │       │   ├── components/    # Navbar, Modal, StatCard, RegistroFormModal
 │       │   ├── pages/         # DashboardPage, RegistrosPage, ParametrosPage
-│       │   ├── services/      # Cliente de API HTTP
+│       │   ├── services/      # Cliente HTTP de integração
 │       │   ├── types/         # Tipos TypeScript compartilhados
 │       │   ├── App.tsx
 │       │   └── main.tsx
-├── Dockerfile                 # Multi-stage build
-├── docker-compose.yml         # Orquestração local com volume persistente
+│       ├── index.html
+│       └── vite.config.ts
+├── Dockerfile                 # Multi-stage container build
+├── docker-compose.yml         # Orquestração local conteinerizada
 ├── .gitlab-ci.yml             # Pipeline de CI/CD para GitLab
 └── README.md
 ```
