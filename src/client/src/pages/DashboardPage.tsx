@@ -155,15 +155,15 @@ export const DashboardPage: React.FC = () => {
     return list;
   }, [data, search, areaFilter, situacaoFilter, complexidadeFilter, sortField, sortDirection]);
 
-  // Dynamic Chart Data based on filters
-  const dynamicComplexidade = useMemo(() => {
+  // Distribuição por Complexidade: Sempre Global
+  const globalComplexidade = useMemo(() => {
     if (!data) return [];
     const counts: Record<string, number> = { Baixa: 0, Média: 0, Alta: 0 };
-    filteredAndSortedProcessos.forEach((p) => {
+    data.comparativoProcessos.forEach((p) => {
       counts[p.complexidade] = (counts[p.complexidade] || 0) + 1;
     });
     return Object.entries(counts).map(([name, value]) => ({ name, value }));
-  }, [data, filteredAndSortedProcessos]);
+  }, [data]);
 
   // Bar Chart Data: Agrupado quando Todos os Processos está selecionado
   const barChartData = useMemo(() => {
@@ -408,14 +408,17 @@ export const DashboardPage: React.FC = () => {
         <div className="space-y-6">
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-bold text-slate-900">Distribuição por Complexidade</h3>
+              <div>
+                <h3 className="text-sm font-bold text-slate-900">Distribuição por Complexidade</h3>
+                <p className="text-[11px] text-slate-500">Visão consolidada global de todos os processos</p>
+              </div>
               <PieIcon className="w-4 h-4 text-slate-400" />
             </div>
             <div className="h-44">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={dynamicComplexidade}
+                    data={globalComplexidade}
                     dataKey="value"
                     nameKey="name"
                     cx="50%"
@@ -424,7 +427,7 @@ export const DashboardPage: React.FC = () => {
                     outerRadius={65}
                     paddingAngle={4}
                   >
-                    {dynamicComplexidade.map((entry, index) => (
+                    {globalComplexidade.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS_COMPLEXIDADE[index % COLORS_COMPLEXIDADE.length]} />
                     ))}
                   </Pie>
@@ -437,7 +440,14 @@ export const DashboardPage: React.FC = () => {
 
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-bold text-slate-900">Distribuição por Turno de Execução</h3>
+              <div>
+                <h3 className="text-sm font-bold text-slate-900">Distribuição por Turno de Execução</h3>
+                <p className="text-[11px] text-slate-500">
+                  {selectedRegistroId
+                    ? 'Turno do processo selecionado'
+                    : 'Valores consolidados agrupados de todos os processos'}
+                </p>
+              </div>
               <Clock className="w-4 h-4 text-slate-400" />
             </div>
             <div className="h-44">
