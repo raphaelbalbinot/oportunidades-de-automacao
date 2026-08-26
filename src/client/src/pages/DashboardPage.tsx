@@ -197,12 +197,17 @@ export const DashboardPage: React.FC = () => {
     ];
   }, [data, selectedRegistroId, filteredAndSortedProcessos]);
 
-  // Click on row to focus on single process or toggle back to all
+  // Click on row to focus on single process and automatically expand its drawer
   const handleRowClick = (procId: string) => {
     if (selectedRegistroId === procId) {
       setSelectedRegistroId('');
     } else {
       setSelectedRegistroId(procId);
+      setExpandedRows((prev) => {
+        const next = new Set(prev);
+        next.add(procId);
+        return next;
+      });
     }
   };
 
@@ -275,7 +280,13 @@ export const DashboardPage: React.FC = () => {
           <span className="text-xs font-semibold text-slate-600 whitespace-nowrap">Escopo da Análise:</span>
           <select
             value={selectedRegistroId}
-            onChange={(e) => setSelectedRegistroId(e.target.value)}
+            onChange={(e) => {
+              const val = e.target.value;
+              setSelectedRegistroId(val);
+              if (val) {
+                setExpandedRows((prev) => new Set(prev).add(val));
+              }
+            }}
             className="text-xs font-medium bg-white text-slate-800 border border-slate-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none cursor-pointer"
           >
             <option value="">🌐 Todos os Processos (Visão Global Consolidada)</option>
