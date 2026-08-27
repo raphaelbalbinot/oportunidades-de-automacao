@@ -1,7 +1,9 @@
+ARG NODE_IMAGE=hub.estaleiro.serpro/node:22-alpine
+
 # =========================================================
 # STAGE 1: Build Frontend (React + Vite)
 # =========================================================
-FROM node:22-alpine AS client-builder
+FROM ${NODE_IMAGE} AS client-builder
 WORKDIR /app
 
 COPY package*.json ./
@@ -14,7 +16,7 @@ RUN npm run build:client
 # =========================================================
 # STAGE 2: Build Backend (Fastify + TypeScript + Prisma)
 # =========================================================
-FROM node:22-alpine AS server-builder
+FROM ${NODE_IMAGE} AS server-builder
 WORKDIR /app
 
 COPY package*.json ./
@@ -30,7 +32,7 @@ RUN npm run build:server
 # =========================================================
 # STAGE 3: Production Runtime
 # =========================================================
-FROM node:22-alpine AS runner
+FROM ${NODE_IMAGE} AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
