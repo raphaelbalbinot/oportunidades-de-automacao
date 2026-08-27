@@ -319,8 +319,8 @@ export const DashboardPage: React.FC = () => {
               R$ {kpis.custoAtualMensalTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </div>
           </div>
-          <div className="w-10 h-10 bg-red-50 text-red-600 rounded-full border border-red-200 flex items-center justify-center">
-            <i className="fas fa-dollar-sign text-base"></i>
+          <div className="w-10 h-10 bg-red-600 text-white rounded-full flex items-center justify-center shadow-xs">
+            <i className="fas fa-dollar-sign text-base text-white"></i>
           </div>
         </div>
 
@@ -331,8 +331,8 @@ export const DashboardPage: React.FC = () => {
               R$ {kpis.custoMensalAno1Total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </div>
           </div>
-          <div className="w-10 h-10 bg-blue-50 text-[var(--govbr-blue-warm-vivid-70)] rounded-full border border-blue-200 flex items-center justify-center">
-            <i className="fas fa-check-circle text-base"></i>
+          <div className="w-10 h-10 bg-[var(--govbr-blue-warm-vivid-70)] text-white rounded-full flex items-center justify-center shadow-xs">
+            <i className="fas fa-check-circle text-base text-white"></i>
           </div>
         </div>
 
@@ -343,8 +343,8 @@ export const DashboardPage: React.FC = () => {
               {kpis.pontuacaoMediaPercent}%
             </div>
           </div>
-          <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-full border border-emerald-200 flex items-center justify-center">
-            <i className="fas fa-award text-base"></i>
+          <div className="w-10 h-10 bg-emerald-600 text-white rounded-full flex items-center justify-center shadow-xs">
+            <i className="fas fa-award text-base text-white"></i>
           </div>
         </div>
       </div>

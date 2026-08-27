@@ -23,27 +23,27 @@ export const StatCard: React.FC<StatCardProps> = ({
 
   const schemeClasses = {
     blue: {
-      iconBg: 'bg-blue-50 text-blue-700 border-blue-200',
-      border: 'border-l-4 border-l-blue-600 border-slate-200',
+      iconBg: 'bg-[var(--govbr-blue-warm-vivid-70)] text-white shadow-xs',
+      border: 'border-l-4 border-l-[var(--govbr-blue-warm-vivid-70)] border-slate-200',
     },
     emerald: {
-      iconBg: 'bg-green-50 text-green-700 border-green-200',
-      border: 'border-l-4 border-l-green-600 border-slate-200',
+      iconBg: 'bg-emerald-600 text-white shadow-xs',
+      border: 'border-l-4 border-l-emerald-600 border-slate-200',
     },
     violet: {
-      iconBg: 'bg-purple-50 text-purple-700 border-purple-200',
+      iconBg: 'bg-purple-600 text-white shadow-xs',
       border: 'border-l-4 border-l-purple-600 border-slate-200',
     },
     amber: {
-      iconBg: 'bg-amber-50 text-amber-700 border-amber-200',
+      iconBg: 'bg-amber-600 text-white shadow-xs',
       border: 'border-l-4 border-l-amber-500 border-slate-200',
     },
     rose: {
-      iconBg: 'bg-red-50 text-red-700 border-red-200',
+      iconBg: 'bg-red-600 text-white shadow-xs',
       border: 'border-l-4 border-l-red-600 border-slate-200',
     },
     cyan: {
-      iconBg: 'bg-cyan-50 text-cyan-700 border-cyan-200',
+      iconBg: 'bg-cyan-600 text-white shadow-xs',
       border: 'border-l-4 border-l-cyan-600 border-slate-200',
     },
   };
@@ -54,8 +54,8 @@ export const StatCard: React.FC<StatCardProps> = ({
     <div className={`br-card bg-white rounded-lg p-5 border ${currentScheme.border} shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between`}>
       <div className="flex items-center justify-between mb-3">
         <span className="text-xs font-bold uppercase tracking-wider text-slate-600">{title}</span>
-        <div className={`w-10 h-10 rounded-full flex items-center justify-center border ${currentScheme.iconBg}`}>
-          {iconFa && <i className={`${iconFa} text-base`}></i>}
+        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentScheme.iconBg}`}>
+          {iconFa && <i className={`${iconFa} text-base text-white`}></i>}
         </div>
       </div>
 
