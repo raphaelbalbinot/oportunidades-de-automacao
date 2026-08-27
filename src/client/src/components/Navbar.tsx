@@ -9,7 +9,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
   const [darkMode, setDarkMode] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [fontScale, setFontScale] = useState<number>(100);
-
+  const [isQuickAccessOpen, setIsQuickAccessOpen] = useState<boolean>(false);
 
   useEffect(() => {
     const isDark = localStorage.getItem('serpro_contrast_mode') === 'true';
@@ -38,6 +38,18 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
     });
   };
 
+  const quickLinks = [
+    { label: 'Empresa', href: 'https://www.serpro.gov.br/menu/quem-somos' },
+    { label: 'Insights', href: 'https://www.serpro.gov.br/insights' },
+    { label: 'Privacidade', href: 'https://www.serpro.gov.br/privacidade-protecao-dados' },
+    { label: 'Suporte', href: 'https://www.serpro.gov.br/menu/suporte/css' },
+    { label: 'Download e Software', href: 'https://www.serpro.gov.br/menu/suporte/downloads/downloads-e-softwares' },
+    { label: 'Imprensa', href: 'https://www.serpro.gov.br/imprensa' },
+    { label: 'Contato', href: 'https://www.serpro.gov.br/menu/contato/cliente/cliente/@@template_contato' },
+    { label: 'Acesso à informação', href: 'https://www.transparencia.serpro.gov.br/acesso-a-informacao', external: true },
+    { label: 'Loja Serpro', href: 'https://loja.serpro.gov.br/?utm_source=portal&utm_medium=menu&utm_campaign=home-serpro', external: true },
+  ];
+
   return (
     <header className="w-full bg-white border-b border-slate-200 shadow-xs sticky top-0 z-40 font-['Rawline',sans-serif]" id="header-capa">
       {/* 1. Barra de Acessibilidade Superior Oficial (serpro.gov.br) */}
@@ -45,7 +57,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
         <div className="flex items-center space-x-4">
           <a
             href="#conteudo-principal"
-            className="hover:text-[var(--govbr-blue-warm-vivid-70)] flex items-center space-x-1.5 font-medium transition-colors"
+            className="hover:text-[var(--govbr-blue-warm-vivid-70)] flex items-center space-x-1.5 font-medium transition-colors focus:ring-2 focus:ring-[var(--govbr-blue-warm-vivid-70)] rounded px-1"
           >
             <span className="w-4 h-4 rounded-full bg-[var(--govbr-blue-warm-vivid-70)] text-white flex items-center justify-center text-[10px]">
               <i className="fas fa-universal-access"></i>
@@ -56,7 +68,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
           <button
             type="button"
             onClick={toggleContrast}
-            className={`hover:text-[var(--govbr-blue-warm-vivid-70)] flex items-center space-x-1.5 font-medium transition-colors px-2 py-0.5 rounded cursor-pointer ${
+            className={`hover:text-[var(--govbr-blue-warm-vivid-70)] flex items-center space-x-1.5 font-medium transition-colors px-2 py-0.5 rounded cursor-pointer focus:ring-2 focus:ring-[var(--govbr-blue-warm-vivid-70)] ${
               darkMode ? 'bg-[#0c326f] text-white font-bold border border-blue-400' : 'border border-transparent'
             }`}
             title="Alternar modo de Alto Contraste (WCAG AAA)"
@@ -69,7 +81,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
             <button
               type="button"
               onClick={() => handleFontChange(-5)}
-              className="btn-font-scale px-2 py-0.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded font-bold cursor-pointer text-slate-700 hover:text-[var(--govbr-blue-warm-vivid-70)] text-[10px]"
+              className="btn-font-scale px-2 py-0.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded font-bold cursor-pointer text-slate-700 hover:text-[var(--govbr-blue-warm-vivid-70)] text-[10px] focus:ring-1 focus:ring-[var(--govbr-blue-warm-vivid-70)]"
               title="Diminuir fonte (A-)"
             >
               A-
@@ -77,7 +89,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
             <button
               type="button"
               onClick={() => handleFontChange(5)}
-              className="btn-font-scale px-2 py-0.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded font-bold cursor-pointer text-slate-700 hover:text-[var(--govbr-blue-warm-vivid-70)] text-[10px]"
+              className="btn-font-scale px-2 py-0.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded font-bold cursor-pointer text-slate-700 hover:text-[var(--govbr-blue-warm-vivid-70)] text-[10px] focus:ring-1 focus:ring-[var(--govbr-blue-warm-vivid-70)]"
               title="Aumentar fonte (A+)"
             >
               A+
@@ -107,37 +119,61 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
             <span className="br-divider vertical h-7 w-px bg-slate-300 mx-4 hidden sm:block"></span>
           </div>
 
-          <div className="header-actions flex items-center space-x-4 lg:space-x-6 text-[14px] font-normal font-['Rawline','Raleway',sans-serif]">
+          <div className="header-actions flex items-center space-x-3 sm:space-x-4 lg:space-x-6 text-[14px] font-normal font-['Rawline','Raleway',sans-serif]">
+            {/* Links Diretos em Telas Grandes */}
             <div className="header-links hidden xl:flex items-center space-x-6">
-              <a href="https://www.serpro.gov.br/menu/quem-somos" target="_blank" rel="noreferrer" className="text-[var(--govbr-blue-warm-vivid-70)] hover:text-[var(--govbr-blue-warm-vivid-90)] hover:underline transition-colors">
-                Empresa
-              </a>
-              <a href="https://www.serpro.gov.br/insights" target="_blank" rel="noreferrer" className="text-[var(--govbr-blue-warm-vivid-70)] hover:text-[var(--govbr-blue-warm-vivid-90)] hover:underline transition-colors">
-                Insights
-              </a>
-              <a href="https://www.serpro.gov.br/privacidade-protecao-dados" target="_blank" rel="noreferrer" className="text-[var(--govbr-blue-warm-vivid-70)] hover:text-[var(--govbr-blue-warm-vivid-90)] hover:underline transition-colors">
-                Privacidade
-              </a>
-              <a href="https://www.serpro.gov.br/menu/suporte/css" target="_blank" rel="noreferrer" className="text-[var(--govbr-blue-warm-vivid-70)] hover:text-[var(--govbr-blue-warm-vivid-90)] hover:underline transition-colors">
-                Suporte
-              </a>
-              <a href="https://www.serpro.gov.br/menu/suporte/downloads/downloads-e-softwares" target="_blank" rel="noreferrer" className="text-[var(--govbr-blue-warm-vivid-70)] hover:text-[var(--govbr-blue-warm-vivid-90)] hover:underline transition-colors">
-                Download e Software
-              </a>
-              <a href="https://www.serpro.gov.br/imprensa" target="_blank" rel="noreferrer" className="text-[var(--govbr-blue-warm-vivid-70)] hover:text-[var(--govbr-blue-warm-vivid-90)] hover:underline transition-colors">
-                Imprensa
-              </a>
-              <a href="https://www.serpro.gov.br/menu/contato/cliente/cliente/@@template_contato" target="_blank" rel="noreferrer" className="text-[var(--govbr-blue-warm-vivid-70)] hover:text-[var(--govbr-blue-warm-vivid-90)] hover:underline transition-colors">
-                Contato
-              </a>
-              <a href="https://www.transparencia.serpro.gov.br/acesso-a-informacao" target="_blank" rel="noreferrer" className="text-[var(--govbr-blue-warm-vivid-70)] hover:text-[var(--govbr-blue-warm-vivid-90)] flex items-center space-x-1 hover:underline transition-colors">
-                <span>Acesso à informação</span>
-                <i className="fas fa-external-link-alt text-[10px] ml-0.5"></i>
-              </a>
-              <a href="https://loja.serpro.gov.br/?utm_source=portal&utm_medium=menu&utm_campaign=home-serpro" target="_blank" rel="noreferrer" className="text-[var(--govbr-blue-warm-vivid-70)] hover:text-[var(--govbr-blue-warm-vivid-90)] flex items-center space-x-1 hover:underline transition-colors">
-                <span>Loja Serpro</span>
-                <i className="fas fa-external-link-alt text-[10px] ml-0.5"></i>
-              </a>
+              {quickLinks.map((link) => (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-[var(--govbr-blue-warm-vivid-70)] hover:text-[var(--govbr-blue-warm-vivid-90)] hover:underline transition-colors flex items-center space-x-1"
+                >
+                  <span>{link.label}</span>
+                  {link.external && <i className="fas fa-external-link-alt text-[10px] ml-0.5"></i>}
+                </a>
+              ))}
+            </div>
+
+            {/* Menu Dropdown de Acesso Rápido em Telas Menores (Padrão GovBR 3 Pontinhos) */}
+            <div className="relative xl:hidden">
+              <button
+                type="button"
+                onClick={() => setIsQuickAccessOpen((prev) => !prev)}
+                className="br-button circle small w-8 h-8 rounded-full border border-slate-200 hover:bg-slate-100 text-[var(--govbr-blue-warm-vivid-70)] flex items-center justify-center cursor-pointer transition-colors"
+                aria-label="Abrir Acesso Rápido"
+                aria-expanded={isQuickAccessOpen}
+                title="Acesso Rápido"
+              >
+                <i className="fas fa-ellipsis-v text-xs"></i>
+              </button>
+
+              {isQuickAccessOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setIsQuickAccessOpen(false)}
+                  />
+                  <div className="br-list absolute right-0 top-10 w-56 bg-white border border-slate-200 rounded-lg shadow-xl py-2 z-50 text-xs">
+                    <div className="px-3 py-1.5 font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 mb-1 text-[10px]">
+                      Acesso Rápido
+                    </div>
+                    {quickLinks.map((link) => (
+                      <a
+                        key={link.label}
+                        href={link.href}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={() => setIsQuickAccessOpen(false)}
+                        className="block px-3 py-2 text-slate-700 hover:bg-blue-50 hover:text-[var(--govbr-blue-warm-vivid-70)] transition-colors"
+                      >
+                        {link.label}
+                      </a>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
 
             <span className="br-divider vertical h-6 w-px bg-slate-300 mx-2 hidden sm:block"></span>
