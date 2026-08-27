@@ -8,6 +8,12 @@ interface LayoutProps {
 }
 
 export const Layout: React.FC<LayoutProps> = ({ activeTab, setActiveTab, children }) => {
+  const [openColumn, setOpenColumn] = React.useState<string | null>(null);
+
+  const toggleColumn = (columnId: string) => {
+    setOpenColumn(prev => (prev === columnId ? null : columnId));
+  };
+
   const getBreadcrumbTitle = () => {
     switch (activeTab) {
       case 'dashboard':
@@ -20,6 +26,74 @@ export const Layout: React.FC<LayoutProps> = ({ activeTab, setActiveTab, childre
         return 'Página Inicial';
     }
   };
+
+  const footerSections = [
+    {
+      id: 'solucoes',
+      title: 'Soluções',
+      links: [
+        { label: 'Loja Serpro', href: 'https://loja.serpro.gov.br/?utm_source=portal&utm_medium=rodape&utm_campaign=home-serpro' },
+        { label: 'Inovação aberta', href: 'https://www.ventures.serpro.gov.br' },
+        { label: 'Insights e Notícias', href: 'https://www.serpro.gov.br/insights' },
+      ],
+    },
+    {
+      id: 'suporte',
+      title: 'Suporte',
+      links: [
+        { label: 'Ajuda ao cliente', href: 'https://www.serpro.gov.br/menu/suporte/ajuda-ao-cliente' },
+        { label: 'Central de Ajuda', href: 'https://centraldeajuda.serpro.gov.br/duvidas/pt/atendimento/atendimento/?utm_source=portal&utm_medium=rodape&utm_campaign=home-serpro' },
+        { label: 'Central de Serviços', href: 'https://www.serpro.gov.br/menu/suporte/css' },
+        { label: 'Consignatárias', href: 'https://www.serpro.gov.br/menu/suporte/escritorio-de-atendimento-ao-mercado' },
+        { label: 'Transformação Digital da Justiça', href: 'https://www.serpro.gov.br/menu/suporte/central-de-servicos-transformacao-digital-da-justica' },
+        { label: 'Downloads', href: 'https://www.serpro.gov.br/menu/suporte/downloads/downloads-e-softwares' },
+      ],
+    },
+    {
+      id: 'institucional',
+      title: 'Institucional',
+      links: [
+        { label: 'Quem Somos', href: 'https://www.serpro.gov.br/menu/institucional/quem-somos' },
+        { label: 'Marca Serpro', href: 'http://www.serpro.gov.br/marca-serpro/' },
+        { label: 'Iniciativas Sociais', href: 'https://www.serpro.gov.br/menu/quem-somos/iniciativas-sociais' },
+        { label: 'Governança', href: 'https://www.transparencia.serpro.gov.br/' },
+        { label: 'Ética e Integridade', href: 'https://www.transparencia.serpro.gov.br/etica-e-integridade/?utm_source=portal&utm_medium=rodape&utm_campaign=home-serpro' },
+        { label: 'Acesso à Informação', href: 'https://www.transparencia.serpro.gov.br/acesso-a-informacao/?utm_source=portal&utm_medium=rodape&utm_campaign=home-serpro' },
+        { label: 'Privacidade', href: 'https://www.serpro.gov.br/privacidade-protecao-dados' },
+      ],
+    },
+    {
+      id: 'contato',
+      title: 'Contato',
+      links: [
+        { label: 'Endereços', href: 'https://www.transparencia.serpro.gov.br/acesso-a-informacao/institucional/enderecos' },
+        { label: 'Fale conosco', href: 'https://www.serpro.gov.br/menu/contato/cliente/cliente/@@template_contato' },
+        { label: 'Imprensa', href: 'https://serpro.gov.br/menu/imprensa' },
+        { label: 'Corregedoria', href: 'https://www.serpro.gov.br/corregedoria' },
+        { label: 'Ouvidoria', href: 'https://www.transparencia.serpro.gov.br/etica-e-integridade/ouvidoria/fale-com-a-ouvidoria' },
+        { label: 'Fala BR', href: 'https://falabr.cgu.gov.br/web/home' },
+      ],
+    },
+    {
+      id: 'empregados',
+      title: 'Empregados',
+      links: [
+        { label: 'Intranet', href: 'https://intra.serpro.gov.br/login/?utm_source=portal&utm_medium=rodape&utm_campaign=home-serpro' },
+        { label: 'PAS Serpro', href: 'https://passerpro.impactomedica.com.br/' },
+        { label: 'Plano Odontológico', href: 'https://intra.serpro.gov.br/minha-empresa/beneficios/plano-odontologico' },
+        { label: 'Carreira', href: 'https://www.transparencia.serpro.gov.br/acesso-a-informacao/empregados/?utm_source=portal&utm_medium=rodape&utm_campaign=home-serpro' },
+      ],
+    },
+    {
+      id: 'sustentabilidade',
+      title: 'SUSTENTABILIDADE',
+      links: [
+        { label: 'ESG', href: 'https://www.serpro.gov.br/menu/sustentabilidade/esg-serpro' },
+        { label: 'Jornada Ser ESG', href: 'https://www.serpro.gov.br/menu/sustentabilidade/jornada-ser-esg' },
+        { label: 'Objetivos de desenvolvimento Sustentável', href: 'https://www.serpro.gov.br/menu/sustentabilidade/ods' },
+      ],
+    },
+  ];
 
   return (
     <div className="min-h-screen flex flex-col bg-[#f8f9fa] text-slate-800 font-['Rawline',sans-serif]">
@@ -51,159 +125,45 @@ export const Layout: React.FC<LayoutProps> = ({ activeTab, setActiveTab, childre
           <div className="logo-rodape pb-8">
             <img src="/assets/marca-serpro-rodape.png" alt="Serpro" className="h-12 max-h-[48px] max-w-[180px] w-auto object-contain brightness-100" />
           </div>
-          <div className="br-list horizontal grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 text-[14px]">
-            <div className="col-2">
-              <a className="br-item header font-bold text-white uppercase text-[14px] flex items-center justify-between pb-2 border-b border-white/10" href="javascript:void(0)">
-                <div className="content text-down-01 text-bold text-uppercase">Soluções</div>
-                <div className="support"><i className="fas fa-angle-down text-xs" aria-hidden="true"></i></div>
-              </a>
-              <div className="br-list space-y-3 pt-3" style={{ display: 'block' }}>
-                <span className="br-divider d-md-none"></span>
-                <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://loja.serpro.gov.br/?utm_source=portal&utm_medium=rodape&utm_campaign=home-serpro" target="_blank" rel="noreferrer">
-                  <div className="content">Loja Serpro</div>
-                </a>
-                <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.ventures.serpro.gov.br" target="_blank" rel="noreferrer">
-                  <div className="content">Inovação aberta</div>
-                </a>
-                <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.serpro.gov.br/insights" target="_blank" rel="noreferrer">
-                  <div className="content">Insights e Notícias</div>
-                </a>
-                <span className="br-divider d-md-none"></span>
-              </div>
-            </div>
 
-            <div className="col-2">
-              <a className="br-item header font-bold text-white uppercase text-[14px] flex items-center justify-between pb-2 border-b border-white/10" href="javascript:void(0)">
-                <div className="content text-down-01 text-bold text-uppercase">Suporte</div>
-                <div className="support"><i className="fas fa-angle-down text-xs" aria-hidden="true"></i></div>
-              </a>
-              <div className="br-list space-y-3 pt-3" style={{ display: 'block' }}>
-                <span className="br-divider d-md-none"></span>
-                <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.serpro.gov.br/menu/suporte/ajuda-ao-cliente" target="_blank" rel="noreferrer">
-                  <div className="content">Ajuda ao cliente</div>
-                </a>
-                <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://centraldeajuda.serpro.gov.br/duvidas/pt/atendimento/atendimento/?utm_source=portal&utm_medium=rodape&utm_campaign=home-serpro" target="_blank" rel="noreferrer">
-                  <div className="content">Central de Ajuda</div>
-                </a>
-                <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.serpro.gov.br/menu/suporte/css" target="_blank" rel="noreferrer">
-                  <div className="content">Central de Serviços</div>
-                </a>
-                <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.serpro.gov.br/menu/suporte/escritorio-de-atendimento-ao-mercado" target="_blank" rel="noreferrer">
-                  <div className="content">Consignatárias</div>
-                </a>
-                <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.serpro.gov.br/menu/suporte/central-de-servicos-transformacao-digital-da-justica" target="_blank" rel="noreferrer">
-                  <div className="content">Transformação Digital da Justiça</div>
-                </a>
-                <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.serpro.gov.br/menu/suporte/downloads/downloads-e-softwares" target="_blank" rel="noreferrer">
-                  <div className="content">Downloads</div>
-                </a>
-                <span className="br-divider d-md-none"></span>
-              </div>
-            </div>
-
-            <div className="col-2">
-              <a className="br-item header font-bold text-white uppercase text-[14px] flex items-center justify-between pb-2 border-b border-white/10" href="javascript:void(0)">
-                <div className="content text-down-01 text-bold text-uppercase">Institucional</div>
-                <div className="support"><i className="fas fa-angle-down text-xs" aria-hidden="true"></i></div>
-              </a>
-              <div className="br-list space-y-3 pt-3" style={{ display: 'block' }}>
-                <span className="br-divider d-md-none"></span>
-                <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.serpro.gov.br/menu/institucional/quem-somos" target="_blank" rel="noreferrer">
-                  <div className="content">Quem Somos</div>
-                </a>
-                <a className="br-item block py-1 text-white hover:underline transition-colors" href="http://www.serpro.gov.br/marca-serpro/" target="_blank" rel="noreferrer">
-                  <div className="content">Marca Serpro</div>
-                </a>
-                <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.serpro.gov.br/menu/quem-somos/iniciativas-sociais" target="_blank" rel="noreferrer">
-                  <div className="content">Iniciativas Sociais</div>
-                </a>
-                <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.transparencia.serpro.gov.br/" target="_blank" rel="noreferrer">
-                  <div className="content">Governança</div>
-                </a>
-                <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.transparencia.serpro.gov.br/etica-e-integridade/?utm_source=portal&utm_medium=rodape&utm_campaign=home-serpro" target="_blank" rel="noreferrer">
-                  <div className="content">Ética e Integridade</div>
-                </a>
-                <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.transparencia.serpro.gov.br/acesso-a-informacao/?utm_source=portal&utm_medium=rodape&utm_campaign=home-serpro" target="_blank" rel="noreferrer">
-                  <div className="content">Acesso à Informação</div>
-                </a>
-                <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.serpro.gov.br/privacidade-protecao-dados" target="_blank" rel="noreferrer">
-                  <div className="content">Privacidade</div>
-                </a>
-                <span className="br-divider d-md-none"></span>
-              </div>
-            </div>
-
-            <div className="col-2">
-              <a className="br-item header font-bold text-white uppercase text-[14px] flex items-center justify-between pb-2 border-b border-white/10" href="javascript:void(0)">
-                <div className="content text-down-01 text-bold text-uppercase">Contato</div>
-                <div className="support"><i className="fas fa-angle-down text-xs" aria-hidden="true"></i></div>
-              </a>
-              <div className="br-list space-y-3 pt-3" style={{ display: 'block' }}>
-                <span className="br-divider d-md-none"></span>
-                <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.transparencia.serpro.gov.br/acesso-a-informacao/institucional/enderecos" target="_blank" rel="noreferrer">
-                  <div className="content">Endereços</div>
-                </a>
-                <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.serpro.gov.br/menu/contato/cliente/cliente/@@template_contato" target="_blank" rel="noreferrer">
-                  <div className="content">Fale conosco</div>
-                </a>
-                <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://serpro.gov.br/menu/imprensa" target="_blank" rel="noreferrer">
-                  <div className="content">Imprensa</div>
-                </a>
-                <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.serpro.gov.br/corregedoria" target="_blank" rel="noreferrer">
-                  <div className="content">Corregedoria</div>
-                </a>
-                <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.transparencia.serpro.gov.br/etica-e-integridade/ouvidoria/fale-com-a-ouvidoria" target="_blank" rel="noreferrer">
-                  <div className="content">Ouvidoria</div>
-                </a>
-                <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://falabr.cgu.gov.br/web/home" target="_blank" rel="noreferrer">
-                  <div className="content">Fala BR</div>
-                </a>
-                <span className="br-divider d-md-none"></span>
-              </div>
-            </div>
-
-            <div className="col-2">
-              <a className="br-item header font-bold text-white uppercase text-[14px] flex items-center justify-between pb-2 border-b border-white/10" href="javascript:void(0)">
-                <div className="content text-down-01 text-bold text-uppercase">Empregados</div>
-                <div className="support"><i className="fas fa-angle-down text-xs" aria-hidden="true"></i></div>
-              </a>
-              <div className="br-list space-y-3 pt-3" style={{ display: 'block' }}>
-                <span className="br-divider d-md-none"></span>
-                <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://intra.serpro.gov.br/login/?utm_source=portal&utm_medium=rodape&utm_campaign=home-serpro" target="_blank" rel="noreferrer">
-                  <div className="content">Intranet</div>
-                </a>
-                <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://passerpro.impactomedica.com.br/" target="_blank" rel="noreferrer">
-                  <div className="content">PAS Serpro</div>
-                </a>
-                <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://intra.serpro.gov.br/minha-empresa/beneficios/plano-odontologico" target="_blank" rel="noreferrer">
-                  <div className="content">Plano Odontológico</div>
-                </a>
-                <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.transparencia.serpro.gov.br/acesso-a-informacao/empregados/?utm_source=portal&utm_medium=rodape&utm_campaign=home-serpro" target="_blank" rel="noreferrer">
-                  <div className="content">Carreira</div>
-                </a>
-                <span className="br-divider d-md-none"></span>
-              </div>
-            </div>
-
-            <div className="col-2">
-              <a className="br-item header font-bold text-white uppercase text-[14px] flex items-center justify-between pb-2 border-b border-white/10" href="javascript:void(0)">
-                <div className="content text-down-01 text-bold text-uppercase">SUSTENTABILIDADE</div>
-                <div className="support"><i className="fas fa-angle-down text-xs" aria-hidden="true"></i></div>
-              </a>
-              <div className="br-list space-y-3 pt-3" style={{ display: 'block' }}>
-                <span className="br-divider d-md-none"></span>
-                <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.serpro.gov.br/menu/sustentabilidade/esg-serpro" target="_blank" rel="noreferrer">
-                  <div className="content">ESG</div>
-                </a>
-                <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.serpro.gov.br/menu/sustentabilidade/jornada-ser-esg" target="_blank" rel="noreferrer">
-                  <div className="content">Jornada Ser ESG</div>
-                </a>
-                <a className="br-item block py-1 text-white hover:underline transition-colors" href="https://www.serpro.gov.br/menu/sustentabilidade/ods" target="_blank" rel="noreferrer">
-                  <div className="content">Objetivos de desenvolvimento Sustentável</div>
-                </a>
-                <span className="br-divider d-md-none"></span>
-              </div>
-            </div>
+          {/* Grid de Seções com suporte a Sanfona no Mobile */}
+          <div className="br-list horizontal grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 text-[14px]">
+            {footerSections.map((section) => {
+              const isOpen = openColumn === section.id;
+              return (
+                <div key={section.id} className="col-2">
+                  <button
+                    type="button"
+                    onClick={() => toggleColumn(section.id)}
+                    aria-expanded={isOpen}
+                    aria-label={isOpen ? 'expandido' : 'recolhido'}
+                    className="br-item header font-bold text-white uppercase text-[14px] flex items-center justify-between w-full pb-2 border-b border-white/10 text-left cursor-pointer bg-transparent border-none sm:cursor-default"
+                  >
+                    <div className="content text-down-01 text-bold text-uppercase">{section.title}</div>
+                    <div className="support sm:hidden">
+                      <i className={`fas ${isOpen ? 'fa-angle-up' : 'fa-angle-down'} text-xs transition-transform`} aria-hidden="true"></i>
+                    </div>
+                  </button>
+                  <div
+                    className={`br-list space-y-3 pt-3 ${isOpen ? 'block' : 'hidden sm:block'}`}
+                  >
+                    <span className="br-divider d-md-none"></span>
+                    {section.links.map((link) => (
+                      <a
+                        key={link.label}
+                        className="br-item block py-1 text-white hover:underline transition-colors text-[13px] leading-tight"
+                        href={link.href}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <div className="content">{link.label}</div>
+                      </a>
+                    ))}
+                    <span className="br-divider d-md-none"></span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
           {/* Redes Sociais & Selo Acesso à Informação */}
