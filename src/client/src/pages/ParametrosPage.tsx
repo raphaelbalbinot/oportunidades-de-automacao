@@ -236,7 +236,7 @@ export const ParametrosPage: React.FC = () => {
                 </p>
               </div>
 
-              <div className="self-start sm:self-auto px-3.5 py-1.5 rounded-md bg-blue-50 text-[#1351b4] font-bold text-xs border border-blue-200 shadow-xs whitespace-nowrap">
+              <div className="self-start sm:self-auto px-3.5 py-1.5 rounded-md bg-[var(--govbr-blue-warm-vivid-70)] text-white font-bold text-xs shadow-xs whitespace-nowrap">
                 Soma de Pesos: {somaPesos} pontos
               </div>
             </div>

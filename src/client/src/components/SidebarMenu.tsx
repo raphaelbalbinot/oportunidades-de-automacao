@@ -138,7 +138,7 @@ export const SidebarMenu: React.FC<SidebarMenuProps> = ({
               href={link.href}
               target="_blank"
               rel="noreferrer"
-              className="menu-item block p-2.5 rounded-lg text-xs text-slate-600 hover:bg-slate-50 hover:text-[var(--govbr-blue-warm-vivid-70)] transition-colors flex items-center justify-between"
+              className="menu-item p-2.5 rounded-lg text-xs text-slate-600 hover:bg-slate-50 hover:text-[var(--govbr-blue-warm-vivid-70)] transition-colors flex items-center justify-between"
             >
               <div className="flex items-center space-x-2.5">
                 <i className={`fas ${link.icon} text-slate-400 text-sm`} aria-hidden="true"></i>
