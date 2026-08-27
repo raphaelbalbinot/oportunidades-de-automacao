@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Parametro, PerfilPlataforma } from '../types';
 import { api } from '../services/api';
 import { Tooltip } from '../components/Tooltip';
+import { useNotification } from '../components/Notification';
 
 export const ParametrosPage: React.FC = () => {
+  const notify = useNotification();
   const [parametro, setParametro] = useState<Parametro | null>(null);
   const [perfis, setPerfis] = useState<PerfilPlataforma[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,7 +42,7 @@ export const ParametrosPage: React.FC = () => {
       setPerfis(perfisData);
     } catch (err: any) {
       console.error(err);
-      alert('Erro ao carregar configurações.');
+      notify.error('Erro de Carregamento', 'Não foi possível carregar as configurações globais.');
     } finally {
       setLoading(false);
     }
@@ -59,9 +61,10 @@ export const ParametrosPage: React.FC = () => {
       const updated = await api.updateParametros(parametro);
       setParametro(updated);
       setSaveSuccess(true);
+      notify.success('Sucesso', 'Parâmetros globais de custeio e benefícios salvos com sucesso.');
       setTimeout(() => setSaveSuccess(false), 4000);
     } catch (err: any) {
-      alert(err.message || 'Erro ao salvar parâmetros.');
+      notify.error('Erro ao Salvar', err.message || 'Erro ao salvar parâmetros.');
     } finally {
       setSaving(false);
     }
@@ -94,14 +97,16 @@ export const ParametrosPage: React.FC = () => {
     try {
       if (editingPerfil) {
         await api.updatePerfilPlataforma(editingPerfil.id, perfilFormData);
+        notify.success('Perfil Atualizado', `Perfil "${perfilFormData.nome}" atualizado.`);
       } else {
         await api.createPerfilPlataforma(perfilFormData);
+        notify.success('Perfil Criado', `Novo perfil "${perfilFormData.nome}" cadastrado.`);
       }
       setPerfilModalOpen(false);
       const updatedPerfis = await api.getPerfisPlataforma();
       setPerfis(updatedPerfis);
     } catch (err: any) {
-      alert(err.message || 'Erro ao salvar perfil de plataforma.');
+      notify.error('Erro no Perfil', err.message || 'Erro ao salvar perfil de plataforma.');
     }
   };
 
@@ -111,8 +116,9 @@ export const ParametrosPage: React.FC = () => {
         await api.deletePerfilPlataforma(id);
         const updatedPerfis = await api.getPerfisPlataforma();
         setPerfis(updatedPerfis);
+        notify.success('Perfil Removido', `O perfil "${nome}" foi excluído com sucesso.`);
       } catch (err: any) {
-        alert(err.message || 'Erro ao excluir perfil.');
+        notify.error('Erro ao Excluir', err.message || 'Erro ao excluir perfil.');
       }
     }
   };
@@ -122,8 +128,9 @@ export const ParametrosPage: React.FC = () => {
       await api.updatePerfilPlataforma(p.id, { isPadrao: true });
       const updatedPerfis = await api.getPerfisPlataforma();
       setPerfis(updatedPerfis);
+      notify.success('Perfil Padrão', `O perfil "${p.nome}" agora é a plataforma padrão.`);
     } catch (err: any) {
-      alert(err.message || 'Erro ao definir perfil padrão.');
+      notify.error('Erro ao Definir Padrão', err.message || 'Erro ao definir perfil padrão.');
     }
   };
 

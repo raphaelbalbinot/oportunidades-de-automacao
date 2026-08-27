@@ -3,6 +3,7 @@ import { Modal } from './Modal';
 import { Registro, Parametro, BeneficioNivel, PerfilPlataforma } from '../types';
 import { api } from '../services/api';
 import { Tooltip } from './Tooltip';
+import { useNotification } from './Notification';
 
 interface RegistroFormModalProps {
   isOpen: boolean;
@@ -21,7 +22,7 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
   initialData,
   parametro,
 }) => {
-
+  const notify = useNotification();
   const [perfis, setPerfis] = useState<PerfilPlataforma[]>([]);
   const [formData, setFormData] = useState<Partial<Registro>>({
     idOrigem: '',
@@ -303,7 +304,7 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.nomeProcesso || formData.nomeProcesso.trim() === '') {
-      alert('Por favor, informe o Nome do Processo.');
+      notify.warning('Campo Obrigatório', 'Por favor, informe o Nome do Processo.');
       return;
     }
 
@@ -321,7 +322,7 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
       if (onSuccess) onSuccess();
       onClose();
     } catch (err: any) {
-      alert(err.message || 'Erro ao salvar oportunidade.');
+      notify.error('Erro ao Salvar', err.message || 'Erro ao salvar oportunidade.');
     } finally {
       setIsSubmitting(false);
     }

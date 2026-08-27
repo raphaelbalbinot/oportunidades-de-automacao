@@ -2,8 +2,10 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Registro, Parametro } from '../types';
 import { api } from '../services/api';
 import { RegistroFormModal } from '../components/RegistroFormModal';
+import { useNotification } from '../components/Notification';
 
 export const RegistrosPage: React.FC = () => {
+  const notify = useNotification();
   const [registros, setRegistros] = useState<Registro[]>([]);
   const [parametro, setParametro] = useState<Parametro | null>(null);
   const [loading, setLoading] = useState(true);
@@ -31,7 +33,7 @@ export const RegistrosPage: React.FC = () => {
       setRegistros(data);
     } catch (err: any) {
       console.error(err);
-      alert('Erro ao carregar levantamentos.');
+      notify.error('Erro de Carregamento', 'Erro ao carregar levantamentos de processos.');
     } finally {
       setLoading(false);
     }
@@ -65,13 +67,15 @@ export const RegistrosPage: React.FC = () => {
     try {
       if (editingRegistro) {
         await api.updateRegistro(editingRegistro.id, formData);
+        notify.success('Processo Atualizado', `Oportunidade "${formData.nomeProcesso}" atualizada com sucesso.`);
       } else {
         await api.createRegistro(formData);
+        notify.success('Processo Cadastrado', `Nova oportunidade "${formData.nomeProcesso}" cadastrada.`);
       }
       setModalOpen(false);
       loadData();
     } catch (err: any) {
-      alert(err.message || 'Erro ao salvar oportunidade.');
+      notify.error('Erro ao Salvar', err.message || 'Erro ao salvar oportunidade.');
     }
   };
 
@@ -79,9 +83,10 @@ export const RegistrosPage: React.FC = () => {
     if (confirm(`Tem certeza que deseja excluir o levantamento "${nome}"?`)) {
       try {
         await api.deleteRegistro(id);
+        notify.success('Processo Excluído', `Levantamento "${nome}" excluído com sucesso.`);
         loadData();
       } catch (err: any) {
-        alert(err.message || 'Erro ao excluir.');
+        notify.error('Erro ao Excluir', err.message || 'Erro ao excluir.');
       }
     }
   };
