@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { SidebarMenu } from './SidebarMenu';
 
 interface NavbarProps {
   activeTab: 'dashboard' | 'registros' | 'parametros';
   setActiveTab: (tab: 'dashboard' | 'registros' | 'parametros') => void;
+  onToggleMenu?: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
+export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onToggleMenu }) => {
   const [darkMode, setDarkMode] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [fontScale, setFontScale] = useState<number>(100);
   const [isQuickAccessOpen, setIsQuickAccessOpen] = useState<boolean>(false);
-  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
 
   useEffect(() => {
     const isDark = localStorage.getItem('serpro_contrast_mode') === 'true';
@@ -53,17 +52,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
   ];
 
   return (
-    <>
-      {/* Menu Lateral GovBR DS (Drawer Acionado pelo Botão Hambúrguer) */}
-      <SidebarMenu
-        isOpen={isMenuOpen}
-        onClose={() => setIsMenuOpen(false)}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        darkMode={darkMode}
-      />
-
-      <header className="w-full bg-white border-b border-slate-200 shadow-xs sticky top-0 z-40 font-['Rawline',sans-serif]" id="header-capa">
+    <header className="w-full bg-white border-b border-slate-200 shadow-xs sticky top-0 z-40 font-['Rawline',sans-serif]" id="header-capa">
         {/* 1. Barra de Acessibilidade Superior Oficial (serpro.gov.br) */}
         <div className="accessibility-bar bg-white border-b border-slate-200 px-4 sm:px-8 py-1 text-[11px] text-slate-600 flex items-center justify-between">
           <div className="flex items-center space-x-4">
@@ -213,11 +202,10 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
                 <button
                   className="br-button circle btn-menu-trigger p-2 w-10 h-10 rounded-md text-[var(--govbr-blue-warm-vivid-70)] hover:bg-blue-50 flex items-center justify-center transition-colors cursor-pointer bg-transparent border-0 shadow-none focus:ring-2 focus:ring-[var(--govbr-blue-warm-vivid-70)]"
                   type="button"
-                  aria-label="Abrir Menu de Navegação"
-                  aria-expanded={isMenuOpen}
+                  aria-label="Alternar Menu de Navegação"
                   id="navigation"
-                  onClick={() => setIsMenuOpen(true)}
-                  title="Abrir Menu de Navegação"
+                  onClick={onToggleMenu}
+                  title="Alternar Menu de Navegação"
                 >
                   <i className="fas fa-bars text-lg" aria-hidden="true"></i>
                 </button>
@@ -258,7 +246,6 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
           </div>
         </div>
       </header>
-    </>
   );
 };
 
