@@ -597,3 +597,64 @@ body.dark-mode [role="dialog"] {
   background: #94a3b8;
 }
 
+/* ==========================================================================
+   ESTILOS DE IMPRESSÃO LIMPA (DOSSIÊ EXECUTIVO / PDF)
+   ========================================================================== */
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm 12mm 12mm 12mm;
+  }
+
+  body {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Oculta cabeçalhos, barras de acessibilidade, menus e rodapés do sistema */
+  header,
+  nav,
+  footer,
+  .br-header,
+  .br-menu,
+  .br-footer,
+  .accessibility-bar,
+  .header-tabs-bar,
+  button,
+  .no-print {
+    display: none !important;
+  }
+
+  /* Remove o fundo escuro/overlay do modal durante a impressão */
+  .fixed.inset-0 {
+    position: static !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+    overflow: visible !important;
+  }
+
+  /* Garante que o dossiê ocupe 100% sem bordas de modal */
+  #dossie-imprimivel {
+    border: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    display: block !important;
+  }
+
+  .avoid-break {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+}
+

@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guia de Engenharia Financeira, ROI e Horizontes Temporais — SERPRO FCAIA</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rawline:wght@400;500;600;700;800&display=swap" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 12mm 12mm 12mm 12mm;
+    }
+    body {
+      font-family: 'Rawline', sans-serif;
+      background-color: #ffffff;
+      color: #0f172a;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .avoid-break {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+    .page-break {
+      page-break-after: always;
+      break-after: page;
+    }
+  </style>
+</head>
+<body class="p-4 sm:p-8 max-w-4xl mx-auto space-y-6 text-xs leading-relaxed text-slate-800">
+
+  <!-- ==================== PÁGINA 1 ==================== -->
+
+  <!-- Cabeçalho Oficial Serpro & FCAIA -->
+  <header class="border-b-2 border-[#1351b4] pb-4 flex items-center justify-between avoid-break">
+    <div>
+      <div class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+        SERPRO · COORDENAÇÃO DE AUTOMAÇÃO E INTELIGÊNCIA ARTIFICIAL (FCAIA) · SUPFC
+      </div>
+      <h1 class="text-xl font-extrabold text-[#0c326f] m-0 tracking-tight">
+        Guia de Engenharia Financeira, ROI e Horizontes de Tempo
+      </h1>
+      <p class="text-xs text-slate-600 mt-1 m-0">
+        Interpretação e memória de cálculo das Seções 2 e 3 do Dossiê Executivo de Business Case
+      </p>
+    </div>
+    <div class="text-right">
+      <span class="inline-block bg-[#1351b4] text-white font-bold text-xs px-3 py-1 rounded shadow-xs">
+        Metodologia FCAIA 2.0
+      </span>
+      <div class="text-[10px] text-slate-500 mt-1 font-medium">
+        Documento Técnico de Referência
+      </div>
+    </div>
+  </header>
+
+  <!-- 1. Visão Geral das Seções 2 e 3 do Dossiê -->
+  <section class="space-y-3 avoid-break">
+    <div class="flex items-center space-x-2 border-b border-slate-200 pb-1">
+      <span class="bg-[#1351b4] text-white font-bold px-2 py-0.5 rounded text-[10px]">1</span>
+      <h2 class="text-xs font-bold uppercase tracking-wider text-[#0c326f] m-0">
+        Visão Geral das Seções 2 e 3 do Dossiê Executivo
+      </h2>
+    </div>
+    <p class="text-slate-700 m-0">
+      As Seções 2 e 3 do Dossiê Executivo consolidam o <strong>núcleo quantitativo e auditável</strong> da proposta de automação. Elas traduzem os ganhos operacionais em alavancas financeiras concretas em R$, aplicando análise de sensibilidade multi-cenário, taxas de desconto a valor presente e isolamento de causalidade.
+    </p>
+
+    <!-- Card de Destaque Visual -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-lg border border-slate-300">
+      <div class="space-y-1">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-[#1351b4] block">Seção 2: Engenharia Financeira</span>
+        <p class="text-[11px] text-slate-700 m-0">
+          Apresenta a tese de valor (Arquétipos A1 a A7) e confronta o <strong>Benefício Líquido Anual</strong>, o <strong>VPL em 3 Anos</strong>, o <strong>Payback</strong> e o <strong>Investimento de Setup</strong> nos 3 cenários de risco.
+        </p>
+      </div>
+      <div class="space-y-1">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-[#1351b4] block">Seção 3: Causalidade & Reuso</span>
+        <p class="text-[11px] text-slate-700 m-0">
+          Isola a parcela do ganho atribuível à <strong>Automação (Robô/IA)</strong> vs. padronização de processos e sistemas, além de quantificar o potencial de <strong>replicação em escala no parque</strong>.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Margens de Tempo & Horizontes Temporais -->
+  <section class="space-y-3 avoid-break">
+    <div class="flex items-center space-x-2 border-b border-slate-200 pb-1">
+      <span class="bg-[#1351b4] text-white font-bold px-2 py-0.5 rounded text-[10px]">2</span>
+      <h2 class="text-xs font-bold uppercase tracking-wider text-[#0c326f] m-0">
+        Margens de Tempo e Horizontes de Análise Financeira
+      </h2>
+    </div>
+    <p class="text-slate-700 m-0">
+      Na metodologia do Serpro, a análise financeira adota <strong>três horizontes temporais complementares</strong> para evitar projeções irrealistas de longo prazo:
+    </p>
+
+    <div class="border border-slate-300 rounded-lg overflow-hidden">
+      <table class="w-full text-left border-collapse text-[11px]">
+        <thead class="bg-slate-100 text-slate-800 text-[10px] font-bold uppercase border-b border-slate-300">
+          <tr>
+            <th class="py-2 px-3">Indicador</th>
+            <th class="py-2 px-3">Horizonte Temporal</th>
+            <th class="py-2 px-3">Finalidade no Business Case</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200">
+          <tr>
+            <td class="py-2 px-3 font-bold text-slate-900">Benefício Líquido Anual</td>
+            <td class="py-2 px-3 font-semibold text-[#1351b4]">12 Meses (1 Ano)</td>
+            <td class="py-2 px-3 text-slate-700">Mede o fluxo de economia líquida recorrente gerada a cada ano civil em regime de operação estável.</td>
+          </tr>
+          <tr class="bg-blue-50/40">
+            <td class="py-2 px-3 font-bold text-slate-900">VPL (Valor Presente Líquido)</td>
+            <td class="py-2 px-3 font-bold text-[#0c326f]">3 Anos (36 Meses)</td>
+            <td class="py-2 px-3 text-slate-700">
+              <strong>Horizonte oficial da automação</strong>. Soma os fluxos de 3 anos descontando a taxa de 12% a.a. e subtraindo o setup. Projetos de RPA/IA adotam 3 anos porque sistemas legados e regras mudam após esse período.
+            </td>
+          </tr>
+          <tr>
+            <td class="py-2 px-3 font-bold text-slate-900">Payback Estimado</td>
+            <td class="py-2 px-3 font-semibold text-emerald-700">Meses (ex: 5,2 meses)</td>
+            <td class="py-2 px-3 text-slate-700">Velocidade do retorno: o número exato de meses necessários para que o benefício líquido acumulado pague 100% do custo de desenvolvimento.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 3. As Três Visões de ROI no Serpro -->
+  <section class="space-y-3 avoid-break">
+    <div class="flex items-center space-x-2 border-b border-slate-200 pb-1">
+      <span class="bg-[#1351b4] text-white font-bold px-2 py-0.5 rounded text-[10px]">3</span>
+      <h2 class="text-xs font-bold uppercase tracking-wider text-[#0c326f] m-0">
+        Qual Campo Especifica o ROI e Como Ele é Calculado?
+      </h2>
+    </div>
+    <p class="text-slate-700 m-0">
+      Em governança corporativa, o ROI (Retorno sobre Investimento) é expresso em três visões técnicas:
+    </p>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <!-- 1. VPL -->
+      <div class="p-3 bg-slate-50 border border-blue-200 rounded-lg space-y-1.5">
+        <div class="text-[10px] font-bold uppercase text-[#1351b4]">1. ROI Absoluto em R$ (VPL 3 Anos)</div>
+        <div class="text-base font-extrabold text-[#0c326f]">R$ 147.820,50</div>
+        <p class="text-[10px] text-slate-600 m-0">
+          É o <strong>Valor Econômico Agregado Líquido</strong> real trazido a valor presente (taxa 12% a.a.) após descontar o custo inicial de setup e sustentação.
+        </p>
+      </div>
+
+      <!-- 2. ROI Percentual -->
+      <div class="p-3 bg-slate-50 border border-emerald-200 rounded-lg space-y-1.5">
+        <div class="text-[10px] font-bold uppercase text-emerald-700">2. ROI Operacional (Ano 1)</div>
+        <div class="text-base font-extrabold text-emerald-800">242,9% a.a.</div>
+        <p class="text-[10px] text-slate-600 m-0">
+          Relação direta entre o Benefício Anual (R$ 76.125) e o Setup Inicial (R$ 22.200):
+          <br /><code class="bg-white px-1 py-0.5 rounded text-[9px] text-slate-800 font-mono">(76.125 - 22.200) / 22.200</code>
+        </p>
+      </div>
+
+      <!-- 3. Payback -->
+      <div class="p-3 bg-slate-50 border border-amber-200 rounded-lg space-y-1.5">
+        <div class="text-[10px] font-bold uppercase text-amber-700">3. Velocidade do ROI (Payback)</div>
+        <div class="text-base font-extrabold text-slate-900">5,2 meses</div>
+        <p class="text-[10px] text-slate-600 m-0">
+          Em menos de 1 semestre o investimento inicial retorna integralmente ao Serpro, gerando caixa livre nos 30 meses seguintes.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <div class="page-break"></div>
+
+  <!-- ==================== PÁGINA 2 ==================== -->
+
+  <!-- Cabeçalho de Continuação -->
+  <div class="border-b border-slate-300 pb-2 flex items-center justify-between text-[10px] text-slate-500 avoid-break">
+    <span>SERPRO · FCAIA · SUPFC — Guia de Engenharia Financeira & ROI</span>
+    <span>Página 2 de 2</span>
+  </div>
+
+  <!-- 4. Análise de Sensibilidade Multi-Cenário -->
+  <section class="space-y-3 avoid-break mt-4">
+    <div class="flex items-center space-x-2 border-b border-slate-200 pb-1">
+      <span class="bg-[#1351b4] text-white font-bold px-2 py-0.5 rounded text-[10px]">4</span>
+      <h2 class="text-xs font-bold uppercase tracking-wider text-[#0c326f] m-0">
+        Análise de Sensibilidade nos 3 Cenários (Conservador, Base e Otimista)
+      </h2>
+    </div>
+    <p class="text-slate-700 m-0">
+      A tabela multi-cenário permite aos comitês decisórios avaliar o risco e a robustez da oportunidade sob diferentes condições operacionais:
+    </p>
+
+    <div class="border border-slate-300 rounded-lg overflow-hidden">
+      <table class="w-full text-left border-collapse text-xs">
+        <thead class="bg-slate-100 text-slate-800 text-[10px] font-bold uppercase border-b border-slate-300">
+          <tr>
+            <th class="py-2.5 px-3">Indicador Financeiro Auditável</th>
+            <th class="py-2.5 px-3 text-right">Cenário Conservador</th>
+            <th class="py-2.5 px-3 text-right bg-blue-100/70 text-[#0c326f] font-extrabold">Cenário Base (Oficial)</th>
+            <th class="py-2.5 px-3 text-right">Cenário Otimista</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200 text-[11px]">
+          <tr>
+            <td class="py-2 px-3 font-semibold text-slate-800">Benefício Líquido Anual (R$)</td>
+            <td class="py-2 px-3 text-right text-slate-600">R$ 60.900,00</td>
+            <td class="py-2 px-3 text-right font-bold text-emerald-800 bg-blue-50/40">R$ 76.125,00</td>
+            <td class="py-2 px-3 text-right text-slate-600">R$ 91.350,00</td>
+          </tr>
+          <tr>
+            <td class="py-2 px-3 font-semibold text-slate-800">VPL em 3 Anos (Taxa 12% a.a.)</td>
+            <td class="py-2 px-3 text-right text-slate-600">R$ 108.200,00</td>
+            <td class="py-2 px-3 text-right font-bold text-[#1351b4] bg-blue-50/40">R$ 147.820,50</td>
+            <td class="py-2 px-3 text-right text-slate-600">R$ 189.400,00</td>
+          </tr>
+          <tr>
+            <td class="py-2 px-3 font-semibold text-slate-800">Payback Estimado</td>
+            <td class="py-2 px-3 text-right text-slate-600">6,8 meses</td>
+            <td class="py-2 px-3 text-right font-bold text-slate-900 bg-blue-50/40">5,2 meses</td>
+            <td class="py-2 px-3 text-right text-slate-600">4,2 meses</td>
+          </tr>
+          <tr>
+            <td class="py-2 px-3 font-semibold text-slate-800">Investimento Inicial de Setup (Engenharia)</td>
+            <td class="py-2 px-3 text-right text-slate-600">R$ 26.640,00</td>
+            <td class="py-2 px-3 text-right font-bold text-slate-900 bg-blue-50/40">R$ 22.200,00</td>
+            <td class="py-2 px-3 text-right text-slate-600">R$ 19.980,00</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 5. Atribuição de Causalidade por Trilha & Fator de Reuso -->
+  <section class="space-y-3 avoid-break">
+    <div class="flex items-center space-x-2 border-b border-slate-200 pb-1">
+      <span class="bg-[#1351b4] text-white font-bold px-2 py-0.5 rounded text-[10px]">5</span>
+      <h2 class="text-xs font-bold uppercase tracking-wider text-[#0c326f] m-0">
+        Atribuição por Trilha (Seção 5.3) & Fator de Reuso (Seção 5.4)
+      </h2>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <!-- Trilha -->
+      <div class="p-3 bg-slate-50 border border-slate-300 rounded-lg space-y-2">
+        <span class="font-bold text-slate-900 block text-[11px] border-b border-slate-200 pb-1">
+          Distribuição de Causalidade por Trilha:
+        </span>
+        <div class="flex justify-between text-[11px]">
+          <span class="text-slate-600">Trilha Automação (Robô / RPA / IA):</span>
+          <span class="font-bold text-emerald-800">75%</span>
+        </div>
+        <div class="flex justify-between text-[11px]">
+          <span class="text-slate-600">Trilha Padronização de Processo:</span>
+          <span class="font-medium text-slate-800">15%</span>
+        </div>
+        <div class="flex justify-between text-[11px]">
+          <span class="text-slate-600">Trilha Evolução de Sistema Legado:</span>
+          <span class="font-medium text-slate-800">10%</span>
+        </div>
+        <p class="text-[10px] text-slate-500 pt-1 border-t border-slate-200 m-0">
+          <strong>Regra Anti-Inflação:</strong> O business case da automação apropria exclusivamente os 75% gerados pelo robô.
+        </p>
+      </div>
+
+      <!-- Reuso -->
+      <div class="p-3 bg-slate-50 border border-slate-300 rounded-lg space-y-2">
+        <span class="font-bold text-slate-900 block text-[11px] border-b border-slate-200 pb-1">
+          Fator de Reuso e Potencial de Escala:
+        </span>
+        <div class="flex justify-between text-[11px]">
+          <span class="text-slate-600">Unidades Atendidas no Piloto:</span>
+          <span class="font-bold text-slate-900">8 unidade(s)</span>
+        </div>
+        <div class="flex justify-between text-[11px]">
+          <span class="text-slate-600">Unidades Potenciais no Parque:</span>
+          <span class="font-bold text-slate-900">26 unidade(s)</span>
+        </div>
+        <div class="flex justify-between text-[11px]">
+          <span class="text-slate-600">Benefício Projetado em Escala:</span>
+          <span class="font-bold text-[#1351b4]">R$ 285.000,00</span>
+        </div>
+        <p class="text-[10px] text-slate-500 pt-1 border-t border-slate-200 m-0">
+          <strong>Escalabilidade:</strong> Uma vez desenvolvido o robô no piloto, a replicação nas outras 18 unidades tem custo marginal reduzido.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. Síntese para Defesa em Comitês e Governança -->
+  <section class="p-3.5 bg-blue-50 border border-blue-200 rounded-lg space-y-1.5 avoid-break">
+    <span class="font-bold text-[#0c326f] text-xs block">
+      📌 Resumo Executivo para Apresentação em Comitês Decisórios:
+    </span>
+    <ul class="list-disc list-inside text-[11px] text-slate-700 space-y-1">
+      <li><strong>Horizonte de Defesa:</strong> Sempre defender o projeto com base no <strong>VPL de 3 Anos (R$ 147.820,50)</strong> e no <strong>Payback de 5,2 meses</strong>.</li>
+      <li><strong>Margem de Segurança:</strong> Mesmo no cenário conservador mais adverso, o projeto gera <strong>R$ 108.200,00 de VPL</strong> e se paga em <strong>6,8 meses</strong>.</li>
+      <li><strong>Apropriação Ética:</strong> Apenas os ganhos diretos da esteira de automação (75%) são contabilizados, garantindo conformidade com auditorias internas.</li>
+    </ul>
+  </section>
+
+  <!-- Rodapé Institucional -->
+  <footer class="pt-4 border-t border-slate-300 text-center text-[10px] text-slate-500 avoid-break">
+    SERPRO — Serviço Federal de Processamento de Dados · Centro de Excelência em Automação & IA (FCAIA / SUPFC)
+  </footer>
+
+</body>
+</html>

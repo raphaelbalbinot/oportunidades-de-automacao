@@ -4,6 +4,8 @@ export interface AnalyticsFilter {
   registroId?: string;
   area?: string;
   situacao?: string;
+  nivelMaturidade?: string;
+  arquetipo?: string;
 }
 
 export class AnalyticsService {
@@ -23,8 +25,13 @@ export class AnalyticsService {
     if (filter?.situacao) {
       targetRegistros = targetRegistros.filter((r: any) => r.situacao === filter.situacao);
     }
+    if (filter?.nivelMaturidade) {
+      targetRegistros = targetRegistros.filter((r: any) => r.nivelMaturidade === filter.nivelMaturidade);
+    }
+    if (filter?.arquetipo) {
+      targetRegistros = targetRegistros.filter((r: any) => r.arquetipoPrimario === filter.arquetipo);
+    }
 
-    // Se um registro específico foi selecionado
     const selectedRecord = filter?.registroId
       ? allRegistros.find((r: any) => r.id === filter.registroId)
       : null;
@@ -41,6 +48,9 @@ export class AnalyticsService {
     const roiAno1Total = Number(dataset.reduce((acc: number, r: any) => acc + (r.roiAno1 || 0), 0).toFixed(2));
     const roiAno2Total = Number(dataset.reduce((acc: number, r: any) => acc + (r.roiAno2 || 0), 0).toFixed(2));
 
+    const totalVpl3Anos = Number(dataset.reduce((acc: number, r: any) => acc + (r.vpl3Anos || 0), 0).toFixed(2));
+    const totalBeneficioLiquidoAnual = Number(dataset.reduce((acc: number, r: any) => acc + (r.beneficioLiquidoAnual || 0), 0).toFixed(2));
+
     const validPaybacks = dataset.filter((r: any) => (r.paybackMeses || 0) > 0);
     const paybackMedio =
       validPaybacks.length > 0
@@ -52,7 +62,41 @@ export class AnalyticsService {
         ? Number((dataset.reduce((acc: number, r: any) => acc + (r.pontuacaoBeneficios || 0), 0) / dataset.length).toFixed(2))
         : 0;
 
-    // 2. Gráfico: Distribuição por Complexidade
+    // 2. Gráfico: Distribuição por Maturidade (N0 a N3)
+    const maturidadeCounts: Record<string, number> = { N0: 0, N1: 0, N2: 0, N3: 0 };
+    dataset.forEach((r: any) => {
+      const m = r.nivelMaturidade || 'N0';
+      maturidadeCounts[m] = (maturidadeCounts[m] || 0) + 1;
+    });
+    const distribuicaoMaturidade = [
+      { name: 'N0 - Oportunidade', value: maturidadeCounts['N0'] || 0, key: 'N0' },
+      { name: 'N1 - Parcial', value: maturidadeCounts['N1'] || 0, key: 'N1' },
+      { name: 'N2 - Completo', value: maturidadeCounts['N2'] || 0, key: 'N2' },
+      { name: 'N3 - Realizado', value: maturidadeCounts['N3'] || 0, key: 'N3' },
+    ];
+
+    // 3. Gráfico: Distribuição por 7 Arquétipos
+    const arquetipoLabels: Record<string, string> = {
+      A1: 'A1 - Transacional',
+      A2: 'A2 - Erro/Retrabalho',
+      A3: 'A3 - Autosserviço',
+      A4: 'A4 - Compliance/Risco',
+      A5: 'A5 - Lead Time/Receita',
+      A6: 'A6 - Racionalização',
+      A7: 'A7 - Comercial',
+    };
+    const arquetipoCounts: Record<string, number> = { A1: 0, A2: 0, A3: 0, A4: 0, A5: 0, A6: 0, A7: 0 };
+    dataset.forEach((r: any) => {
+      const a = (r.arquetipoPrimario || 'A1').toUpperCase();
+      arquetipoCounts[a] = (arquetipoCounts[a] || 0) + 1;
+    });
+    const distribuicaoArquetipos = Object.entries(arquetipoCounts).map(([key, value]) => ({
+      key,
+      name: arquetipoLabels[key] || key,
+      value,
+    }));
+
+    // 4. Gráfico: Distribuição por Complexidade
     const complexidadeCounts: Record<string, number> = { Baixa: 0, Média: 0, Alta: 0 };
     dataset.forEach((r: any) => {
       const c = r.complexidade || 'Média';
@@ -63,7 +107,7 @@ export class AnalyticsService {
       value,
     }));
 
-    // 3. Gráfico: Distribuição por Turno (Total de Horas de Execução)
+    // 5. Gráfico: Distribuição por Turno
     let totalHorasDiurno = 0;
     let totalHorasNoturno = 0;
     let totalHorasFimSemana = 0;
@@ -92,7 +136,7 @@ export class AnalyticsService {
       { name: 'Final de Semana', value: Number(totalHorasFimSemana.toFixed(1)) },
     ];
 
-    // 4. Gráfico: Distribuição por Situação
+    // 6. Gráfico: Distribuição por Situação
     const situacaoCounts: Record<string, number> = {};
     dataset.forEach((r: any) => {
       const s = r.situacao || 'Em levantamento';
@@ -103,13 +147,16 @@ export class AnalyticsService {
       value,
     }));
 
-    // 5. Comparativo AS IS vs TO BE por Processo
+    // 7. Comparativo AS IS vs TO BE por Processo
     const comparativoProcessos = targetRegistros.map((r: any) => ({
       id: r.id,
       idOrigem: r.idOrigem || '-',
       idAnalise: r.idAnalise,
       nome: r.nomeProcesso,
       area: r.area,
+      nivelMaturidade: r.nivelMaturidade || 'N0',
+      arquetipoPrimario: r.arquetipoPrimario || 'A1',
+      arquetiposSecundarios: r.arquetiposSecundarios || '',
       periodicidade: r.periodicidade || 'Mensal',
       custoAtualMensal: r.custoMensalAtual || 0,
       perfilExecutor: r.perfilExecutor || '-',
@@ -125,21 +172,29 @@ export class AnalyticsService {
       custoToBeMensalAno1: r.custoMensalAno1 || 0,
       custoToBeMensalAno2: r.custoMensalAno2 || 0,
       economiaMensalAno1: Number(((r.custoMensalAtual || 0) - (r.custoMensalAno1 || 0)).toFixed(2)),
+      beneficioLiquidoAnual: r.beneficioLiquidoAnual || (r.custoMensalAtual ? r.custoMensalAtual * 12 : 0),
       roiAno1: r.roiAno1 || 0,
       roiAno2: r.roiAno2 || 0,
       paybackMeses: r.paybackMeses || 0,
+      vpl3Anos: r.vpl3Anos || 0,
+      vplCenarioConservador: r.vplCenarioConservador || 0,
+      vplCenarioBase: r.vplCenarioBase || 0,
+      vplCenarioOtimista: r.vplCenarioOtimista || 0,
       recomendacao: r.recomendacao || 'Recomendado',
       situacao: r.situacao || 'Em levantamento',
     }));
 
-    // 6. Matriz de Priorização (Pontuação Benefícios vs ROI vs Complexidade)
+    // 8. Matriz de Priorização (Esforço x Impacto / Benefícios x ROI x VPL)
     const matrizPriorizacao = dataset.map((r: any) => ({
       id: r.id,
       idAnalise: r.idAnalise,
       nome: r.nomeProcesso,
       area: r.area,
+      nivelMaturidade: r.nivelMaturidade || 'N0',
+      arquetipo: r.arquetipoPrimario || 'A1',
       beneficiosScore: Number(((r.pontuacaoBeneficios || 0) * 100).toFixed(1)),
       roiAno1: r.roiAno1,
+      vpl3Anos: r.vpl3Anos || 0,
       fte: r.fteLiberado,
       complexidade: r.complexidade,
       payback: r.paybackMeses,
@@ -158,9 +213,13 @@ export class AnalyticsService {
         investimentoSetupTotal,
         roiAno1Total,
         roiAno2Total,
+        totalVpl3Anos,
+        totalBeneficioLiquidoAnual,
         paybackMedio,
         pontuacaoMediaPercent: Number((pontuacaoMedia * 100).toFixed(1)),
       },
+      distribuicaoMaturidade,
+      distribuicaoArquetipos,
       distribuicaoComplexidade,
       distribuicaoTurno,
       distribuicaoSituacao,

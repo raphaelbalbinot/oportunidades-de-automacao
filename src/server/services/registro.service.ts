@@ -1,12 +1,15 @@
 import { prisma } from '../lib/prisma.js';
 import { CalculationService, RegistroInput } from './calculation.service.js';
 import { ParametroService } from './parametro.service.js';
+import { InstrumentacaoService } from './instrumentacao.service.js';
 
 export interface RegistroFilter {
   search?: string;
   area?: string;
   situacao?: string;
   complexidade?: string;
+  nivelMaturidade?: string;
+  arquetipo?: string;
 }
 
 export class RegistroService {
@@ -22,6 +25,15 @@ export class RegistroService {
     if (filter?.complexidade) {
       where.complexidade = filter.complexidade;
     }
+    if (filter?.nivelMaturidade) {
+      where.nivelMaturidade = filter.nivelMaturidade;
+    }
+    if (filter?.arquetipo) {
+      where.OR = [
+        { arquetipoPrimario: filter.arquetipo },
+        { arquetiposSecundarios: { contains: filter.arquetipo } },
+      ];
+    }
     if (filter?.search) {
       where.OR = [
         { nomeProcesso: { contains: filter.search } },
@@ -29,6 +41,7 @@ export class RegistroService {
         { idOrigem: { contains: filter.search } },
         { area: { contains: filter.search } },
         { descricaoProcesso: { contains: filter.search } },
+        { sintomasDor: { contains: filter.search } },
         { tipoPlataformaNome: { contains: filter.search } },
       ];
     }
@@ -49,6 +62,12 @@ export class RegistroService {
         perfilPlataforma: true,
       },
     });
+  }
+
+  static async getDiagnostico(id: string) {
+    const registro = await this.getById(id);
+    if (!registro) return null;
+    return InstrumentacaoService.gerarDiagnostico(registro);
   }
 
   static async create(data: any) {
@@ -88,6 +107,66 @@ export class RegistroService {
         dataLevantamento: data.dataLevantamento ?? new Date().toISOString().split('T')[0],
         participantes: data.participantes ?? '',
         situacao: data.situacao ?? 'Em levantamento',
+
+        // Funil de Maturidade FCAIA
+        nivelMaturidade: data.nivelMaturidade || calculated.nivelMaturidade,
+        dataPromocaoMaturidade: data.dataPromocaoMaturidade ?? (calculated.nivelMaturidade !== 'N0' ? new Date().toISOString().split('T')[0] : ''),
+        responsavelPromocao: data.responsavelPromocao ?? '',
+        isRetrospectivo: Boolean(data.isRetrospectivo ?? false),
+
+        // Triagem Qualitativa N0
+        sintomasDor: data.sintomasDor ?? '',
+        papeisEnvolvidos: data.papeisEnvolvidos ?? '',
+        criticidadePercebida: data.criticidadePercebida ?? 'Média',
+        recorrenciaDor: data.recorrenciaDor ?? 'Frequente',
+
+        // 7 Arquétipos
+        arquetipoPrimario: data.arquetipoPrimario ?? 'A1',
+        arquetiposSecundarios: data.arquetiposSecundarios ?? '',
+
+        // Variáveis dos Arquétipos
+        percAutomatizavel: Number(data.percAutomatizavel ?? 1.0),
+        taxaErroAtual: Number(data.taxaErroAtual ?? 0),
+        custoMedioErro: Number(data.custoMedioErro ?? 0),
+        reducaoEsperadaErro: Number(data.reducaoEsperadaErro ?? 0.8),
+        volumeContatosMensal: Number(data.volumeContatosMensal ?? 0),
+        custoAtendimentoHumano: Number(data.custoAtendimentoHumano ?? 0),
+        taxaContencaoEsperada: Number(data.taxaContencaoEsperada ?? 0),
+        custoAtendimentoAuto: Number(data.custoAtendimentoAuto ?? 0),
+        probabilidadeDescumprimento: Number(data.probabilidadeDescumprimento ?? 0),
+        impactoFinanceiroOcorrencia: Number(data.impactoFinanceiroOcorrencia ?? 0),
+        reducaoProbabilidadeRisco: Number(data.reducaoProbabilidadeRisco ?? 0),
+        historicoOcorrencias12m: Number(data.historicoOcorrencias12m ?? 0),
+        leadTimeAtualDias: Number(data.leadTimeAtualDias ?? 0),
+        leadTimeProjetadoDias: Number(data.leadTimeProjetadoDias ?? 0),
+        volumeAdicionalViabilizado: Number(data.volumeAdicionalViabilizado ?? 0),
+        ticketMedioReceita: Number(data.ticketMedioReceita ?? 0),
+        diasAntecipacaoFaturamento: Number(data.diasAntecipacaoFaturamento ?? 0),
+        valorFaturadoCiclo: Number(data.valorFaturadoCiclo ?? 0),
+        nrAtivosAntes: Number(data.nrAtivosAntes ?? 0),
+        nrAtivosDepois: Number(data.nrAtivosDepois ?? 0),
+        custoManutencaoAnualAtivo: Number(data.custoManutencaoAnualAtivo ?? 0),
+        numSolicitacoesComerciaisMes: Number(data.numSolicitacoesComerciaisMes ?? 0),
+        tempoRespostaAtualHoras: Number(data.tempoRespostaAtualHoras ?? 0),
+        tempoRespostaAlvoHoras: Number(data.tempoRespostaAlvoHoras ?? 0),
+        taxaConversaoAtual: Number(data.taxaConversaoAtual ?? 0),
+        taxaConversaoAlvo: Number(data.taxaConversaoAlvo ?? 0),
+        ticketMedioProposta: Number(data.ticketMedioProposta ?? 0),
+        percPerdasPorPrazo: Number(data.percPerdasPorPrazo ?? 0),
+
+        // Trilha e Reuso
+        percTrilhaProcesso: Number(data.percTrilhaProcesso ?? 0),
+        percTrilhaSistema: Number(data.percTrilhaSistema ?? 0),
+        percTrilhaAutomacao: Number(data.percTrilhaAutomacao ?? 1.0),
+        justificativaTrilha: data.justificativaTrilha ?? '',
+        unidadesPiloto: Number(data.unidadesPiloto ?? 1),
+        unidadesPotenciais: Number(data.unidadesPotenciais ?? 1),
+        custoMarginalReplicacao: Number(data.custoMarginalReplicacao ?? 0),
+        beneficioPotencialEscala: calculated.beneficioPotencialEscala,
+        coberturaInicialPerc: Number(data.coberturaInicialPerc ?? 0),
+        coberturaFinalPerc: Number(data.coberturaFinalPerc ?? 1.0),
+
+        // AS IS
         areasEnvolvidas: data.areasEnvolvidas ?? '',
         descricaoProcesso: data.descricaoProcesso ?? '',
         numExecucoes: Number(data.numExecucoes ?? 0),
@@ -127,13 +206,13 @@ export class RegistroService {
         turno: calculated.turno,
         recomendacao: data.recomendacao ?? 'Recomendado',
         esforcoSetupSemanas: Number(data.esforcoSetupSemanas ?? 1),
-        
+
         // Multi-Turno & Horas de Robô
         horasRoboDiurno: calculated.horasRoboDiurno,
         horasRoboNoturno: calculated.horasRoboNoturno,
         horasRoboFimDeSemana: calculated.horasRoboFimDeSemana,
         horasRobo: calculated.horasRobo,
-        
+
         horasApoioNegocio: Number(data.horasApoioNegocio ?? 0),
         horasManutencao: Number(data.horasManutencao ?? 0),
 
@@ -149,9 +228,27 @@ export class RegistroService {
         custoMensalAno2: calculated.custoMensalAno2,
         custoAnualAno1: calculated.custoAnualAno1,
         custoAnualAno2: calculated.custoAnualAno2,
+
+        // Benefícios Brutos e Líquidos V2
+        beneficioBrutoAnual: calculated.beneficioBrutoAnual,
+        beneficioLiquidoAnual: calculated.beneficioLiquidoAnual,
         roiAno1: calculated.roiAno1,
         roiAno2: calculated.roiAno2,
         paybackMeses: calculated.paybackMeses,
+
+        // VPL & Cenários
+        vpl3Anos: calculated.vpl3Anos,
+        vplCenarioConservador: calculated.vplCenarioConservador,
+        vplCenarioBase: calculated.vplCenarioBase,
+        vplCenarioOtimista: calculated.vplCenarioOtimista,
+        paybackCenarioConservador: calculated.paybackCenarioConservador,
+        paybackCenarioOtimista: calculated.paybackCenarioOtimista,
+
+        // N3 Realizado
+        beneficioRealizadoAnual: Number(data.beneficioRealizadoAnual ?? 0),
+        desvioProjetadoRealizadoPerc: Number(data.desvioProjetadoRealizadoPerc ?? 0),
+        dataApuracaoRealizado: data.dataApuracaoRealizado ?? '',
+        notasRealizado: data.notasRealizado ?? '',
       },
       include: {
         perfilPlataforma: true,
@@ -191,6 +288,68 @@ export class RegistroService {
         ...(data.dataLevantamento !== undefined && { dataLevantamento: data.dataLevantamento }),
         ...(data.participantes !== undefined && { participantes: data.participantes }),
         ...(data.situacao !== undefined && { situacao: data.situacao }),
+
+        // Funil de Maturidade FCAIA
+        ...(data.nivelMaturidade !== undefined
+          ? { nivelMaturidade: data.nivelMaturidade }
+          : { nivelMaturidade: calculated.nivelMaturidade }),
+        ...(data.dataPromocaoMaturidade !== undefined && { dataPromocaoMaturidade: data.dataPromocaoMaturidade }),
+        ...(data.responsavelPromocao !== undefined && { responsavelPromocao: data.responsavelPromocao }),
+        ...(data.isRetrospectivo !== undefined && { isRetrospectivo: Boolean(data.isRetrospectivo) }),
+
+        // Triagem Qualitativa N0
+        ...(data.sintomasDor !== undefined && { sintomasDor: data.sintomasDor }),
+        ...(data.papeisEnvolvidos !== undefined && { papeisEnvolvidos: data.papeisEnvolvidos }),
+        ...(data.criticidadePercebida !== undefined && { criticidadePercebida: data.criticidadePercebida }),
+        ...(data.recorrenciaDor !== undefined && { recorrenciaDor: data.recorrenciaDor }),
+
+        // 7 Arquétipos
+        ...(data.arquetipoPrimario !== undefined && { arquetipoPrimario: data.arquetipoPrimario }),
+        ...(data.arquetiposSecundarios !== undefined && { arquetiposSecundarios: data.arquetiposSecundarios }),
+
+        // Variáveis dos Arquétipos
+        ...(data.percAutomatizavel !== undefined && { percAutomatizavel: Number(data.percAutomatizavel) }),
+        ...(data.taxaErroAtual !== undefined && { taxaErroAtual: Number(data.taxaErroAtual) }),
+        ...(data.custoMedioErro !== undefined && { custoMedioErro: Number(data.custoMedioErro) }),
+        ...(data.reducaoEsperadaErro !== undefined && { reducaoEsperadaErro: Number(data.reducaoEsperadaErro) }),
+        ...(data.volumeContatosMensal !== undefined && { volumeContatosMensal: Number(data.volumeContatosMensal) }),
+        ...(data.custoAtendimentoHumano !== undefined && { custoAtendimentoHumano: Number(data.custoAtendimentoHumano) }),
+        ...(data.taxaContencaoEsperada !== undefined && { taxaContencaoEsperada: Number(data.taxaContencaoEsperada) }),
+        ...(data.custoAtendimentoAuto !== undefined && { custoAtendimentoAuto: Number(data.custoAtendimentoAuto) }),
+        ...(data.probabilidadeDescumprimento !== undefined && { probabilidadeDescumprimento: Number(data.probabilidadeDescumprimento) }),
+        ...(data.impactoFinanceiroOcorrencia !== undefined && { impactoFinanceiroOcorrencia: Number(data.impactoFinanceiroOcorrencia) }),
+        ...(data.reducaoProbabilidadeRisco !== undefined && { reducaoProbabilidadeRisco: Number(data.reducaoProbabilidadeRisco) }),
+        ...(data.historicoOcorrencias12m !== undefined && { historicoOcorrencias12m: Number(data.historicoOcorrencias12m) }),
+        ...(data.leadTimeAtualDias !== undefined && { leadTimeAtualDias: Number(data.leadTimeAtualDias) }),
+        ...(data.leadTimeProjetadoDias !== undefined && { leadTimeProjetadoDias: Number(data.leadTimeProjetadoDias) }),
+        ...(data.volumeAdicionalViabilizado !== undefined && { volumeAdicionalViabilizado: Number(data.volumeAdicionalViabilizado) }),
+        ...(data.ticketMedioReceita !== undefined && { ticketMedioReceita: Number(data.ticketMedioReceita) }),
+        ...(data.diasAntecipacaoFaturamento !== undefined && { diasAntecipacaoFaturamento: Number(data.diasAntecipacaoFaturamento) }),
+        ...(data.valorFaturadoCiclo !== undefined && { valorFaturadoCiclo: Number(data.valorFaturadoCiclo) }),
+        ...(data.nrAtivosAntes !== undefined && { nrAtivosAntes: Number(data.nrAtivosAntes) }),
+        ...(data.nrAtivosDepois !== undefined && { nrAtivosDepois: Number(data.nrAtivosDepois) }),
+        ...(data.custoManutencaoAnualAtivo !== undefined && { custoManutencaoAnualAtivo: Number(data.custoManutencaoAnualAtivo) }),
+        ...(data.numSolicitacoesComerciaisMes !== undefined && { numSolicitacoesComerciaisMes: Number(data.numSolicitacoesComerciaisMes) }),
+        ...(data.tempoRespostaAtualHoras !== undefined && { tempoRespostaAtualHoras: Number(data.tempoRespostaAtualHoras) }),
+        ...(data.tempoRespostaAlvoHoras !== undefined && { tempoRespostaAlvoHoras: Number(data.tempoRespostaAlvoHoras) }),
+        ...(data.taxaConversaoAtual !== undefined && { taxaConversaoAtual: Number(data.taxaConversaoAtual) }),
+        ...(data.taxaConversaoAlvo !== undefined && { taxaConversaoAlvo: Number(data.taxaConversaoAlvo) }),
+        ...(data.ticketMedioProposta !== undefined && { ticketMedioProposta: Number(data.ticketMedioProposta) }),
+        ...(data.percPerdasPorPrazo !== undefined && { percPerdasPorPrazo: Number(data.percPerdasPorPrazo) }),
+
+        // Trilha e Reuso
+        ...(data.percTrilhaProcesso !== undefined && { percTrilhaProcesso: Number(data.percTrilhaProcesso) }),
+        ...(data.percTrilhaSistema !== undefined && { percTrilhaSistema: Number(data.percTrilhaSistema) }),
+        ...(data.percTrilhaAutomacao !== undefined && { percTrilhaAutomacao: Number(data.percTrilhaAutomacao) }),
+        ...(data.justificativaTrilha !== undefined && { justificativaTrilha: data.justificativaTrilha }),
+        ...(data.unidadesPiloto !== undefined && { unidadesPiloto: Number(data.unidadesPiloto) }),
+        ...(data.unidadesPotenciais !== undefined && { unidadesPotenciais: Number(data.unidadesPotenciais) }),
+        ...(data.custoMarginalReplicacao !== undefined && { custoMarginalReplicacao: Number(data.custoMarginalReplicacao) }),
+        beneficioPotencialEscala: calculated.beneficioPotencialEscala,
+        ...(data.coberturaInicialPerc !== undefined && { coberturaInicialPerc: Number(data.coberturaInicialPerc) }),
+        ...(data.coberturaFinalPerc !== undefined && { coberturaFinalPerc: Number(data.coberturaFinalPerc) }),
+
+        // AS IS
         ...(data.areasEnvolvidas !== undefined && { areasEnvolvidas: data.areasEnvolvidas }),
         ...(data.descricaoProcesso !== undefined && { descricaoProcesso: data.descricaoProcesso }),
         ...(data.numExecucoes !== undefined && { numExecucoes: Number(data.numExecucoes) }),
@@ -230,13 +389,13 @@ export class RegistroService {
         turno: calculated.turno,
         ...(data.recomendacao !== undefined && { recomendacao: data.recomendacao }),
         ...(data.esforcoSetupSemanas !== undefined && { esforcoSetupSemanas: Number(data.esforcoSetupSemanas) }),
-        
+
         // Multi-Turno
         horasRoboDiurno: calculated.horasRoboDiurno,
         horasRoboNoturno: calculated.horasRoboNoturno,
         horasRoboFimDeSemana: calculated.horasRoboFimDeSemana,
         horasRobo: calculated.horasRobo,
-        
+
         ...(data.horasApoioNegocio !== undefined && { horasApoioNegocio: Number(data.horasApoioNegocio) }),
         ...(data.horasManutencao !== undefined && { horasManutencao: Number(data.horasManutencao) }),
 
@@ -252,9 +411,24 @@ export class RegistroService {
         custoMensalAno2: calculated.custoMensalAno2,
         custoAnualAno1: calculated.custoAnualAno1,
         custoAnualAno2: calculated.custoAnualAno2,
+
+        beneficioBrutoAnual: calculated.beneficioBrutoAnual,
+        beneficioLiquidoAnual: calculated.beneficioLiquidoAnual,
         roiAno1: calculated.roiAno1,
         roiAno2: calculated.roiAno2,
         paybackMeses: calculated.paybackMeses,
+
+        vpl3Anos: calculated.vpl3Anos,
+        vplCenarioConservador: calculated.vplCenarioConservador,
+        vplCenarioBase: calculated.vplCenarioBase,
+        vplCenarioOtimista: calculated.vplCenarioOtimista,
+        paybackCenarioConservador: calculated.paybackCenarioConservador,
+        paybackCenarioOtimista: calculated.paybackCenarioOtimista,
+
+        ...(data.beneficioRealizadoAnual !== undefined && { beneficioRealizadoAnual: Number(data.beneficioRealizadoAnual) }),
+        ...(data.desvioProjetadoRealizadoPerc !== undefined && { desvioProjetadoRealizadoPerc: Number(data.desvioProjetadoRealizadoPerc) }),
+        ...(data.dataApuracaoRealizado !== undefined && { dataApuracaoRealizado: data.dataApuracaoRealizado }),
+        ...(data.notasRealizado !== undefined && { notasRealizado: data.notasRealizado }),
       },
       include: {
         perfilPlataforma: true,

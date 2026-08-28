@@ -44,6 +44,20 @@ model Parametro {
   // Investimento de Engenharia / Desenvolvimento
   custoHoraDesenvolvimento       Float    @default(185.0) // Custo pleno analista/desenvolvedor
 
+  // Parâmetros Financeiros Corporativos (VPL & Benchmarks)
+  taxaDescontoVpl                Float    @default(0.12)  // 12% a.a. taxa de desconto padrão
+  horizonteVplMeses              Float    @default(36.0)  // 36 meses = 3 anos
+
+  createdAt                      DateTime @default(now())
+  updatedAt                      DateTime @updatedAt
+}
+
+model Area {
+  id                             String   @id @default(uuid())
+  nome                           String   @unique
+  sigla                          String   @default("")
+  responsavel                    String   @default("")
+  descricao                      String   @default("")
   createdAt                      DateTime @default(now())
   updatedAt                      DateTime @updatedAt
 }
@@ -76,6 +90,81 @@ model Registro {
   participantes                  String   @default("")
   situacao                       String   @default("Em levantamento") // "Em levantamento", "Aprovado", "Em implantação", "Concluído", "Descartado"
 
+  // Funil de Maturidade FCAIA (N0 a N3)
+  nivelMaturidade                String   @default("N0") // "N0", "N1", "N2", "N3"
+  dataPromocaoMaturidade         String   @default("")
+  responsavelPromocao            String   @default("")
+  isRetrospectivo                Boolean  @default(false)
+
+  // Triagem Qualitativa N0
+  sintomasDor                    String   @default("")
+  papeisEnvolvidos               String   @default("")
+  criticidadePercebida           String   @default("Média") // "Baixa", "Média", "Alta", "Crítica"
+  recorrenciaDor                 String   @default("Frequente") // "Rara", "Ocasional", "Frequente", "Diária"
+
+  // 7 Arquétipos de Processo
+  arquetipoPrimario              String   @default("A1") // "A1", "A2", "A3", "A4", "A5", "A6", "A7"
+  arquetiposSecundarios          String   @default("")   // ex: "A2,A4"
+
+  // Variáveis Quantitativas Específicas por Arquétipo
+  // A1 - Transacional repetitivo
+  percAutomatizavel              Float    @default(1.0)
+
+  // A2 - Erro e retrabalho
+  taxaErroAtual                  Float    @default(0.0)
+  custoMedioErro                 Float    @default(0.0)
+  reducaoEsperadaErro            Float    @default(0.8)
+
+  // A3 - Atendimento e autosserviço
+  volumeContatosMensal           Float    @default(0.0)
+  custoAtendimentoHumano         Float    @default(0.0)
+  taxaContencaoEsperada          Float    @default(0.0)
+  custoAtendimentoAuto           Float    @default(0.0)
+
+  // A4 - Conformidade e risco contratual
+  probabilidadeDescumprimento    Float    @default(0.0)
+  impactoFinanceiroOcorrencia    Float    @default(0.0)
+  reducaoProbabilidadeRisco      Float    @default(0.0)
+  historicoOcorrencias12m        Float    @default(0.0)
+
+  // A5 - Gargalo, lead time e ciclo de receita
+  leadTimeAtualDias              Float    @default(0.0)
+  leadTimeProjetadoDias          Float    @default(0.0)
+  volumeAdicionalViabilizado     Float    @default(0.0)
+  ticketMedioReceita             Float    @default(0.0)
+  diasAntecipacaoFaturamento     Float    @default(0.0)
+  valorFaturadoCiclo             Float    @default(0.0)
+
+  // A6 - Racionalização de ativos técnicos
+  nrAtivosAntes                  Float    @default(0.0)
+  nrAtivosDepois                 Float    @default(0.0)
+  custoManutencaoAnualAtivo      Float    @default(0.0)
+
+  // A7 - Processo comercial e oportunidade
+  numSolicitacoesComerciaisMes   Float    @default(0.0)
+  tempoRespostaAtualHoras        Float    @default(0.0)
+  tempoRespostaAlvoHoras         Float    @default(0.0)
+  taxaConversaoAtual             Float    @default(0.0)
+  taxaConversaoAlvo              Float    @default(0.0)
+  ticketMedioProposta            Float    @default(0.0)
+  percPerdasPorPrazo             Float    @default(0.0)
+
+  // Atribuição por Trilha (Seção 5.3)
+  percTrilhaProcesso             Float    @default(0.0)
+  percTrilhaSistema              Float    @default(0.0)
+  percTrilhaAutomacao            Float    @default(1.0)
+  justificativaTrilha            String   @default("")
+
+  // Fator de Reuso e Escala (Seção 5.4)
+  unidadesPiloto                 Float    @default(1.0)
+  unidadesPotenciais             Float    @default(1.0)
+  custoMarginalReplicacao        Float    @default(0.0)
+  beneficioPotencialEscala       Float    @default(0.0)
+
+  // Baseline Incremental (Seção 5.5)
+  coberturaInicialPerc           Float    @default(0.0)
+  coberturaFinalPerc             Float    @default(1.0)
+
   // AS IS (Situação Atual)
   areasEnvolvidas                String   @default("")
   descricaoProcesso              String   @default("")
@@ -90,20 +179,20 @@ model Registro {
   sistemasEnvolvidos             String   @default("")
   documentosApoio                String   @default("")
 
-  // TO BE - Matriz de Benefícios (12 Critérios Corporativos: "principal", "bastante", "pouco", "nenhum")
-  benLiberarPessoas              String   @default("nenhum") // Liberar Capacidade Humana / Realocação
-  benReduzirCusto                String   @default("nenhum") // Reduzir Custos Operacionais
-  benReduzirErros                String   @default("nenhum") // Redução de Erros Operacionais
-  benSegurancaPrivacidade        String   @default("nenhum") // Segurança da Informação & Privacidade
-  benRastreabilidadeCompliance   String   @default("nenhum") // Rastreabilidade & Compliance
-  benKeyPersonRisk               String   @default("nenhum") // Mitigação de Dependência de Pessoas
-  benMelhorarExpCliente          String   @default("nenhum") // Experiência do Cliente / Usuário
-  benAumentarCapacidade          String   @default("nenhum") // Aumentar Capacidade Operacional
-  benReduzirTempoResposta        String   @default("nenhum") // Reduzir Tempo de Resposta (SLA)
-  benInteroperabilidade          String   @default("nenhum") // Interoperabilidade entre Sistemas
-  benTransformacaoDigital        String   @default("nenhum") // Transformação Digital & Inovação
-  benSustentabilidadeEsg         String   @default("nenhum") // Sustentabilidade Operacional (ESG)
-  benReduzirFte                  String   @default("nenhum") // Legado
+  // TO BE - Matriz de Benefícios (12 Critérios Corporativos)
+  benLiberarPessoas              String   @default("nenhum")
+  benReduzirCusto                String   @default("nenhum")
+  benReduzirErros                String   @default("nenhum")
+  benSegurancaPrivacidade        String   @default("nenhum")
+  benRastreabilidadeCompliance   String   @default("nenhum")
+  benKeyPersonRisk               String   @default("nenhum")
+  benMelhorarExpCliente          String   @default("nenhum")
+  benAumentarCapacidade          String   @default("nenhum")
+  benReduzirTempoResposta        String   @default("nenhum")
+  benInteroperabilidade          String   @default("nenhum")
+  benTransformacaoDigital        String   @default("nenhum")
+  benSustentabilidadeEsg         String   @default("nenhum")
+  benReduzirFte                  String   @default("nenhum")
   pontuacaoBeneficios            Float    @default(0.0)
 
   // TO BE - Solução Técnica e Plataforma
@@ -118,19 +207,19 @@ model Registro {
   complexidade                   String   @default("Média") // "Baixa", "Média", "Alta"
   reducaoCustoPrevista           String   @default("0%")
   numRotinas                     Float    @default(1.0)
-  turno                          String   @default("Diurno") // "Diurno", "Noturno", "Final de Semana", "Múltiplos Turnos"
-  recomendacao                   String   @default("Recomendado") // "Recomendado", "Em análise", "Não viável"
+  turno                          String   @default("Diurno")
+  recomendacao                   String   @default("Recomendado")
 
   // Custo, Esforço e Alocação de Múltiplos Turnos
   esforcoSetupSemanas            Float    @default(1.0)
   investimentoSetup              Float    @default(0.0)
   
-  horasRoboDiurno                Float    @default(0.0) // Horas no turno Diurno (08h às 18h)
-  horasRoboNoturno               Float    @default(0.0) // Horas no turno Noturno (18h às 08h)
-  horasRoboFimDeSemana           Float    @default(0.0) // Horas no turno Fim de Semana
-  horasRobo                      Float    @default(0.0) // Total de horas mensais de robô
+  horasRoboDiurno                Float    @default(0.0)
+  horasRoboNoturno               Float    @default(0.0)
+  horasRoboFimDeSemana           Float    @default(0.0)
+  horasRobo                      Float    @default(0.0)
   
-  custoHorasRobo                 Float    @default(0.0) // Custo total de execução do robô
+  custoHorasRobo                 Float    @default(0.0)
   horasApoioNegocio              Float    @default(0.0)
   custoHorasNegocio              Float    @default(0.0)
   horasManutencao                Float    @default(0.0)
@@ -142,10 +231,28 @@ model Registro {
   custoAnualAno1                 Float    @default(0.0)
   custoAnualAno2                 Float    @default(0.0)
 
+  // Benefícios Bruto e Líquido por Arquétipo
+  beneficioBrutoAnual            Float    @default(0.0)
+  beneficioLiquidoAnual          Float    @default(0.0)
+
   // ROI & Payback
   roiAno1                        Float    @default(0.0)
   roiAno2                        Float    @default(0.0)
   paybackMeses                   Float    @default(0.0)
+
+  // VPL & Cenários
+  vpl3Anos                       Float    @default(0.0)
+  vplCenarioConservador          Float    @default(0.0)
+  vplCenarioBase                 Float    @default(0.0)
+  vplCenarioOtimista             Float    @default(0.0)
+  paybackCenarioConservador      Float    @default(0.0)
+  paybackCenarioOtimista         Float    @default(0.0)
+
+  // N3 - Benefício Realizado
+  beneficioRealizadoAnual        Float    @default(0.0)
+  desvioProjetadoRealizadoPerc   Float    @default(0.0)
+  dataApuracaoRealizado          String   @default("")
+  notasRealizado                 String   @default("")
 
   createdAt                      DateTime @default(now())
   updatedAt                      DateTime @updatedAt

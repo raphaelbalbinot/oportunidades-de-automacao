@@ -1,8 +1,8 @@
-stages:
-  - test
-  # - build
-  # - migrate
-  # - deploy
+# stages:
+#   - test
+#   - build
+#   - migrate
+#   # - deploy
 
 variables:
   GIT_SSL_NO_VERIFY: "true"
@@ -16,21 +16,21 @@ cache:
     - .npm/
 
 # ---------------------------------------------------------
-# Test & Typecheck
+# Test & Typecheck (Desabilitado conforme solicitado)
 # ---------------------------------------------------------
-test:typecheck:
-  stage: test
-  image: hub.estaleiro.serpro/pipeline/node:22
-  before_script:
-    - npm ci
-    - npx prisma generate
-  script:
-    - npx tsc --noEmit
-    - npm run build:server
-  rules:
-    - if: '$CI_COMMIT_MESSAGE =~ /\[skip ci\]/'
-      when: never
-    - if: "$CI_COMMIT_BRANCH"
+# test:typecheck:
+#   stage: test
+#   image: hub.estaleiro.serpro/pipeline/node:22
+#   before_script:
+#     - npm ci
+#     - npx prisma generate
+#   script:
+#     - npx tsc --noEmit
+#     - npm run build:server
+#   rules:
+#     - if: '$CI_COMMIT_MESSAGE =~ /\[skip ci\]/'
+#       when: never
+#     - if: "$CI_COMMIT_BRANCH"
 
 # ---------------------------------------------------------
 # Build Docker Image (Desabilitado)

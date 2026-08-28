@@ -9,6 +9,8 @@ export class AnalyticsController {
         registroId: query.registroId,
         area: query.area,
         situacao: query.situacao,
+        nivelMaturidade: query.nivelMaturidade,
+        arquetipo: query.arquetipo,
       });
       return reply.send(resumo);
     } catch (error) {

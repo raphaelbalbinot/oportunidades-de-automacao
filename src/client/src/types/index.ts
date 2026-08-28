@@ -25,6 +25,8 @@ export interface Parametro {
   percNoturno: number;
   percFimDeSemana: number;
   custoHoraDesenvolvimento: number;
+  taxaDescontoVpl?: number;
+  horizonteVplMeses?: number;
   updatedAt?: string;
 }
 
@@ -42,7 +44,34 @@ export interface PerfilPlataforma {
   updatedAt?: string;
 }
 
+export interface Area {
+  id: string;
+  nome: string;
+  sigla: string;
+  responsavel: string;
+  descricao: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export type BeneficioNivel = 'principal' | 'bastante' | 'pouco' | 'nenhum';
+export type MaturidadeNivel = 'N0' | 'N1' | 'N2' | 'N3';
+export type ArquetipoTipo = 'A1' | 'A2' | 'A3' | 'A4' | 'A5' | 'A6' | 'A7';
+
+export interface InstrumentacaoPendencia {
+  campo: string;
+  label: string;
+  arquetipo?: string;
+  ondeEncontrar: string;
+  impactoParaPromocao: string;
+}
+
+export interface DiagnosticoInstrumentacao {
+  nivelAtual: MaturidadeNivel;
+  proximoNivel: string;
+  percentualPreenchimento: number;
+  pendencias: InstrumentacaoPendencia[];
+}
 
 export interface Registro {
   id: string;
@@ -53,6 +82,68 @@ export interface Registro {
   dataLevantamento: string;
   participantes: string;
   situacao: string; // 'Em levantamento' | 'Aprovado' | 'Em implantação' | 'Concluído' | 'Descartado'
+
+  // Funil de Maturidade FCAIA (N0 a N3)
+  nivelMaturidade: MaturidadeNivel;
+  dataPromocaoMaturidade?: string;
+  responsavelPromocao?: string;
+  isRetrospectivo?: boolean;
+
+  // Triagem Qualitativa N0
+  sintomasDor?: string;
+  papeisEnvolvidos?: string;
+  criticidadePercebida?: 'Baixa' | 'Média' | 'Alta' | 'Crítica' | string;
+  recorrenciaDor?: 'Rara' | 'Ocasional' | 'Frequente' | 'Diária' | string;
+
+  // 7 Arquétipos de Processo
+  arquetipoPrimario: ArquetipoTipo | string;
+  arquetiposSecundarios?: string; // ex: "A2,A4"
+
+  // Variáveis Quantitativas dos Arquétipos
+  percAutomatizavel?: number;
+  taxaErroAtual?: number;
+  custoMedioErro?: number;
+  reducaoEsperadaErro?: number;
+  volumeContatosMensal?: number;
+  custoAtendimentoHumano?: number;
+  taxaContencaoEsperada?: number;
+  custoAtendimentoAuto?: number;
+  probabilidadeDescumprimento?: number;
+  impactoFinanceiroOcorrencia?: number;
+  reducaoProbabilidadeRisco?: number;
+  historicoOcorrencias12m?: number;
+  leadTimeAtualDias?: number;
+  leadTimeProjetadoDias?: number;
+  volumeAdicionalViabilizado?: number;
+  ticketMedioReceita?: number;
+  diasAntecipacaoFaturamento?: number;
+  valorFaturadoCiclo?: number;
+  nrAtivosAntes?: number;
+  nrAtivosDepois?: number;
+  custoManutencaoAnualAtivo?: number;
+  numSolicitacoesComerciaisMes?: number;
+  tempoRespostaAtualHoras?: number;
+  tempoRespostaAlvoHoras?: number;
+  taxaConversaoAtual?: number;
+  taxaConversaoAlvo?: number;
+  ticketMedioProposta?: number;
+  percPerdasPorPrazo?: number;
+
+  // Atribuição por Trilha
+  percTrilhaProcesso?: number;
+  percTrilhaSistema?: number;
+  percTrilhaAutomacao?: number;
+  justificativaTrilha?: string;
+
+  // Fator de Reuso e Escala
+  unidadesPiloto?: number;
+  unidadesPotenciais?: number;
+  custoMarginalReplicacao?: number;
+  beneficioPotencialEscala?: number;
+
+  // Baseline Incremental
+  coberturaInicialPerc?: number;
+  coberturaFinalPerc?: number;
 
   // AS IS
   areasEnvolvidas: string;
@@ -116,10 +207,28 @@ export interface Registro {
   custoAnualAno1: number;
   custoAnualAno2: number;
 
+  // Benefícios Bruto e Líquido por Arquétipo
+  beneficioBrutoAnual?: number;
+  beneficioLiquidoAnual?: number;
+
   // ROI & Payback
   roiAno1: number;
   roiAno2: number;
   paybackMeses: number;
+
+  // VPL & Cenários
+  vpl3Anos?: number;
+  vplCenarioConservador?: number;
+  vplCenarioBase?: number;
+  vplCenarioOtimista?: number;
+  paybackCenarioConservador?: number;
+  paybackCenarioOtimista?: number;
+
+  // N3 - Benefício Realizado
+  beneficioRealizadoAnual?: number;
+  desvioProjetadoRealizadoPerc?: number;
+  dataApuracaoRealizado?: string;
+  notasRealizado?: string;
 
   createdAt: string;
   updatedAt: string;
@@ -136,6 +245,8 @@ export interface AnalyticsKPIs {
   roiAno2Total: number;
   paybackMedio: number;
   pontuacaoMediaPercent: number;
+  totalVpl3Anos?: number;
+  totalBeneficioLiquidoAnual?: number;
 }
 
 export interface AnalyticsResumo {
@@ -145,6 +256,8 @@ export interface AnalyticsResumo {
   distribuicaoComplexidade: Array<{ name: string; value: number }>;
   distribuicaoTurno: Array<{ name: string; value: number }>;
   distribuicaoSituacao: Array<{ name: string; value: number }>;
+  distribuicaoMaturidade?: Array<{ name: string; value: number }>;
+  distribuicaoArquetipos?: Array<{ name: string; value: number }>;
   comparativoProcessos: Array<{
     id: string;
     idOrigem: string;

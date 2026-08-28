@@ -10,11 +10,27 @@ export class RegistroController {
         area: query.area,
         situacao: query.situacao,
         complexidade: query.complexidade,
+        nivelMaturidade: query.nivelMaturidade,
+        arquetipo: query.arquetipo,
       });
       return reply.send(registros);
     } catch (error) {
       req.log.error(error);
       return reply.status(500).send({ error: 'Erro ao listar registros de automação.' });
+    }
+  }
+
+  static async getDiagnostico(req: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    try {
+      const { id } = req.params;
+      const diagnostico = await RegistroService.getDiagnostico(id);
+      if (!diagnostico) {
+        return reply.status(404).send({ error: 'Registro não encontrado para diagnóstico.' });
+      }
+      return reply.send(diagnostico);
+    } catch (error) {
+      req.log.error(error);
+      return reply.status(500).send({ error: 'Erro ao gerar diagnóstico de instrumentação.' });
     }
   }
 

@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Registro, Parametro } from '../types';
+import { Registro, Parametro, MaturidadeNivel, ArquetipoTipo } from '../types';
 import { api } from '../services/api';
 import { RegistroFormModal } from '../components/RegistroFormModal';
+import { DossieExportModal } from '../components/DossieExportModal';
 import { useNotification } from '../components/Notification';
 
 export const RegistrosPage: React.FC = () => {
@@ -13,6 +14,8 @@ export const RegistrosPage: React.FC = () => {
   const [areaFilter, setAreaFilter] = useState('');
   const [situacaoFilter, setSituacaoFilter] = useState('');
   const [complexidadeFilter, setComplexidadeFilter] = useState('');
+  const [maturidadeFilter, setMaturidadeFilter] = useState('');
+  const [arquetipoFilter, setArquetipoFilter] = useState('');
   const [sortField, setSortField] = useState<string>('idAnalise');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
@@ -20,6 +23,8 @@ export const RegistrosPage: React.FC = () => {
   // Modal State
   const [modalOpen, setModalOpen] = useState(false);
   const [editingRegistro, setEditingRegistro] = useState<Registro | null>(null);
+  const [dossieModalOpen, setDossieModalOpen] = useState(false);
+  const [dossieRegistro, setDossieRegistro] = useState<Registro | null>(null);
 
   const loadData = async () => {
     try {
@@ -29,6 +34,8 @@ export const RegistrosPage: React.FC = () => {
         area: areaFilter || undefined,
         situacao: situacaoFilter || undefined,
         complexidade: complexidadeFilter || undefined,
+        nivelMaturidade: maturidadeFilter || undefined,
+        arquetipo: arquetipoFilter || undefined,
       });
       setRegistros(data);
     } catch (err: any) {
@@ -51,7 +58,7 @@ export const RegistrosPage: React.FC = () => {
   useEffect(() => {
     loadData();
     loadParametros();
-  }, [search, areaFilter, situacaoFilter, complexidadeFilter]);
+  }, [search, areaFilter, situacaoFilter, complexidadeFilter, maturidadeFilter, arquetipoFilter]);
 
   const handleOpenCreate = () => {
     setEditingRegistro(null);
@@ -149,54 +156,87 @@ export const RegistrosPage: React.FC = () => {
 
   const renderSortIcon = (field: string) => {
     if (sortField !== field) {
-      return <i className="fas fa-sort text-slate-300 ml-1 text-xs"></i>;
+      return <i className="fas fa-sort text-slate-300 ml-1 text-[10px]"></i>;
     }
     return sortDirection === 'asc' ? (
-      <i className="fas fa-sort-up text-[#1351b4] ml-1 text-xs"></i>
+      <i className="fas fa-sort-up text-[#1351b4] ml-1 text-[10px]"></i>
     ) : (
-      <i className="fas fa-sort-down text-[#1351b4] ml-1 text-xs"></i>
+      <i className="fas fa-sort-down text-[#1351b4] ml-1 text-[10px]"></i>
     );
   };
 
   return (
     <div className="space-y-6">
-      {/* Header Card */}
-      <div className="br-card bg-white p-6 rounded-lg border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Header com Identidade GOVBR DS */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-lg border border-slate-200 shadow-xs">
         <div>
-          <h2 className="text-xl font-bold text-slate-900 tracking-tight m-0">Levantamento de Processos Operacionais</h2>
-          <p className="text-xs text-slate-600 mt-1 m-0">
-            Cadastro detalhado, dimensionamento AS IS, matriz de benefícios e projeção financeira TO BE para automação.
+          <h1 className="text-xl font-bold text-[var(--govbr-blue-warm-vivid-90)] tracking-tight">
+            Portfólio de Oportunidades de Automação
+          </h1>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Gestão de esteira, triagem de maturidade (N0 a N3), arquétipos de valor e análise de viabilidade corporativa.
           </p>
         </div>
 
-        <div className="flex items-center space-x-3 self-start sm:self-auto">
-          <button
-            type="button"
-            onClick={handleOpenCreate}
-            className="inline-flex items-center space-x-2 px-4 py-2.5 bg-[#1351b4] hover:bg-[#0c326f] text-white font-semibold text-xs rounded-md shadow-xs transition-colors cursor-pointer"
-          >
-            <i className="fas fa-plus text-xs"></i>
-            <span>Nova Oportunidade</span>
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={handleOpenCreate}
+          className="flex items-center justify-center space-x-2 px-4 py-2 bg-[#1351b4] hover:bg-[#0c326f] text-white font-bold text-xs rounded-md shadow-xs hover:shadow transition-all cursor-pointer whitespace-nowrap"
+        >
+          <i className="fas fa-plus text-xs"></i>
+          <span>Nova Oportunidade (N0)</span>
+        </button>
       </div>
 
-      {/* Filters Bar */}
-      <div className="br-card bg-white p-4 rounded-lg border border-slate-200 shadow-sm flex flex-col md:flex-row items-center gap-3">
+      {/* Barra de Filtros GOVBR DS */}
+      <div className="bg-white p-3.5 rounded-lg border border-slate-200 shadow-xs flex flex-col md:flex-row flex-wrap items-center gap-3">
         {/* Search */}
-        <div className="relative flex-1 w-full">
-          <i className="fas fa-search absolute left-3.5 top-1/2 transform -translate-y-1/2 text-slate-400 text-xs"></i>
+        <div className="relative flex-1 min-w-[200px] w-full">
           <input
             type="text"
-            placeholder="Buscar por nome, ID ou área..."
+            placeholder="Buscar por processo, ID, área, dor ou plataforma..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-300 rounded-md focus:border-[#1351b4] focus:bg-white focus:outline-none"
+            className="w-full text-xs bg-slate-50 border border-slate-300 rounded-md pl-8 pr-3 py-2 text-slate-700 placeholder:text-slate-400 outline-none focus:bg-white focus:border-[#1351b4]"
           />
+          <i className="fas fa-search absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
         </div>
 
-        {/* Filter Area */}
-        <div className="flex items-center space-x-2 w-full md:w-auto">
+        {/* Filter Maturidade */}
+        <div className="w-full md:w-auto">
+          <select
+            value={maturidadeFilter}
+            onChange={(e) => setMaturidadeFilter(e.target.value)}
+            className="w-full md:w-auto text-xs bg-slate-50 border border-slate-300 rounded-md px-3 py-2 text-slate-700 outline-none cursor-pointer focus:border-[#1351b4] font-medium"
+          >
+            <option value="">Todos os Níveis de Maturidade</option>
+            <option value="N0">N0 — Oportunidade (Dor Registrada)</option>
+            <option value="N1">N1 — Business Case Parcial</option>
+            <option value="N2">N2 — Business Case Completo</option>
+            <option value="N3">N3 — Benefício Realizado</option>
+          </select>
+        </div>
+
+        {/* Filter Arquétipo */}
+        <div className="w-full md:w-auto">
+          <select
+            value={arquetipoFilter}
+            onChange={(e) => setArquetipoFilter(e.target.value)}
+            className="w-full md:w-auto text-xs bg-slate-50 border border-slate-300 rounded-md px-3 py-2 text-slate-700 outline-none cursor-pointer focus:border-[#1351b4]"
+          >
+            <option value="">Todos os 7 Arquétipos</option>
+            <option value="A1">A1 — Transacional Repetitivo (Horas)</option>
+            <option value="A2">A2 — Erro e Retrabalho (Perdas)</option>
+            <option value="A3">A3 — Atendimento e Autosserviço (SAC)</option>
+            <option value="A4">A4 — Conformidade e Risco (Multas/Glosas)</option>
+            <option value="A5">A5 — Gargalo e Ciclo de Receita</option>
+            <option value="A6">A6 — Racionalização Técnica (Robôs)</option>
+            <option value="A7">A7 — Processo Comercial (Receita)</option>
+          </select>
+        </div>
+
+        {/* Filter Área */}
+        <div className="w-full md:w-auto">
           <select
             value={areaFilter}
             onChange={(e) => setAreaFilter(e.target.value)}
@@ -212,7 +252,7 @@ export const RegistrosPage: React.FC = () => {
         </div>
 
         {/* Filter Situação */}
-        <div className="flex items-center space-x-2 w-full md:w-auto">
+        <div className="w-full md:w-auto">
           <select
             value={situacaoFilter}
             onChange={(e) => setSituacaoFilter(e.target.value)}
@@ -224,20 +264,6 @@ export const RegistrosPage: React.FC = () => {
             <option value="Em implantação">Em implantação</option>
             <option value="Concluído">Concluído</option>
             <option value="Descartado">Descartado</option>
-          </select>
-        </div>
-
-        {/* Filter Complexidade */}
-        <div className="flex items-center space-x-2 w-full md:w-auto">
-          <select
-            value={complexidadeFilter}
-            onChange={(e) => setComplexidadeFilter(e.target.value)}
-            className="w-full md:w-auto text-xs bg-slate-50 border border-slate-300 rounded-md px-3 py-2 text-slate-700 outline-none cursor-pointer focus:border-[#1351b4]"
-          >
-            <option value="">Todas as Complexidades</option>
-            <option value="Baixa">Baixa</option>
-            <option value="Média">Média</option>
-            <option value="Alta">Alta</option>
           </select>
         </div>
 
@@ -267,24 +293,24 @@ export const RegistrosPage: React.FC = () => {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-100/90 text-slate-600 font-semibold uppercase text-[10px] tracking-wider border-b border-slate-200">
-                <th className="py-2 px-2.5 w-9 text-center"></th>
+                <th className="py-2 px-2.5 w-8 text-center"></th>
                 <th onClick={() => handleSort('idAnalise')} className="py-2 px-2.5 cursor-pointer hover:bg-slate-200/70 transition-colors">
                   ID {renderSortIcon('idAnalise')}
                 </th>
                 <th onClick={() => handleSort('nomeProcesso')} className="py-2 px-3 cursor-pointer hover:bg-slate-200/70 transition-colors">
-                  Processo & Área {renderSortIcon('nomeProcesso')}
+                  Processo & Maturidade {renderSortIcon('nomeProcesso')}
                 </th>
-                <th onClick={() => handleSort('custoMensalAtual')} className="py-2 px-2.5 text-right cursor-pointer hover:bg-slate-200/70 transition-colors">
-                  Custo Atual {renderSortIcon('custoMensalAtual')}
+                <th onClick={() => handleSort('arquetipoPrimario')} className="py-2 px-2.5 text-center cursor-pointer hover:bg-slate-200/70 transition-colors">
+                  Arquétipo {renderSortIcon('arquetipoPrimario')}
+                </th>
+                <th onClick={() => handleSort('beneficioLiquidoAnual')} className="py-2 px-2.5 text-right cursor-pointer hover:bg-slate-200/70 transition-colors">
+                  Benefício Anual {renderSortIcon('beneficioLiquidoAnual')}
+                </th>
+                <th onClick={() => handleSort('vpl3Anos')} className="py-2 px-2.5 text-right cursor-pointer hover:bg-slate-200/70 transition-colors">
+                  VPL (3 Anos) {renderSortIcon('vpl3Anos')}
                 </th>
                 <th onClick={() => handleSort('fteLiberado')} className="py-2 px-2.5 text-right cursor-pointer hover:bg-slate-200/70 transition-colors">
-                  FTE Liberado {renderSortIcon('fteLiberado')}
-                </th>
-                <th onClick={() => handleSort('complexidade')} className="py-2 px-2.5 text-center cursor-pointer hover:bg-slate-200/70 transition-colors">
-                  Complexidade {renderSortIcon('complexidade')}
-                </th>
-                <th onClick={() => handleSort('roiAno1')} className="py-2 px-2.5 text-right cursor-pointer hover:bg-slate-200/70 transition-colors">
-                  ROI 1 Ano {renderSortIcon('roiAno1')}
+                  FTEs {renderSortIcon('fteLiberado')}
                 </th>
                 <th onClick={() => handleSort('paybackMeses')} className="py-2 px-2.5 text-center cursor-pointer hover:bg-slate-200/70 transition-colors">
                   Payback {renderSortIcon('paybackMeses')}
@@ -292,9 +318,7 @@ export const RegistrosPage: React.FC = () => {
                 <th onClick={() => handleSort('situacao')} className="py-2 px-2.5 text-center cursor-pointer hover:bg-slate-200/70 transition-colors">
                   Status {renderSortIcon('situacao')}
                 </th>
-                <th className="py-2 px-3 text-center">
-                  Ações
-                </th>
+                <th className="py-2 px-3 text-center">Ações</th>
               </tr>
             </thead>
 
@@ -309,12 +333,13 @@ export const RegistrosPage: React.FC = () => {
               ) : sortedRegistros.length === 0 ? (
                 <tr>
                   <td colSpan={10} className="py-10 text-center text-slate-500 text-xs">
-                    Nenhum levantamento encontrado. Clique em "Nova Oportunidade" para cadastrar.
+                    Nenhum levantamento encontrado para os filtros selecionados.
                   </td>
                 </tr>
               ) : (
                 sortedRegistros.map((item) => {
                   const isExpanded = expandedRows.has(item.id);
+                  const mat = item.nivelMaturidade || 'N0';
 
                   return (
                     <React.Fragment key={item.id}>
@@ -338,53 +363,55 @@ export const RegistrosPage: React.FC = () => {
 
                         {/* ID */}
                         <td className="py-2.5 px-2.5 whitespace-nowrap">
-                          <div className="flex items-center space-x-1.5">
-                            <span className="font-bold text-[#1351b4] text-[11px]">{item.idAnalise}</span>
-                            {item.idOrigem && item.idOrigem !== '-' && (
-                              <span className="text-[9.5px] text-slate-400 font-mono">({item.idOrigem})</span>
-                            )}
-                          </div>
+                          <span className="font-bold text-[#1351b4] text-[11px]">{item.idAnalise}</span>
                         </td>
 
-                        {/* Processo & Área */}
+                        {/* Processo & Maturidade */}
                         <td className="py-2.5 px-3">
-                          <div className="font-semibold text-slate-900 text-[11px] leading-tight">{item.nomeProcesso}</div>
-                          <div className="text-[10px] text-slate-500 font-normal">{item.area}</div>
+                          <div className="flex items-center space-x-2">
+                            <span
+                              className={`text-[9.5px] font-bold px-1.5 py-0.2 rounded border ${
+                                mat === 'N0'
+                                  ? 'bg-blue-100 text-blue-900 border-blue-300'
+                                  : mat === 'N1'
+                                  ? 'bg-amber-100 text-amber-900 border-amber-300'
+                                  : mat === 'N2'
+                                  ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
+                                  : 'bg-purple-100 text-purple-900 border-purple-300'
+                              }`}
+                            >
+                              {mat}
+                            </span>
+                            <span className="font-semibold text-slate-900 text-[11px] leading-tight">{item.nomeProcesso}</span>
+                          </div>
+                          <div className="text-[10px] text-slate-500 font-normal mt-0.5">{item.area}</div>
                         </td>
 
-                        {/* Custo Atual */}
-                        <td className="py-2.5 px-2.5 text-right font-medium text-red-700 whitespace-nowrap text-[11px]">
-                          R$ {item.custoMensalAtual.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/mês
-                        </td>
-
-                        {/* FTE Liberado */}
-                        <td className="py-2.5 px-2.5 text-right font-bold text-green-700 whitespace-nowrap text-[11px]">
-                          {item.fteLiberado} FTE
-                        </td>
-
-                        {/* Complexidade */}
+                        {/* Arquétipo */}
                         <td className="py-2.5 px-2.5 text-center whitespace-nowrap">
-                          <span
-                            className={`inline-flex items-center px-2 py-0.5 rounded-full font-bold text-[9.5px] ${
-                              item.complexidade === 'Baixa'
-                                ? 'bg-green-100 text-green-800'
-                                : item.complexidade === 'Média'
-                                ? 'bg-amber-100 text-amber-800'
-                                : 'bg-red-100 text-red-800'
-                            }`}
-                          >
-                            {item.complexidade}
+                          <span className="bg-slate-100 text-slate-800 font-bold px-2 py-0.5 rounded border border-slate-200 text-[10px]">
+                            {item.arquetipoPrimario || 'A1'}
                           </span>
                         </td>
 
-                        {/* ROI 1 Ano */}
-                        <td className="py-2.5 px-2.5 text-right font-bold text-green-700 whitespace-nowrap text-[11px]">
-                          R$ {item.roiAno1.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        {/* Benefício Anual */}
+                        <td className="py-2.5 px-2.5 text-right font-bold text-emerald-700 whitespace-nowrap text-[11px]">
+                          {(item.beneficioLiquidoAnual || (item.custoMensalAtual ? item.custoMensalAtual * 12 : 0)).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                        </td>
+
+                        {/* VPL 3 Anos */}
+                        <td className="py-2.5 px-2.5 text-right font-bold text-cyan-800 whitespace-nowrap text-[11px]">
+                          {(item.vpl3Anos || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                        </td>
+
+                        {/* FTE Liberado */}
+                        <td className="py-2.5 px-2.5 text-right font-bold text-blue-800 whitespace-nowrap text-[11px]">
+                          {item.fteLiberado} FTE
                         </td>
 
                         {/* Payback */}
                         <td className="py-2.5 px-2.5 text-center font-medium text-slate-700 whitespace-nowrap text-[11px]">
-                          {item.paybackMeses.toFixed(1)} meses
+                          {item.paybackMeses ? `${item.paybackMeses.toFixed(1)} m` : '-'}
                         </td>
 
                         {/* Status */}
@@ -395,13 +422,24 @@ export const RegistrosPage: React.FC = () => {
                         </td>
 
                         {/* Ações */}
-                        <td className="py-3.5 px-4 text-center whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex items-center justify-center space-x-2">
+                        <td className="py-2.5 px-3 text-center whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center justify-center space-x-1.5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setDossieRegistro(item);
+                                setDossieModalOpen(true);
+                              }}
+                              className="p-1.5 text-blue-700 hover:text-blue-900 hover:bg-blue-50 rounded transition-colors cursor-pointer"
+                              title="Visualizar / Imprimir Dossiê Executivo (PDF)"
+                            >
+                              <i className="fas fa-file-invoice-dollar text-xs"></i>
+                            </button>
                             <button
                               type="button"
                               onClick={() => handleOpenEdit(item)}
                               className="p-1.5 text-slate-600 hover:text-[#1351b4] hover:bg-blue-50 rounded transition-colors cursor-pointer"
-                              title="Editar Levantamento"
+                              title="Editar Oportunidade"
                             >
                               <i className="fas fa-edit text-xs"></i>
                             </button>
@@ -409,7 +447,7 @@ export const RegistrosPage: React.FC = () => {
                               type="button"
                               onClick={() => handleDelete(item.id, item.nomeProcesso)}
                               className="p-1.5 text-slate-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors cursor-pointer"
-                              title="Excluir Levantamento"
+                              title="Excluir Oportunidade"
                             >
                               <i className="fas fa-trash-alt text-xs"></i>
                             </button>
@@ -420,116 +458,87 @@ export const RegistrosPage: React.FC = () => {
                       {/* Expanded Sub-row Drawer */}
                       {isExpanded && (
                         <tr className="bg-slate-50 border-b border-slate-200">
-                          <td colSpan={10} className="p-4 sm:p-6">
+                          <td colSpan={10} className="p-4 sm:p-5">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                              {/* 1. Diagnóstico AS IS */}
-                              <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-xs space-y-3">
-                                <div className="flex items-center space-x-2 text-red-700 font-bold text-xs pb-2 border-b border-slate-100">
-                                  <i className="fas fa-file-alt text-xs"></i>
-                                  <span>1. Diagnóstico AS IS (Situação Atual)</span>
+                              {/* 1. Diagnóstico & Maturidade */}
+                              <div className="bg-white p-3.5 rounded-lg border border-slate-200 shadow-xs space-y-2">
+                                <div className="flex items-center space-x-2 text-[var(--govbr-blue-warm-vivid-90)] font-bold text-xs pb-1.5 border-b border-slate-100">
+                                  <i className="fas fa-info-circle text-xs"></i>
+                                  <span>1. Maturidade & Triagem Qualitativa</span>
                                 </div>
-                                <div className="space-y-2 text-[11px]">
+                                <div className="space-y-1.5 text-[11px]">
                                   <div className="flex justify-between">
-                                    <span className="text-slate-500">Periodicidade:</span>
-                                    <span className="font-semibold text-slate-800">{item.periodicidade}</span>
+                                    <span className="text-slate-500">Maturidade:</span>
+                                    <span className="font-bold text-[#1351b4]">Nível {mat}</span>
                                   </div>
                                   <div className="flex justify-between">
-                                    <span className="text-slate-500">Perfil Executor:</span>
-                                    <span className="font-semibold text-slate-800">{item.perfilExecutor}</span>
+                                    <span className="text-slate-500">Criticidade:</span>
+                                    <span className="font-semibold text-slate-800">{item.criticidadePercebida || 'Média'}</span>
                                   </div>
                                   <div className="flex justify-between">
-                                    <span className="text-slate-500">Tempo Execução:</span>
-                                    <span className="font-semibold text-slate-800">{item.tempoExecucao} h / mês</span>
+                                    <span className="text-slate-500">Recorrência da Dor:</span>
+                                    <span className="font-semibold text-slate-800">{item.recorrenciaDor || 'Frequente'}</span>
+                                  </div>
+                                  {item.sintomasDor && (
+                                    <div className="pt-1 text-[10.5px] text-slate-600 bg-slate-50 p-1.5 rounded border border-slate-200">
+                                      <strong>Sintomas:</strong> {item.sintomasDor}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* 2. Trilha & Reuso */}
+                              <div className="bg-white p-3.5 rounded-lg border border-slate-200 shadow-xs space-y-2">
+                                <div className="flex items-center space-x-2 text-blue-900 font-bold text-xs pb-1.5 border-b border-slate-100">
+                                  <i className="fas fa-layer-group text-xs"></i>
+                                  <span>2. Atribuição de Trilha & Reuso</span>
+                                </div>
+                                <div className="space-y-1.5 text-[11px]">
+                                  <div className="flex justify-between">
+                                    <span className="text-slate-500">Trilha Automação:</span>
+                                    <span className="font-bold text-emerald-700">{((item.percTrilhaAutomacao ?? 1.0) * 100).toFixed(0)}%</span>
                                   </div>
                                   <div className="flex justify-between">
-                                    <span className="text-slate-500">Custo Atual Mensal:</span>
-                                    <span className="font-bold text-red-600">R$ {item.custoMensalAtual.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                    <span className="text-slate-500">Trilha Processo / Sistema:</span>
+                                    <span className="font-medium text-slate-700">
+                                      {((item.percTrilhaProcesso ?? 0) * 100).toFixed(0)}% / {((item.percTrilhaSistema ?? 0) * 100).toFixed(0)}%
+                                    </span>
                                   </div>
-                                  <div className="pt-1 border-t border-slate-100">
-                                    <span className="text-slate-500 block mb-0.5">Sistemas Envolvidos:</span>
-                                    <span className="font-medium text-slate-700 text-[10px] bg-slate-50 p-1.5 rounded block border border-slate-200">
-                                      {item.sistemasEnvolvidos || 'Não informado'}
+                                  <div className="flex justify-between">
+                                    <span className="text-slate-500">Unidades Piloto vs Escala:</span>
+                                    <span className="font-semibold text-slate-800">{item.unidadesPiloto ?? 1} / {item.unidadesPotenciais ?? 1} unid.</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-slate-500">Potencial em Escala:</span>
+                                    <span className="font-bold text-blue-800">
+                                      {(item.beneficioPotencialEscala || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                                     </span>
                                   </div>
                                 </div>
                               </div>
 
-                              {/* 2. Solução TO BE */}
-                              <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-xs space-y-3">
-                                <div className="flex items-center space-x-2 text-[#1351b4] font-bold text-xs pb-2 border-b border-slate-100">
-                                  <i className="fas fa-microchip text-xs"></i>
-                                  <span>2. Solução TO BE (Automação)</span>
+                              {/* 3. Projeção Financeira & Cenários */}
+                              <div className="bg-white p-3.5 rounded-lg border border-slate-200 shadow-xs space-y-2">
+                                <div className="flex items-center space-x-2 text-emerald-800 font-bold text-xs pb-1.5 border-b border-slate-100">
+                                  <i className="fas fa-chart-line text-xs"></i>
+                                  <span>3. Engenharia Financeira & VPL</span>
                                 </div>
-                                <div className="space-y-2 text-[11px]">
+                                <div className="space-y-1.5 text-[11px]">
                                   <div className="flex justify-between">
-                                    <span className="text-slate-500">Plataforma:</span>
-                                    <span className="font-bold text-[#1351b4]">{item.tipoPlataformaNome || 'Python & Robot Framework'}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-slate-500">Complexidade:</span>
-                                    <span className="font-semibold text-slate-800">{item.complexidade}</span>
+                                    <span className="text-slate-500">VPL Base (3 Anos):</span>
+                                    <span className="font-bold text-cyan-800">{(item.vpl3Anos || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
                                   </div>
                                   <div className="flex justify-between">
-                                    <span className="text-slate-500">Score de Benefícios:</span>
-                                    <span className="font-bold text-[#1351b4]">{(item.pontuacaoBeneficios * 100).toFixed(1)}%</span>
+                                    <span className="text-slate-500">VPL Cenário Conservador:</span>
+                                    <span className="font-medium text-slate-700">{(item.vplCenarioConservador || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
                                   </div>
                                   <div className="flex justify-between">
-                                    <span className="text-slate-500">Redução de Tempo:</span>
-                                    <span className="font-semibold text-green-700">{item.reducaoTempoPrevista}</span>
+                                    <span className="text-slate-500">VPL Cenário Otimista:</span>
+                                    <span className="font-medium text-emerald-700">{(item.vplCenarioOtimista || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
                                   </div>
                                   <div className="flex justify-between">
-                                    <span className="text-slate-500">Redução de Custo:</span>
-                                    <span className="font-semibold text-green-700">{item.reducaoCustoPrevista}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-slate-500">FTE Poupado:</span>
-                                    <span className="font-bold text-green-700">{item.fteLiberado} FTE</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-slate-500">Turno de Operação:</span>
-                                    <span className="font-semibold text-slate-800">{item.turno || 'Diurno'}</span>
-                                  </div>
-                                  <div className="flex justify-between pt-1 border-t border-slate-100">
-                                    <span className="text-slate-500">Recomendação:</span>
-                                    <span className="font-semibold text-slate-800">{item.recomendacao}</span>
-                                  </div>
-                                </div>
-                              </div>
-
-                              {/* 3. Custos & Retorno (ROI) */}
-                              <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-xs space-y-3">
-                                <div className="flex items-center space-x-2 text-green-800 font-bold text-xs pb-2 border-b border-slate-100">
-                                  <i className="fas fa-coins text-xs"></i>
-                                  <span>3. Custos & Projeções Financeiras</span>
-                                </div>
-                                <div className="space-y-2 text-[11px]">
-                                  <div className="flex justify-between">
-                                    <span className="text-slate-500">Investimento Setup:</span>
-                                    <span className="font-semibold text-slate-800">R$ {item.investimentoSetup.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-slate-500">Custo TO BE (Ano 1/mês):</span>
-                                    <span className="font-semibold text-slate-800">R$ {item.custoMensalAno1.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-slate-500">Custo TO BE (Ano 2/mês):</span>
-                                    <span className="font-semibold text-slate-800">R$ {item.custoMensalAno2.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-slate-500">Economia Mensal (Ano 1):</span>
-                                    <span className="font-bold text-green-700">R$ {((item.custoMensalAtual || 0) - (item.custoMensalAno1 || 0)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                                  </div>
-                                  <div className="flex justify-between pt-1 border-t border-slate-100">
-                                    <span className="text-slate-500">ROI Líquido (Ano 1):</span>
-                                    <span className="font-bold text-green-700">R$ {item.roiAno1.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-slate-500">ROI Líquido (Ano 2):</span>
-                                    <span className="font-bold text-green-800">R$ {item.roiAno2.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-slate-500">Payback Estimado:</span>
-                                    <span className="font-bold text-amber-700">{item.paybackMeses.toFixed(1)} meses</span>
+                                    <span className="text-slate-500">Score Intangível (12 Critérios):</span>
+                                    <span className="font-bold text-purple-800">{((item.pontuacaoBeneficios || 0) * 100).toFixed(1)}%</span>
                                   </div>
                                 </div>
                               </div>
@@ -546,15 +555,22 @@ export const RegistrosPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal CRUD */}
+      {/* Modal de Formulário */}
       <RegistroFormModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
-        onSave={handleSave}
         initialData={editingRegistro}
+        parametro={parametro}
+        onSave={handleSave}
+      />
+
+      {/* Modal de Dossiê Executivo (PDF) */}
+      <DossieExportModal
+        isOpen={dossieModalOpen}
+        onClose={() => setDossieModalOpen(false)}
+        registro={dossieRegistro}
         parametro={parametro}
       />
     </div>
   );
 };
-

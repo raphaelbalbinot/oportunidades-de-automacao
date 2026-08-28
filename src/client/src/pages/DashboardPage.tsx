@@ -23,6 +23,7 @@ export const DashboardPage: React.FC = () => {
   const [areaFilter, setAreaFilter] = useState<string>('');
   const [situacaoFilter, setSituacaoFilter] = useState<string>('');
   const [complexidadeFilter, setComplexidadeFilter] = useState<string>('');
+  const [maturidadeFilter, setMaturidadeFilter] = useState<string>('');
   const [sortField, setSortField] = useState<string>('idAnalise');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
@@ -33,7 +34,12 @@ export const DashboardPage: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const resumo = await api.getAnalyticsResumo({ registroId: regId || undefined });
+      const resumo = await api.getAnalyticsResumo({
+        registroId: regId || undefined,
+        area: areaFilter || undefined,
+        situacao: situacaoFilter || undefined,
+        nivelMaturidade: maturidadeFilter || undefined,
+      });
       setData(resumo);
     } catch (err: any) {
       setError(err.message || 'Erro ao carregar dados do Dashboard.');
@@ -44,11 +50,13 @@ export const DashboardPage: React.FC = () => {
 
   useEffect(() => {
     loadData(selectedRegistroId);
-  }, [selectedRegistroId]);
+  }, [selectedRegistroId, areaFilter, situacaoFilter, maturidadeFilter]);
 
   // Paleta Governamental Padrão GOV.BR
+  const COLORS_MATURIDADE = ['#1351b4', '#ffcd07', '#168821', '#8b5cf6'];
   const COLORS_COMPLEXIDADE = ['#168821', '#ffcd07', '#e52207'];
   const COLORS_TURNO = ['#1351b4', '#0c326f', '#2670e8'];
+  const COLORS_ARQUETIPOS = ['#1351b4', '#e52207', '#168821', '#8b5cf6', '#d97706', '#0284c7', '#059669'];
 
   const handleSort = (field: string) => {
     if (sortField === field) {
@@ -132,17 +140,7 @@ export const DashboardPage: React.FC = () => {
     return list;
   }, [data, search, areaFilter, situacaoFilter, complexidadeFilter, sortField, sortDirection]);
 
-  // Distribuição por Complexidade: Sempre Global
-  const globalComplexidade = useMemo(() => {
-    if (!data) return [];
-    const counts: Record<string, number> = { Baixa: 0, Média: 0, Alta: 0 };
-    data.comparativoProcessos.forEach((p) => {
-      counts[p.complexidade] = (counts[p.complexidade] || 0) + 1;
-    });
-    return Object.entries(counts).map(([name, value]) => ({ name, value }));
-  }, [data]);
-
-  // Bar Chart Data: Agrupado quando Todos os Processos está selecionado
+  // Bar Chart Data
   const barChartData = useMemo(() => {
     if (!data) return [];
     if (selectedRegistroId) {
@@ -150,7 +148,7 @@ export const DashboardPage: React.FC = () => {
       if (selected) {
         return [
           {
-            idAnalise: `${selected.idAnalise} - ${selected.nome}`,
+            idAnalise: selected.idAnalise,
             custoAtualMensal: selected.custoAtualMensal,
             custoToBeMensalAno1: selected.custoToBeMensalAno1,
             custoToBeMensalAno2: selected.custoToBeMensalAno2,
@@ -158,145 +156,99 @@ export const DashboardPage: React.FC = () => {
         ];
       }
     }
-
-    // Todos os Processos selecionados: Exibe os valores agregados consolidados da lista filtrada
-    const totalAtual = filteredAndSortedProcessos.reduce((acc, p) => acc + p.custoAtualMensal, 0);
-    const totalAno1 = filteredAndSortedProcessos.reduce((acc, p) => acc + p.custoToBeMensalAno1, 0);
-    const totalAno2 = filteredAndSortedProcessos.reduce((acc, p) => acc + p.custoToBeMensalAno2, 0);
-
-    return [
-      {
-        idAnalise: 'Consolidado Geral',
-        custoAtualMensal: Number(totalAtual.toFixed(2)),
-        custoToBeMensalAno1: Number(totalAno1.toFixed(2)),
-        custoToBeMensalAno2: Number(totalAno2.toFixed(2)),
-      },
-    ];
-  }, [data, selectedRegistroId, filteredAndSortedProcessos]);
-
-  // Click on row to focus on single process and automatically expand its drawer
-  const handleRowClick = (procId: string) => {
-    if (selectedRegistroId === procId) {
-      setSelectedRegistroId('');
-    } else {
-      setSelectedRegistroId(procId);
-      setExpandedRows((prev) => {
-        const next = new Set(prev);
-        next.add(procId);
-        return next;
-      });
-    }
-  };
+    return data.comparativoProcessos.slice(0, 10).map((p) => ({
+      idAnalise: p.idAnalise,
+      custoAtualMensal: p.custoAtualMensal,
+      custoToBeMensalAno1: p.custoToBeMensalAno1,
+      custoToBeMensalAno2: p.custoToBeMensalAno2,
+    }));
+  }, [data, selectedRegistroId]);
 
   if (loading && !data) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#1351b4]"></div>
+      <div className="flex items-center justify-center py-24 text-slate-500">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-[#1351b4] mb-3"></div>
+          <p className="text-xs font-semibold">Carregando painel de indicadores estratégicos...</p>
+        </div>
       </div>
     );
   }
 
-  if (error || !data) {
+  if (error) {
     return (
-      <div className="p-6 bg-red-50 border border-red-200 rounded-md text-red-900">
-        <p className="font-bold text-sm">Erro ao carregar dashboard</p>
-        <p className="text-xs mt-1">{error}</p>
-        <button
-          type="button"
-          onClick={() => loadData()}
-          className="mt-3 px-4 py-2 bg-red-700 text-white rounded text-xs font-semibold hover:bg-red-800 cursor-pointer"
-        >
-          Tentar novamente
-        </button>
+      <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-xs">
+        <strong>Erro ao carregar dados:</strong> {error}
       </div>
     );
   }
 
-  const { kpis, distribuicaoTurno, todosProcessosDisponiveis, isSpecificRecord } = data;
+  if (!data) return null;
 
-  const renderSortIcon = (field: string) => {
-    if (sortField !== field) {
-      return <i className="fas fa-sort text-slate-300 ml-1 text-xs"></i>;
-    }
-    return sortDirection === 'asc' ? (
-      <i className="fas fa-sort-up text-[#1351b4] ml-1 text-xs"></i>
-    ) : (
-      <i className="fas fa-sort-down text-[#1351b4] ml-1 text-xs"></i>
-    );
-  };
-
-  const isAllExpanded = filteredAndSortedProcessos.length > 0 && expandedRows.size === filteredAndSortedProcessos.length;
+  const { kpis, distribuicaoComplexidade, distribuicaoTurno, distribuicaoMaturidade, distribuicaoArquetipos } = data;
 
   return (
     <div className="space-y-6">
-      {/* Top Header & Scope Selector */}
-      <div className="br-card bg-white p-6 rounded-lg border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Header com Filtro de Foco por Processo e Maturidade */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-lg border border-slate-200 shadow-xs">
         <div>
-          <div className="flex items-center space-x-2">
-            <h2 className="text-xl font-bold text-slate-900 tracking-tight m-0">Painel Executivo & Análise de Viabilidade</h2>
-            {isSpecificRecord && (
-              <span className="px-2.5 py-0.5 rounded text-xs font-bold bg-blue-100 text-blue-900 border border-blue-200 flex items-center space-x-1">
-                <span>Foco: {data.selectedRecord?.idAnalise} - {data.selectedRecord?.nomeProcesso}</span>
-                <button
-                  type="button"
-                  onClick={() => setSelectedRegistroId('')}
-                  className="ml-1 text-blue-700 hover:text-blue-950 cursor-pointer"
-                  title="Limpar foco e ver todos"
-                >
-                  <i className="fas fa-undo-alt text-xs ml-1"></i>
-                </button>
-              </span>
-            )}
-          </div>
-          <p className="text-xs text-slate-600 mt-1 m-0">
-            Consolidação de ganhos financeiros, FTE liberável, matriz de benefícios e payback para oportunidades de automação.
+          <h1 className="text-xl font-bold text-[var(--govbr-blue-warm-vivid-90)] tracking-tight">
+            Painel Executivo & Análise de Viabilidade (V2.0)
+          </h1>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Consolidação de retorno financeiro (ROI & VPL), maturidade do portfólio e liberação de capacidade.
           </p>
         </div>
 
-        {/* Scope Dropdown */}
-        <div className="scope-selector-box flex items-center space-x-2 self-start sm:self-auto bg-slate-50 p-2 rounded-md border border-slate-200">
-          <i className="fas fa-filter text-slate-500 ml-1 text-xs"></i>
-          <span className="scope-label text-xs font-semibold text-slate-700 whitespace-nowrap">Escopo da Análise:</span>
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Dropdown Filtro Maturidade */}
+          <select
+            value={maturidadeFilter}
+            onChange={(e) => setMaturidadeFilter(e.target.value)}
+            className="text-xs bg-slate-50 border border-slate-300 rounded-md px-3 py-2 text-slate-700 outline-none cursor-pointer focus:border-[#1351b4] font-medium"
+          >
+            <option value="">Todas as Maturidades</option>
+            <option value="N0">N0 — Oportunidades</option>
+            <option value="N1">N1 — Business Case Parcial</option>
+            <option value="N2">N2 — Business Case Completo</option>
+            <option value="N3">N3 — Benefício Realizado</option>
+          </select>
+
+          {/* Dropdown Foco Específico */}
           <select
             value={selectedRegistroId}
-            onChange={(e) => {
-              const val = e.target.value;
-              setSelectedRegistroId(val);
-              if (val) {
-                setExpandedRows((prev) => new Set(prev).add(val));
-              }
-            }}
-            className="scope-select text-xs font-medium bg-white text-slate-800 border border-slate-300 rounded px-3 py-1.5 focus:border-[#1351b4] outline-none cursor-pointer"
+            onChange={(e) => setSelectedRegistroId(e.target.value)}
+            className="text-xs bg-slate-50 border border-slate-300 rounded-md px-3 py-2 outline-none cursor-pointer focus:border-[#1351b4] font-bold text-slate-900"
           >
-            <option value="">🌐 Todos os Processos (Visão Global Consolidada)</option>
-            {todosProcessosDisponiveis.map((p) => (
+            <option value="">Visão Geral (Todos os Processos)</option>
+            {data.todosProcessosDisponiveis.map((p) => (
               <option key={p.id} value={p.id}>
-                📍 {p.idAnalise} - {p.nomeProcesso} ({p.area})
+                {p.idAnalise} - {p.nomeProcesso} ({p.area})
               </option>
             ))}
           </select>
         </div>
       </div>
 
-      {/* KPIs Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      {/* 4 StatCards Principais de Alto Nível */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          title="Processos Avaliados"
-          value={kpis.totalProcessos}
-          subtitle={isSpecificRecord ? "Visualizando 1 processo específico" : "Total de oportunidades cadastradas"}
-          iconFa="fas fa-layer-group"
+          title="FTEs Liberáveis"
+          value={`${kpis.totalFteLiberado} FTE`}
+          subtitle={`${kpis.totalProcessos} processos mapeados`}
+          iconFa="fas fa-users"
           colorScheme="blue"
         />
         <StatCard
-          title="FTE Total Liberável"
-          value={`${kpis.totalFteLiberado} FTE`}
-          subtitle="Equivalente em horas homem poupadas"
-          iconFa="fas fa-users"
+          title="VPL em 3 Anos"
+          value={(kpis.totalVpl3Anos || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+          subtitle="Valor Presente Líquido (Taxa 12% a.a.)"
+          iconFa="fas fa-vault"
           colorScheme="emerald"
         />
         <StatCard
-          title="ROI Anual (Ano 1)"
-          value={`R$ ${kpis.roiAno1Total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+          title="Retorno Líquido (ROI Ano 1)"
+          value={kpis.roiAno1Total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
           subtitle="Economia líquida após setup"
           iconFa="fas fa-chart-line"
           colorScheme="violet"
@@ -310,61 +262,20 @@ export const DashboardPage: React.FC = () => {
         />
       </div>
 
-      {/* Secondary KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="br-card bg-white p-4 rounded-lg border border-slate-200 shadow-sm flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Custo Atual (AS IS) Mensal</span>
-            <div className="text-lg font-bold text-red-600 mt-0.5">
-              R$ {kpis.custoAtualMensalTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-            </div>
-          </div>
-          <div className="w-10 h-10 bg-red-600 text-white rounded-full flex items-center justify-center shadow-xs">
-            <i className="fas fa-dollar-sign text-base text-white"></i>
-          </div>
-        </div>
-
-        <div className="br-card bg-white p-4 rounded-lg border border-slate-200 shadow-sm flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Custo Automatizado (TO BE) Ano 1/mês</span>
-            <div className="text-lg font-bold text-[var(--govbr-blue-warm-vivid-70)] mt-0.5">
-              R$ {kpis.custoMensalAno1Total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-            </div>
-          </div>
-          <div className="w-10 h-10 bg-[var(--govbr-blue-warm-vivid-70)] text-white rounded-full flex items-center justify-center shadow-xs">
-            <i className="fas fa-check-circle text-base text-white"></i>
-          </div>
-        </div>
-
-        <div className="br-card bg-white p-4 rounded-lg border border-slate-200 shadow-sm flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Pontuação Média de Benefícios</span>
-            <div className="text-lg font-bold text-emerald-600 mt-0.5">
-              {kpis.pontuacaoMediaPercent}%
-            </div>
-          </div>
-          <div className="w-10 h-10 bg-emerald-600 text-white rounded-full flex items-center justify-center shadow-xs">
-            <i className="fas fa-award text-base text-white"></i>
-          </div>
-        </div>
-      </div>
-
-      {/* Charts Section */}
+      {/* Gráficos de Governança V2.0: Comparativo de Custos + Maturidade + Arquétipos */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Cost Comparison Bar Chart */}
-        <div className="lg:col-span-2 br-card bg-white p-6 rounded-lg border border-slate-200 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
+        {/* Comparativo de Custos Bar Chart */}
+        <div className="lg:col-span-2 br-card bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
             <div>
-              <h3 className="text-sm font-bold text-slate-900 m-0">Comparativo de Custos Mensais: AS IS vs TO BE</h3>
+              <h3 className="text-sm font-bold text-slate-900 m-0">Comparativo de Custos: AS IS vs TO BE</h3>
               <p className="text-xs text-slate-600 m-0 mt-0.5">
-                {selectedRegistroId
-                  ? 'Custo individual do processo selecionado (R$/Mês)'
-                  : 'Valores consolidados agrupados de todos os processos (R$/Mês)'}
+                Custo manual atual frente ao custo automatizado (R$/mês)
               </p>
             </div>
             <i className="fas fa-chart-bar text-slate-400 text-base"></i>
           </div>
-          <div className="h-72">
+          <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={barChartData} margin={{ top: 10, right: 20, left: 10, bottom: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
@@ -375,436 +286,122 @@ export const DashboardPage: React.FC = () => {
                   contentStyle={{ backgroundColor: '#0c326f', borderColor: '#1351b4', color: '#fff', borderRadius: '4px' }}
                 />
                 <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
-                <Bar dataKey="custoAtualMensal" name="Custo Manual Atual (AS IS)" fill="#e52207" radius={[2, 2, 0, 0]} />
-                <Bar dataKey="custoToBeMensalAno1" name="Custo TO BE (Ano 1 com Setup)" fill="#1351b4" radius={[2, 2, 0, 0]} />
-                <Bar dataKey="custoToBeMensalAno2" name="Custo TO BE (Ano 2 Recorrente)" fill="#168821" radius={[2, 2, 0, 0]} />
+                <Bar dataKey="custoAtualMensal" name="Custo Atual (AS IS)" fill="#e52207" radius={[2, 2, 0, 0]} />
+                <Bar dataKey="custoToBeMensalAno1" name="Custo TO BE (Ano 1)" fill="#1351b4" radius={[2, 2, 0, 0]} />
+                <Bar dataKey="custoToBeMensalAno2" name="Custo TO BE (Ano 2)" fill="#168821" radius={[2, 2, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Complexity & Shift Distributions */}
-        <div className="space-y-6">
-          <div className="br-card bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <h3 className="text-xs font-bold text-slate-900 m-0">Distribuição por Complexidade</h3>
-                <p className="text-[11px] text-slate-500 m-0">Visão consolidada global</p>
-              </div>
-              <i className="fas fa-chart-pie text-slate-400 text-sm"></i>
+        {/* Distribuição por Maturidade N0-N3 */}
+        <div className="br-card bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h3 className="text-xs font-bold text-slate-900 m-0">Funil de Maturidade (FCAIA)</h3>
+              <p className="text-[11px] text-slate-500 m-0">Status N0 a N3</p>
             </div>
-            <div className="h-44">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={globalComplexidade}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={38}
-                    outerRadius={65}
-                    paddingAngle={4}
-                  >
-                    {globalComplexidade.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS_COMPLEXIDADE[index % COLORS_COMPLEXIDADE.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={{ backgroundColor: '#0c326f', borderRadius: '4px', color: '#fff' }} />
-                  <Legend wrapperStyle={{ fontSize: '11px' }} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
+            <i className="fas fa-layer-group text-slate-400 text-sm"></i>
           </div>
-
-          <div className="br-card bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <h3 className="text-xs font-bold text-slate-900 m-0">Distribuição por Turno</h3>
-                <p className="text-[11px] text-slate-500 m-0">
-                  {selectedRegistroId
-                    ? 'Turno do processo selecionado'
-                    : 'Valores consolidados agrupados'}
-                </p>
-              </div>
-              <i className="fas fa-clock text-slate-400 text-sm"></i>
-            </div>
-            <div className="h-44">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={distribuicaoTurno}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={38}
-                    outerRadius={65}
-                    paddingAngle={4}
-                  >
-                    {distribuicaoTurno.map((entry, index) => (
-                      <Cell key={`cell-turno-${index}`} fill={COLORS_TURNO[index % COLORS_TURNO.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={{ backgroundColor: '#0c326f', borderRadius: '4px', color: '#fff' }} />
-                  <Legend wrapperStyle={{ fontSize: '11px' }} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={distribuicaoMaturidade || []}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={42}
+                  outerRadius={70}
+                  paddingAngle={4}
+                >
+                  {(distribuicaoMaturidade || []).map((_entry: { name: string; value: number }, index: number) => (
+                    <Cell key={`cell-mat-${index}`} fill={COLORS_MATURIDADE[index % COLORS_MATURIDADE.length]} />
+                  ))}
+                </Pie>
+                <Tooltip contentStyle={{ backgroundColor: '#0c326f', borderRadius: '4px', color: '#fff' }} />
+                <Legend wrapperStyle={{ fontSize: '10.5px' }} />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>
 
-      {/* Tabela Consolidada com Linhas Expansíveis & Filtros Avançados */}
-      <div className="space-y-4">
-        {/* Barra de Filtros Integrada */}
-        <div className="br-card bg-white p-4 rounded-lg border border-slate-200 shadow-sm flex flex-col md:flex-row items-center gap-3">
-          {/* Search */}
-          <div className="relative flex-1 w-full">
-            <i className="fas fa-search absolute left-3.5 top-1/2 transform -translate-y-1/2 text-slate-400 text-xs"></i>
-            <input
-              type="text"
-              placeholder="Buscar por nome, ID ou área..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none"
-            />
+      {/* Gráficos Secundários: 7 Arquétipos + Turnos + Complexidade */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="br-card bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+          <h3 className="text-xs font-bold text-slate-900 mb-2">Distribuição por 7 Arquétipos</h3>
+          <div className="h-44">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={(distribuicaoArquetipos || []).filter((a: { name: string; value: number }) => a.value > 0)}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={60}
+                >
+                  {(distribuicaoArquetipos || []).map((_entry: { name: string; value: number }, index: number) => (
+                    <Cell key={`cell-arq-${index}`} fill={COLORS_ARQUETIPOS[index % COLORS_ARQUETIPOS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip contentStyle={{ backgroundColor: '#0c326f', borderRadius: '4px', color: '#fff' }} />
+                <Legend wrapperStyle={{ fontSize: '9.5px' }} />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
-
-          {/* Filter Area */}
-          <div className="flex items-center space-x-2 w-full md:w-auto">
-            <select
-              value={areaFilter}
-              onChange={(e) => setAreaFilter(e.target.value)}
-              className="w-full md:w-auto text-xs bg-slate-50 border border-slate-300 rounded px-3 py-2 text-slate-700 outline-none cursor-pointer focus:border-[#1351b4]"
-            >
-              <option value="">Todas as Áreas</option>
-              {uniqueAreas.map((a) => (
-                <option key={a} value={a}>
-                  {a}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Filter Situação */}
-          <div className="flex items-center space-x-2 w-full md:w-auto">
-            <select
-              value={situacaoFilter}
-              onChange={(e) => setSituacaoFilter(e.target.value)}
-              className="w-full md:w-auto text-xs bg-slate-50 border border-slate-300 rounded px-3 py-2 text-slate-700 outline-none cursor-pointer focus:border-[#1351b4]"
-            >
-              <option value="">Todas as Situações</option>
-              <option value="Em levantamento">Em levantamento</option>
-              <option value="Aprovado">Aprovado</option>
-              <option value="Em implantação">Em implantação</option>
-              <option value="Concluído">Concluído</option>
-              <option value="Descartado">Descartado</option>
-            </select>
-          </div>
-
-          {/* Filter Complexidade */}
-          <div className="flex items-center space-x-2 w-full md:w-auto">
-            <select
-              value={complexidadeFilter}
-              onChange={(e) => setComplexidadeFilter(e.target.value)}
-              className="w-full md:w-auto text-xs bg-slate-50 border border-slate-300 rounded px-3 py-2 text-slate-700 outline-none cursor-pointer focus:border-[#1351b4]"
-            >
-              <option value="">Todas as Complexidades</option>
-              <option value="Baixa">Baixa</option>
-              <option value="Média">Média</option>
-              <option value="Alta">Alta</option>
-            </select>
-          </div>
-
-          {/* Expand / Collapse All */}
-          <button
-            type="button"
-            onClick={toggleExpandAll}
-            className="w-full md:w-auto flex items-center justify-center space-x-1.5 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded border border-slate-300 transition-colors cursor-pointer whitespace-nowrap"
-          >
-            {isAllExpanded ? (
-              <>
-                <i className="fas fa-compress text-slate-500 text-xs mr-1"></i>
-                <span>Recolher Todos</span>
-              </>
-            ) : (
-              <>
-                <i className="fas fa-expand text-slate-500 text-xs mr-1"></i>
-                <span>Expandir Todos</span>
-              </>
-            )}
-          </button>
         </div>
 
-        {/* Tabela de Dados */}
-        <div className="br-table bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-3.5 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
-            <h3 className="text-xs font-bold text-slate-900 m-0">Tabela Consolidada de Análise & Priorização</h3>
-            <span className="text-[11px] text-slate-500">
-              Exibindo {filteredAndSortedProcessos.length} de {data.comparativoProcessos.length} processos
-            </span>
+        <div className="br-card bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+          <h3 className="text-xs font-bold text-slate-900 mb-2">Distribuição por Turno (HH Robô)</h3>
+          <div className="h-44">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={distribuicaoTurno}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={60}
+                >
+                  {distribuicaoTurno.map((entry, index) => (
+                    <Cell key={`cell-tur-${index}`} fill={COLORS_TURNO[index % COLORS_TURNO.length]} />
+                  ))}
+                </Pie>
+                <Tooltip contentStyle={{ backgroundColor: '#0c326f', borderRadius: '4px', color: '#fff' }} />
+                <Legend wrapperStyle={{ fontSize: '10px' }} />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
+        </div>
 
-          {/* Responsive Table */}
-          <div className="w-full overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-100/90 text-slate-600 font-semibold uppercase text-[10px] tracking-wider border-b border-slate-200">
-                  <th className="py-2 px-2.5 w-9 text-center"></th>
-                  <th onClick={() => handleSort('idAnalise')} className="py-2 px-2.5 cursor-pointer hover:bg-slate-200/70 transition-colors">
-                    ID {renderSortIcon('idAnalise')}
-                  </th>
-                  <th onClick={() => handleSort('nome')} className="py-2 px-3 cursor-pointer hover:bg-slate-200/70 transition-colors">
-                    Processo & Área {renderSortIcon('nome')}
-                  </th>
-                  <th onClick={() => handleSort('custoAtualMensal')} className="py-2 px-2.5 text-right cursor-pointer hover:bg-slate-200/70 transition-colors">
-                    Custo Atual {renderSortIcon('custoAtualMensal')}
-                  </th>
-                  <th onClick={() => handleSort('fteLiberado')} className="py-2 px-2.5 text-right cursor-pointer hover:bg-slate-200/70 transition-colors">
-                    FTE Liberado {renderSortIcon('fteLiberado')}
-                  </th>
-                  <th onClick={() => handleSort('complexidade')} className="py-2 px-2.5 text-center cursor-pointer hover:bg-slate-200/70 transition-colors">
-                    Complexidade {renderSortIcon('complexidade')}
-                  </th>
-                  <th onClick={() => handleSort('roiAno1')} className="py-2 px-2.5 text-right cursor-pointer hover:bg-slate-200/70 transition-colors">
-                    ROI 1 Ano {renderSortIcon('roiAno1')}
-                  </th>
-                  <th onClick={() => handleSort('paybackMeses')} className="py-2 px-2.5 text-center cursor-pointer hover:bg-slate-200/70 transition-colors">
-                    Payback {renderSortIcon('paybackMeses')}
-                  </th>
-                  <th onClick={() => handleSort('situacao')} className="py-2 px-3 text-center cursor-pointer hover:bg-slate-200/70 transition-colors">
-                    Status {renderSortIcon('situacao')}
-                  </th>
-                </tr>
-              </thead>
-
-              <tbody className="divide-y divide-slate-100 bg-white font-medium text-slate-800 text-[11px]">
-                {filteredAndSortedProcessos.length === 0 ? (
-                  <tr>
-                    <td colSpan={9} className="py-10 text-center text-slate-500 text-xs">
-                      Nenhum registro encontrado para os filtros selecionados.
-                    </td>
-                  </tr>
-                ) : (
-                  filteredAndSortedProcessos.map((proc) => {
-                    const isSelected = selectedRegistroId === proc.id;
-                    const isExpanded = expandedRows.has(proc.id);
-
-                    return (
-                      <React.Fragment key={proc.id}>
-                        {/* Main Table Row */}
-                        <tr
-                          onClick={() => handleRowClick(proc.id)}
-                          className={`cursor-pointer transition-colors duration-150 ${
-                            isSelected
-                              ? 'bg-blue-50/70 font-semibold'
-                              : 'hover:bg-slate-50'
-                          } ${isExpanded ? 'border-b-0' : ''}`}
-                          title={isSelected ? 'Clique para desmarcar foco' : 'Clique para focar este processo nos gráficos'}
-                        >
-                          {/* Expand Button */}
-                          <td className="py-2.5 px-2.5 text-center">
-                            <button
-                              type="button"
-                              onClick={(e) => toggleExpandRow(proc.id, e)}
-                              className="p-1 rounded text-slate-400 hover:text-[#1351b4] hover:bg-blue-50/50 transition-colors cursor-pointer bg-transparent border-0 shadow-none"
-                              title={isExpanded ? 'Recolher detalhes' : 'Expandir detalhes completos'}
-                            >
-                              <i className={`fas fa-chevron-${isExpanded ? 'down text-[#1351b4]' : 'right text-slate-400'} text-[10px]`}></i>
-                            </button>
-                          </td>
-
-                          {/* ID */}
-                          <td className="py-2.5 px-2.5 whitespace-nowrap">
-                            <div className="flex items-center space-x-1.5">
-                              <span className="font-bold text-[#1351b4] text-[11px]">{proc.idAnalise}</span>
-                              {proc.idOrigem && proc.idOrigem !== '-' && (
-                                <span className="text-[9.5px] text-slate-400 font-mono">({proc.idOrigem})</span>
-                              )}
-                              {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-[#1351b4] animate-pulse"></span>}
-                            </div>
-                          </td>
-
-                          {/* Processo & Área */}
-                          <td className="py-2.5 px-3">
-                            <div className="font-semibold text-slate-900 text-[11px] leading-tight">{proc.nome}</div>
-                            <div className="text-[10px] text-slate-500 font-normal">{proc.area}</div>
-                          </td>
-
-                          {/* Custo Atual */}
-                          <td className="py-2.5 px-2.5 text-right font-medium text-red-700 whitespace-nowrap text-[11px]">
-                            R$ {proc.custoAtualMensal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/mês
-                          </td>
-
-                          {/* FTE Liberado */}
-                          <td className="py-2.5 px-2.5 text-right font-bold text-green-700 whitespace-nowrap text-[11px]">
-                            {proc.fteLiberado} FTE
-                          </td>
-
-                          {/* Complexidade */}
-                          <td className="py-2.5 px-2.5 text-center whitespace-nowrap">
-                            <span
-                              className={`inline-flex items-center px-2 py-0.5 rounded-full font-bold text-[9.5px] ${
-                                proc.complexidade === 'Baixa'
-                                  ? 'bg-green-100 text-green-800'
-                                  : proc.complexidade === 'Média'
-                                  ? 'bg-amber-100 text-amber-800'
-                                  : 'bg-red-100 text-red-800'
-                              }`}
-                            >
-                              {proc.complexidade}
-                            </span>
-                          </td>
-
-                          {/* ROI 1 Ano */}
-                          <td className="py-2.5 px-2.5 text-right font-bold text-green-700 whitespace-nowrap text-[11px]">
-                            R$ {proc.roiAno1.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                          </td>
-
-                          {/* Payback */}
-                          <td className="py-2.5 px-2.5 text-center font-medium text-slate-700 whitespace-nowrap text-[11px]">
-                            {proc.paybackMeses.toFixed(1)} meses
-                          </td>
-
-                          {/* Status */}
-                          <td className="py-2.5 px-3 text-center whitespace-nowrap">
-                            <span className="inline-flex items-center px-2 py-0.5 rounded font-medium text-[10px] bg-slate-100 text-slate-700 border border-slate-200">
-                              {proc.situacao}
-                            </span>
-                          </td>
-                        </tr>
-
-                        {/* Expanded Sub-row Drawer */}
-                        {isExpanded && (
-                          <tr className="bg-slate-50 border-b border-slate-200">
-                            <td colSpan={9} className="p-4 sm:p-6">
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                {/* 1. Diagnóstico AS IS */}
-                                <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-xs space-y-3">
-                                  <div className="flex items-center space-x-2 text-red-700 font-bold text-xs pb-2 border-b border-slate-100">
-                                    <i className="fas fa-file-alt text-xs"></i>
-                                    <span>1. Diagnóstico AS IS (Situação Atual)</span>
-                                  </div>
-                                  <div className="space-y-2 text-[11px]">
-                                    <div className="flex justify-between">
-                                      <span className="text-slate-500">Periodicidade:</span>
-                                      <span className="font-semibold text-slate-800">{proc.periodicidade}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                      <span className="text-slate-500">Perfil Executor:</span>
-                                      <span className="font-semibold text-slate-800">{proc.perfilExecutor}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                      <span className="text-slate-500">Tempo Execução:</span>
-                                      <span className="font-semibold text-slate-800">{proc.tempoExecucao} h / mês</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                      <span className="text-slate-500">Custo Atual Mensal:</span>
-                                      <span className="font-bold text-red-600">R$ {proc.custoAtualMensal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                                    </div>
-                                    <div className="pt-1 border-t border-slate-100">
-                                      <span className="text-slate-500 block mb-0.5">Sistemas Envolvidos:</span>
-                                      <span className="font-medium text-slate-700 text-[10px] bg-slate-50 p-1.5 rounded block border border-slate-200">
-                                        {proc.sistemasEnvolvidos || 'Não informado'}
-                                      </span>
-                                    </div>
-                                  </div>
-                                </div>
-
-                                {/* 2. Solução TO BE */}
-                                <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-xs space-y-3">
-                                  <div className="flex items-center space-x-2 text-[#1351b4] font-bold text-xs pb-2 border-b border-slate-100">
-                                    <i className="fas fa-microchip text-xs"></i>
-                                    <span>2. Solução TO BE (Automação)</span>
-                                  </div>
-                                  <div className="space-y-2 text-[11px]">
-                                    <div className="flex justify-between">
-                                      <span className="text-slate-500">Plataforma:</span>
-                                      <span className="font-bold text-[#1351b4]">{proc.tipoPlataformaNome || 'Python & Robot Framework'}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                      <span className="text-slate-500">Complexidade:</span>
-                                      <span className="font-semibold text-slate-800">{proc.complexidade}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                      <span className="text-slate-500">Score de Benefícios:</span>
-                                      <span className="font-bold text-[#1351b4]">{proc.pontuacaoBeneficios}%</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                      <span className="text-slate-500">Redução de Tempo:</span>
-                                      <span className="font-semibold text-green-700">{proc.reducaoTempoPrevista}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                      <span className="text-slate-500">Redução de Custo:</span>
-                                      <span className="font-semibold text-green-700">{proc.reducaoCustoPrevista}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                      <span className="text-slate-500">FTE Poupado:</span>
-                                      <span className="font-bold text-green-700">{proc.fteLiberado} FTE</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                      <span className="text-slate-500">Turno de Operação:</span>
-                                      <span className="font-semibold text-slate-800">{proc.turno || 'Diurno'}</span>
-                                    </div>
-                                    <div className="flex justify-between pt-1 border-t border-slate-100">
-                                      <span className="text-slate-500">Recomendação:</span>
-                                      <span className="font-semibold text-slate-800">{proc.recomendacao}</span>
-                                    </div>
-                                  </div>
-                                </div>
-
-                                {/* 3. Custos & Retorno (ROI) */}
-                                <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-xs space-y-3">
-                                  <div className="flex items-center space-x-2 text-green-800 font-bold text-xs pb-2 border-b border-slate-100">
-                                    <i className="fas fa-coins text-xs"></i>
-                                    <span>3. Custos & Projeções Financeiras</span>
-                                  </div>
-                                  <div className="space-y-2 text-[11px]">
-                                    <div className="flex justify-between">
-                                      <span className="text-slate-500">Investimento Setup:</span>
-                                      <span className="font-semibold text-slate-800">R$ {proc.investimentoSetup.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                      <span className="text-slate-500">Custo TO BE (Ano 1/mês):</span>
-                                      <span className="font-semibold text-slate-800">R$ {proc.custoToBeMensalAno1.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                      <span className="text-slate-500">Custo TO BE (Ano 2/mês):</span>
-                                      <span className="font-semibold text-slate-800">R$ {proc.custoToBeMensalAno2.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                      <span className="text-slate-500">Economia Mensal (Ano 1):</span>
-                                      <span className="font-bold text-green-700">R$ {proc.economiaMensalAno1.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                                    </div>
-                                    <div className="flex justify-between pt-1 border-t border-slate-100">
-                                      <span className="text-slate-500">ROI Líquido (Ano 1):</span>
-                                      <span className="font-bold text-green-700">R$ {proc.roiAno1.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                      <span className="text-slate-500">ROI Líquido (Ano 2):</span>
-                                      <span className="font-bold text-green-800">R$ {proc.roiAno2.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                      <span className="text-slate-500">Payback Estimado:</span>
-                                      <span className="font-bold text-amber-700">{proc.paybackMeses.toFixed(1)} meses</span>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </td>
-                          </tr>
-                        )}
-                      </React.Fragment>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
+        <div className="br-card bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+          <h3 className="text-xs font-bold text-slate-900 mb-2">Distribuição por Complexidade</h3>
+          <div className="h-44">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={distribuicaoComplexidade}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={60}
+                >
+                  {distribuicaoComplexidade.map((entry, index) => (
+                    <Cell key={`cell-comp-${index}`} fill={COLORS_COMPLEXIDADE[index % COLORS_COMPLEXIDADE.length]} />
+                  ))}
+                </Pie>
+                <Tooltip contentStyle={{ backgroundColor: '#0c326f', borderRadius: '4px', color: '#fff' }} />
+                <Legend wrapperStyle={{ fontSize: '10px' }} />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>
     </div>
   );
 };
-

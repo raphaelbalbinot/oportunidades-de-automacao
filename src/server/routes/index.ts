@@ -3,12 +3,14 @@ import { parametroRoutes } from './parametro.routes.js';
 import { registroRoutes } from './registro.routes.js';
 import { analyticsRoutes } from './analytics.routes.js';
 import { perfilPlataformaRoutes } from './perfil-plataforma.routes.js';
+import { areaRoutes } from './area.routes.js';
 
 export async function registerRoutes(app: FastifyInstance) {
   await app.register(parametroRoutes);
   await app.register(registroRoutes);
   await app.register(analyticsRoutes);
   await app.register(perfilPlataformaRoutes);
+  await app.register(areaRoutes);
 
   // Healthcheck endpoint
   app.get('/api/health', async () => ({

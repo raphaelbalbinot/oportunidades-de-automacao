@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Modal } from './Modal';
-import { Registro, Parametro, BeneficioNivel, PerfilPlataforma } from '../types';
+import { Registro, Parametro, BeneficioNivel, PerfilPlataforma, Area, MaturidadeNivel, ArquetipoTipo, InstrumentacaoPendencia } from '../types';
 import { api } from '../services/api';
 import { Tooltip } from './Tooltip';
 import { useNotification } from './Notification';
@@ -24,6 +24,7 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
 }) => {
   const notify = useNotification();
   const [perfis, setPerfis] = useState<PerfilPlataforma[]>([]);
+  const [areas, setAreas] = useState<Area[]>([]);
   const [formData, setFormData] = useState<Partial<Registro>>({
     idOrigem: '',
     idAnalise: '',
@@ -32,6 +33,61 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
     dataLevantamento: new Date().toISOString().split('T')[0],
     participantes: '',
     situacao: 'Em levantamento',
+    nivelMaturidade: 'N0',
+    isRetrospectivo: false,
+
+    // Triagem N0
+    sintomasDor: '',
+    papeisEnvolvidos: '',
+    criticidadePercebida: 'Média',
+    recorrenciaDor: 'Frequente',
+
+    // 7 Arquétipos
+    arquetipoPrimario: 'A1',
+    arquetiposSecundarios: '',
+
+    // Variáveis dos Arquétipos
+    percAutomatizavel: 1.0,
+    taxaErroAtual: 0,
+    custoMedioErro: 0,
+    reducaoEsperadaErro: 0.8,
+    volumeContatosMensal: 0,
+    custoAtendimentoHumano: 0,
+    taxaContencaoEsperada: 0.6,
+    custoAtendimentoAuto: 0,
+    probabilidadeDescumprimento: 0,
+    impactoFinanceiroOcorrencia: 0,
+    reducaoProbabilidadeRisco: 0.9,
+    historicoOcorrencias12m: 0,
+    leadTimeAtualDias: 0,
+    leadTimeProjetadoDias: 0,
+    volumeAdicionalViabilizado: 0,
+    ticketMedioReceita: 0,
+    diasAntecipacaoFaturamento: 0,
+    valorFaturadoCiclo: 0,
+    nrAtivosAntes: 0,
+    nrAtivosDepois: 0,
+    custoManutencaoAnualAtivo: 0,
+    numSolicitacoesComerciaisMes: 0,
+    tempoRespostaAtualHoras: 0,
+    tempoRespostaAlvoHoras: 0,
+    taxaConversaoAtual: 0,
+    taxaConversaoAlvo: 0,
+    ticketMedioProposta: 0,
+    percPerdasPorPrazo: 0,
+
+    // Trilha e Reuso
+    percTrilhaProcesso: 0,
+    percTrilhaSistema: 0,
+    percTrilhaAutomacao: 1.0,
+    justificativaTrilha: '',
+    unidadesPiloto: 1,
+    unidadesPotenciais: 1,
+    custoMarginalReplicacao: 0,
+    coberturaInicialPerc: 0,
+    coberturaFinalPerc: 1.0,
+
+    // AS IS
     areasEnvolvidas: '',
     descricaoProcesso: '',
     numExecucoes: 100,
@@ -77,22 +133,34 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
     horasRobo: 60,
     horasApoioNegocio: 4,
     horasManutencao: 4,
+
+    // N3 Realizado
+    beneficioRealizadoAnual: 0,
+    desvioProjetadoRealizadoPerc: 0,
+    dataApuracaoRealizado: '',
+    notasRealizado: '',
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [activeSubTab, setActiveSubTab] = useState<'geral' | 'asis' | 'beneficios' | 'tobe'>('geral');
+  const [activeSubTab, setActiveSubTab] = useState<
+    'geral' | 'diagnostico' | 'arquetipos' | 'trilha' | 'beneficios' | 'tobe' | 'realizado'
+  >('geral');
 
   useEffect(() => {
-    const fetchPerfis = async () => {
+    const fetchData = async () => {
       try {
-        const list = await api.getPerfisPlataforma();
-        setPerfis(list);
+        const [perfisList, areasList] = await Promise.all([
+          api.getPerfisPlataforma(),
+          api.getAreas(),
+        ]);
+        setPerfis(perfisList);
+        setAreas(areasList);
       } catch (err) {
         console.error(err);
       }
     };
     if (isOpen) {
-      fetchPerfis();
+      fetchData();
     }
   }, [isOpen]);
 
@@ -100,6 +168,11 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
     if (initialData) {
       setFormData({
         ...initialData,
+        nivelMaturidade: initialData.nivelMaturidade || 'N0',
+        arquetipoPrimario: initialData.arquetipoPrimario || 'A1',
+        percTrilhaAutomacao: initialData.percTrilhaAutomacao ?? 1.0,
+        unidadesPiloto: initialData.unidadesPiloto ?? 1,
+        unidadesPotenciais: initialData.unidadesPotenciais ?? 1,
         horasRoboDiurno: initialData.horasRoboDiurno ?? (initialData.turno === 'Noturno' ? 0 : initialData.horasRobo || 0),
         horasRoboNoturno: initialData.horasRoboNoturno ?? (initialData.turno === 'Noturno' ? initialData.horasRobo || 0 : 0),
         horasRoboFimDeSemana: initialData.horasRoboFimDeSemana ?? (initialData.turno === 'Final de Semana' ? initialData.horasRobo || 0 : 0),
@@ -114,6 +187,51 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
         dataLevantamento: new Date().toISOString().split('T')[0],
         participantes: '',
         situacao: 'Em levantamento',
+        nivelMaturidade: 'N0',
+        isRetrospectivo: false,
+        sintomasDor: '',
+        papeisEnvolvidos: '',
+        criticidadePercebida: 'Média',
+        recorrenciaDor: 'Frequente',
+        arquetipoPrimario: 'A1',
+        arquetiposSecundarios: '',
+        percAutomatizavel: 1.0,
+        taxaErroAtual: 0,
+        custoMedioErro: 0,
+        reducaoEsperadaErro: 0.8,
+        volumeContatosMensal: 0,
+        custoAtendimentoHumano: 0,
+        taxaContencaoEsperada: 0.6,
+        custoAtendimentoAuto: 0,
+        probabilidadeDescumprimento: 0,
+        impactoFinanceiroOcorrencia: 0,
+        reducaoProbabilidadeRisco: 0.9,
+        historicoOcorrencias12m: 0,
+        leadTimeAtualDias: 0,
+        leadTimeProjetadoDias: 0,
+        volumeAdicionalViabilizado: 0,
+        ticketMedioReceita: 0,
+        diasAntecipacaoFaturamento: 0,
+        valorFaturadoCiclo: 0,
+        nrAtivosAntes: 0,
+        nrAtivosDepois: 0,
+        custoManutencaoAnualAtivo: 0,
+        numSolicitacoesComerciaisMes: 0,
+        tempoRespostaAtualHoras: 0,
+        tempoRespostaAlvoHoras: 0,
+        taxaConversaoAtual: 0,
+        taxaConversaoAlvo: 0,
+        ticketMedioProposta: 0,
+        percPerdasPorPrazo: 0,
+        percTrilhaProcesso: 0,
+        percTrilhaSistema: 0,
+        percTrilhaAutomacao: 1.0,
+        justificativaTrilha: '',
+        unidadesPiloto: 1,
+        unidadesPotenciais: 1,
+        custoMarginalReplicacao: 0,
+        coberturaInicialPerc: 0,
+        coberturaFinalPerc: 1.0,
         areasEnvolvidas: '',
         descricaoProcesso: '',
         numExecucoes: 100,
@@ -126,7 +244,6 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
         custoMensalAtual: 0,
         sistemasEnvolvidos: '',
         documentosApoio: '',
-
         benLiberarPessoas: 'nenhum',
         benReduzirCusto: 'nenhum',
         benReduzirErros: 'nenhum',
@@ -139,7 +256,6 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
         benInteroperabilidade: 'nenhum',
         benTransformacaoDigital: 'nenhum',
         benSustentabilidadeEsg: 'nenhum',
-
         perfilPlataformaId: padrao?.id || '',
         tipoPlataformaNome: padrao?.nome || 'Python & Robot Framework (Open Source)',
         descricaoSolucao: '',
@@ -157,6 +273,10 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
         horasRobo: 60,
         horasApoioNegocio: 4,
         horasManutencao: 4,
+        beneficioRealizadoAnual: 0,
+        desvioProjetadoRealizadoPerc: 0,
+        dataApuracaoRealizado: '',
+        notasRealizado: '',
       });
     }
   }, [initialData, isOpen, perfis]);
@@ -183,7 +303,7 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
     }));
   };
 
-  // Cálculo de pré-visualização em tempo real com suporte a Perfil de Plataforma e Múltiplos Turnos
+  // Cálculo de pré-visualização em tempo real V2.0
   const calcPreview = useMemo(() => {
     if (!parametro) return null;
 
@@ -197,7 +317,19 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
     const cargaHoraria = parametro.cargaHorariaPadrao || 160;
     const fteLiberado = Number((tempoExecucao / cargaHoraria).toFixed(2));
 
-    // Pontuação de Benefícios (12 Critérios Corporativos)
+    // Determina nível de maturidade
+    let nivelMaturidade: MaturidadeNivel = 'N0';
+    if (formData.isRetrospectivo || formData.situacao === 'Concluído') {
+      nivelMaturidade = 'N3';
+    } else if (tempoExecucao > 0 || (Number(formData.numExecucoes) > 0 && Number(formData.taxaErroAtual) > 0)) {
+      if (Number(formData.esforcoSetupSemanas) > 0 || Number(formData.horasRobo) > 0) {
+        nivelMaturidade = 'N2';
+      } else {
+        nivelMaturidade = 'N1';
+      }
+    }
+
+    // 12 Critérios
     const pFactor = (res?: string) => {
       if (res === 'principal') return 1.0;
       if (res === 'bastante') return 0.5;
@@ -235,281 +367,487 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
 
     const pontuacaoBeneficios = pMax > 0 ? (somaPontos / pMax) * 100 : 0;
 
-    // Custo da Plataforma e Taxas por Turno
+    // Custos da Plataforma
     const selectedPerfil = perfis.find((p) => p.id === formData.perfilPlataformaId);
     const servidor = selectedPerfil?.custoServidor !== undefined ? selectedPerfil.custoServidor : parametro.servidor;
     const nrRobos = selectedPerfil?.nrRobosDiluicao || parametro.nrRobos || 1;
     const licenca = selectedPerfil?.custoLicencaMensal !== undefined ? selectedPerfil.custoLicencaMensal : parametro.licencaRobo;
     const estacao = selectedPerfil?.custoEstacaoTrabalho !== undefined ? selectedPerfil.custoEstacaoTrabalho : parametro.estacaoTrabalhoRobo;
-
     const baseCusto = servidor / nrRobos + (licenca + estacao) + parametro.operadorSalaControle / nrRobos;
 
     const taxaDiurna = (baseCusto * parametro.percDiurno) / 21 / 10;
     const taxaNoturna = (baseCusto * parametro.percNoturno) / 21 / 14;
     const taxaFimSemana = (baseCusto * parametro.percFimDeSemana) / 8 / 24;
 
-    const horasDiurno = Number(formData.horasRoboDiurno) || 0;
-    const horasNoturno = Number(formData.horasRoboNoturno) || 0;
-    const horasFimSemana = Number(formData.horasRoboFimDeSemana) || 0;
+    const hd = Number(formData.horasRoboDiurno) || 0;
+    const hn = Number(formData.horasRoboNoturno) || 0;
+    const hf = Number(formData.horasRoboFimDeSemana) || 0;
+    const custoHorasRobo = hd * taxaDiurna + hn * taxaNoturna + hf * taxaFimSemana;
 
-    const custoHorasRoboDiurno = horasDiurno * taxaDiurna;
-    const custoHorasRoboNoturno = horasNoturno * taxaNoturna;
-    const custoHorasRoboFimSemana = horasFimSemana * taxaFimSemana;
-    const custoHorasRobo = custoHorasRoboDiurno + custoHorasRoboNoturno + custoHorasRoboFimSemana;
-    const totalHorasRobo = horasDiurno + horasNoturno + horasFimSemana;
-
+    const custoHoraDev = parametro.custoHoraDesenvolvimento || 185;
     const esforcoSetupSemanas = Number(formData.esforcoSetupSemanas) || 0;
-    const investimentoSetup = esforcoSetupSemanas * ((parametro.custoHoraDesenvolvimento * 40) / 12);
+    const investimentoSetup = (esforcoSetupSemanas * (custoHoraDev * 40)) / 12;
+
     const horasApoio = Number(formData.horasApoioNegocio) || 0;
     const custoHorasNegocio = horasApoio * valorHoraExecutor;
-    const horasManutencao = Number(formData.horasManutencao) || 0;
-    const custoHoraManutencao = (parametro.operadorSalaControle * 1.6) / 168;
-    const custoManutencao = horasManutencao * custoHoraManutencao;
 
-    const custoMensalAno1 = investimentoSetup + custoHorasRobo + custoHorasNegocio + custoManutencao;
-    const custoMensalAno2 = custoHorasRobo + custoHorasNegocio + custoManutencao;
+    const horasManut = Number(formData.horasManutencao) || 0;
+    const custoHoraManut = (parametro.operadorSalaControle * 1.6) / 168;
+    const custoManutencao = horasManut * custoHoraManut;
 
+    const custoRecorrenteMensal = custoHorasRobo + custoHorasNegocio + custoManutencao;
+    const custoMensalAno1 = investimentoSetup + custoRecorrenteMensal;
     const custoAnualAno1 = custoMensalAno1 * 12;
-    const custoAnualAno2 = custoMensalAno2 * 12;
+    const custoAnualAno2 = custoRecorrenteMensal * 12;
 
-    const roiAno1 = custoMensalAtual * 12 - custoAnualAno1;
-    const roiAno2 = custoMensalAtual * 12 - custoAnualAno2;
+    // Cálculo do Benefício Bruto Multiarquétipo
+    let beneficioBruto = 0;
+    const arq = (formData.arquetipoPrimario || 'A1').toUpperCase();
 
-    const paybackMeses = custoMensalAtual > 0 && custoAnualAno1 > 0 ? Number((custoAnualAno1 / custoMensalAtual).toFixed(1)) : 0;
+    if (arq === 'A1') {
+      beneficioBruto = (custoMensalAtual * 12) * (Number(formData.percAutomatizavel) || 1.0);
+    } else if (arq === 'A2') {
+      const numExec = Number(formData.numExecucoes) || 0;
+      const tErro = Number(formData.taxaErroAtual) || 0;
+      const cErro = Number(formData.custoMedioErro) || 0;
+      const rErro = Number(formData.reducaoEsperadaErro) || 0.8;
+      beneficioBruto = numExec * tErro * cErro * rErro * 12;
+    } else if (arq === 'A3') {
+      const vol = Number(formData.volumeContatosMensal) || 0;
+      const cHum = Number(formData.custoAtendimentoHumano) || 0;
+      const cAuto = Number(formData.custoAtendimentoAuto) || 0;
+      const tCont = Number(formData.taxaContencaoEsperada) || 0.6;
+      beneficioBruto = vol * tCont * Math.max(0, cHum - cAuto) * 12;
+    } else if (arq === 'A4') {
+      const imp = Number(formData.impactoFinanceiroOcorrencia) || 0;
+      const prob = Number(formData.probabilidadeDescumprimento) || 0;
+      const red = Number(formData.reducaoProbabilidadeRisco) || 0.9;
+      beneficioBruto = imp * prob * red;
+    } else if (arq === 'A5') {
+      const volAdic = Number(formData.volumeAdicionalViabilizado) || 0;
+      const tick = Number(formData.ticketMedioReceita) || 0;
+      beneficioBruto = volAdic * tick * 12;
+    } else if (arq === 'A6') {
+      const ant = Number(formData.nrAtivosAntes) || 0;
+      const dep = Number(formData.nrAtivosDepois) || 0;
+      const cAtiv = Number(formData.custoManutencaoAnualAtivo) || 0;
+      beneficioBruto = Math.max(0, ant - dep) * cAtiv;
+    } else if (arq === 'A7') {
+      const numSol = Number(formData.numSolicitacoesComerciaisMes) || 0;
+      const cAtu = Number(formData.taxaConversaoAtual) || 0;
+      const cAlvo = Number(formData.taxaConversaoAlvo) || 0;
+      const tick = Number(formData.ticketMedioProposta) || 0;
+      beneficioBruto = numSol * 12 * Math.max(0, cAlvo - cAtu) * tick;
+    }
+
+    if (beneficioBruto === 0 && custoMensalAtual > 0) {
+      beneficioBruto = custoMensalAtual * 12;
+    }
+
+    const percAuto = Number(formData.percTrilhaAutomacao ?? 1.0);
+    const beneficioLiquidoAnual = beneficioBruto * percAuto;
+
+    const roiAno1 = beneficioLiquidoAnual - custoAnualAno1;
+    const paybackMeses =
+      beneficioLiquidoAnual > 0 && custoAnualAno1 > 0
+        ? Number((custoAnualAno1 / (beneficioLiquidoAnual / 12)).toFixed(1))
+        : 0;
+
+    // VPL 3 Anos
+    const taxaDesc = parametro.taxaDescontoVpl || 0.12;
+    const invTotal = investimentoSetup * 12;
+    const fluxoAnual = beneficioLiquidoAnual - custoAnualAno2;
+    const vpl3Anos =
+      -invTotal +
+      fluxoAnual / Math.pow(1 + taxaDesc, 1) +
+      fluxoAnual / Math.pow(1 + taxaDesc, 2) +
+      fluxoAnual / Math.pow(1 + taxaDesc, 3);
 
     return {
+      nivelMaturidade,
       custoMensalAtual,
       fteLiberado,
-      pontuacaoBeneficios,
-      investimentoSetup,
-      taxaDiurna,
-      taxaNoturna,
-      taxaFimSemana,
-      horasDiurno,
-      horasNoturno,
-      horasFimSemana,
-      totalHorasRobo,
-      custoHorasRoboDiurno,
-      custoHorasRoboNoturno,
-      custoHorasRoboFimSemana,
-      custoHorasRobo,
-      custoMensalAno1,
-      custoMensalAno2,
-      roiAno1,
-      roiAno2,
+      pontuacaoBeneficios: Number(pontuacaoBeneficios.toFixed(1)),
+      investimentoSetup: Number(investimentoSetup.toFixed(2)),
+      custoMensalAno1: Number(custoMensalAno1.toFixed(2)),
+      custoMensalAno2: Number(custoRecorrenteMensal.toFixed(2)),
+      beneficioLiquidoAnual: Number(beneficioLiquidoAnual.toFixed(2)),
+      roiAno1: Number(roiAno1.toFixed(2)),
       paybackMeses,
+      vpl3Anos: Number(vpl3Anos.toFixed(2)),
     };
   }, [formData, parametro, perfis]);
 
+  // Lista de pendências para o diagnóstico
+  const diagnosticoPendencias = useMemo<InstrumentacaoPendencia[]>(() => {
+    const list: InstrumentacaoPendencia[] = [];
+    if (!formData.tempoExecucao || Number(formData.tempoExecucao) <= 0) {
+      list.push({
+        campo: 'tempoExecucao',
+        label: 'Tempo de Execução Manual (HH/mês)',
+        arquetipo: 'A1',
+        ondeEncontrar: 'Entrevista de processo com os operadores ou chamados no Jira/ServiceNow.',
+        impactoParaPromocao: 'Essencial para avançar de N0 para N1 e apurar FTE liberado.',
+      });
+    }
+    if (!formData.numExecucoes || Number(formData.numExecucoes) <= 0) {
+      list.push({
+        campo: 'numExecucoes',
+        label: 'Volume Mensal de Transações',
+        ondeEncontrar: 'Logs de aplicação, ERP (SAP) ou relatórios operacionais.',
+        impactoParaPromocao: 'Base para dimensionar capacidade de processamento.',
+      });
+    }
+    if (!formData.valorHoraExecutor || Number(formData.valorHoraExecutor) <= 0) {
+      list.push({
+        campo: 'valorHoraExecutor',
+        label: 'Custo/Hora do Executor (R$/h)',
+        ondeEncontrar: 'Tabela média de salários/encargos (RH/Gestão de Pessoas).',
+        impactoParaPromocao: 'Necessário para monetizar as horas em valor financeiro.',
+      });
+    }
+    if (!formData.esforcoSetupSemanas || Number(formData.esforcoSetupSemanas) <= 0) {
+      list.push({
+        campo: 'esforcoSetupSemanas',
+        label: 'Esforço de Implementação (Semanas)',
+        ondeEncontrar: 'Estimativa de engenharia técnica do CoE/FCAIA.',
+        impactoParaPromocao: 'Necessário para calcular investimento inicial, Payback e VPL (N2).',
+      });
+    }
+    return list;
+  }, [formData]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.nomeProcesso || formData.nomeProcesso.trim() === '') {
-      notify.warning('Campo Obrigatório', 'Por favor, informe o Nome do Processo.');
-      return;
-    }
-
+    setIsSubmitting(true);
     try {
-      setIsSubmitting(true);
       if (onSave) {
         await onSave(formData);
       } else {
-        if (initialData) {
-          await api.updateRegistro(initialData.id, formData);
+        if (formData.id) {
+          await api.updateRegistro(formData.id, formData);
+          notify.success('Oportunidade de automação atualizada com sucesso!');
         } else {
           await api.createRegistro(formData);
+          notify.success('Nova oportunidade de automação cadastrada com sucesso!');
         }
       }
-      if (onSuccess) onSuccess();
+      onSuccess?.();
       onClose();
     } catch (err: any) {
-      notify.error('Erro ao Salvar', err.message || 'Erro ao salvar oportunidade.');
+      console.error(err);
+      notify.error(err.message || 'Erro ao salvar oportunidade.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-
   const renderRadioBeneficio = (
     field: keyof Registro,
     label: string,
     descricao: string,
-    tooltipText?: string
-  ) => {
-    const value = formData[field] || 'nenhum';
-    const options: { val: BeneficioNivel; label: string; desc: string; color: string }[] = [
-      { val: 'principal', label: 'Principal (100%)', desc: 'Objetivo central', color: 'bg-green-50 text-green-900 border-green-400' },
-      { val: 'bastante', label: 'Bastante (50%)', desc: 'Impacto forte', color: 'bg-blue-50 text-[#1351b4] border-blue-400' },
-      { val: 'pouco', label: 'Pouco (25%)', desc: 'Secundário', color: 'bg-amber-50 text-amber-900 border-amber-400' },
-      { val: 'nenhum', label: 'Nenhum (0%)', desc: 'Sem impacto', color: 'bg-slate-50 text-slate-600 border-slate-200' },
-    ];
-
-    return (
-      <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 hover:border-slate-300 transition-colors">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-2">
-          <div>
-            <span className="font-bold text-xs text-slate-800 flex items-center">
-              {label}
-              {tooltipText && <Tooltip content={tooltipText} />}
-            </span>
-            <p className="text-[11px] text-slate-500 m-0">{descricao}</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {options.map((opt) => (
-            <label
-              key={opt.val}
-              className={`flex items-center space-x-2 p-2 rounded border text-xs cursor-pointer transition-colors ${
-                value === opt.val
-                  ? `${opt.color} font-bold shadow-xs border-2`
-                  : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
-              }`}
-            >
-              <input
-                type="radio"
-                name={field as string}
-                value={opt.val}
-                checked={value === opt.val}
-                onChange={() => handleChange(field, opt.val)}
-                className="text-[#1351b4] focus:ring-[#1351b4] h-3.5 w-3.5 cursor-pointer"
-              />
-              <span className="text-[11px] leading-tight">{opt.label}</span>
-            </label>
-          ))}
-        </div>
+    exemplo: string
+  ) => (
+    <div className="bg-white p-2.5 rounded border border-slate-200 hover:border-blue-400 transition-colors">
+      <div className="flex items-center justify-between mb-1">
+        <label className="font-semibold text-slate-800 text-xs flex items-center space-x-1">
+          <span>{label}</span>
+          <Tooltip content={descricao} />
+        </label>
+        <span className="text-[10px] text-slate-500 italic hidden sm:inline">{exemplo}</span>
       </div>
-    );
-  };
+      <div className="grid grid-cols-4 gap-1.5 mt-1">
+        {(['principal', 'bastante', 'pouco', 'nenhum'] as BeneficioNivel[]).map((val) => (
+          <label
+            key={val}
+            className={`flex items-center justify-center p-1 rounded text-[11px] border cursor-pointer font-medium transition-all ${
+              formData[field] === val
+                ? 'bg-[#1351b4] text-white border-[#1351b4] font-bold shadow-xs'
+                : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+            }`}
+          >
+            <input
+              type="radio"
+              name={String(field)}
+              value={val}
+              checked={formData[field] === val}
+              onChange={() => handleChange(field, val)}
+              className="sr-only"
+            />
+            <span className="capitalize">{val}</span>
+          </label>
+        ))}
+      </div>
+    </div>
+  );
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={initialData ? `Editar Oportunidade: ${formData.idAnalise || 'Processo'}` : 'Cadastrar Nova Oportunidade de Automação'}
-      maxWidth="4xl"
-    >
-      <form onSubmit={handleSubmit} className="space-y-5">
-        {/* Navigation Tabs (Estilo br-tab) */}
-        <div className="flex border-b border-slate-200 space-x-1 pb-1 text-xs">
-          {[
-            { id: 'geral', label: '1. Identificação Geral', icon: 'fa-id-card' },
-            { id: 'asis', label: '2. Diagnóstico AS IS', icon: 'fa-file-alt' },
-            { id: 'beneficios', label: '3. Matriz de Benefícios', icon: 'fa-award' },
-            { id: 'tobe', label: '4. Solução TO BE & Multi-Turnos', icon: 'fa-robot' },
-          ].map((tab) => (
-            <button
-              type="button"
-              key={tab.id}
-              onClick={() => setActiveSubTab(tab.id as any)}
-              className={`px-3 py-2 font-bold rounded transition-colors cursor-pointer flex items-center space-x-1.5 ${
-                activeSubTab === tab.id
-                  ? 'bg-[#1351b4] text-white shadow-xs'
-                  : 'text-slate-700 hover:bg-slate-100'
+      title={
+        <div className="flex items-center space-x-3">
+          <span className="font-bold text-[var(--govbr-blue-warm-vivid-90)]">
+            {formData.id ? 'Editar Oportunidade de Automação' : 'Cadastrar Oportunidade de Automação'}
+          </span>
+          {calcPreview && (
+            <span
+              className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${
+                calcPreview.nivelMaturidade === 'N0'
+                  ? 'bg-blue-100 text-blue-900 border-blue-300'
+                  : calcPreview.nivelMaturidade === 'N1'
+                  ? 'bg-amber-100 text-amber-900 border-amber-300'
+                  : calcPreview.nivelMaturidade === 'N2'
+                  ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
+                  : 'bg-purple-100 text-purple-900 border-purple-300'
               }`}
             >
-              <i className={`fas ${tab.icon} text-xs mr-1`}></i>
-              <span>{tab.label}</span>
-            </button>
-          ))}
+              Nível {calcPreview.nivelMaturidade} —{' '}
+              {calcPreview.nivelMaturidade === 'N0'
+                ? 'Oportunidade'
+                : calcPreview.nivelMaturidade === 'N1'
+                ? 'Business Case Parcial'
+                : calcPreview.nivelMaturidade === 'N2'
+                ? 'Business Case Completo'
+                : 'Benefício Realizado'}
+            </span>
+          )}
         </div>
-
-        {/* Dynamic Calculation Live Banner (GovBR Navy) */}
+      }
+      maxWidth="4xl"
+    >
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Painel Superior Executivo com Métricas V2.0 */}
         {calcPreview && (
-          <div className="bg-[#0c326f] p-4 rounded-lg text-white border border-[#1351b4] shadow-sm">
-            <div className="flex items-center justify-between border-b border-blue-400/30 pb-2 mb-3">
-              <span className="text-xs font-bold text-blue-200 flex items-center space-x-1.5">
-                <i className="fas fa-calculator mr-1"></i>
-                <span>Simulação Instantânea de Retorno & Viabilidade</span>
-              </span>
-              <span className="text-xs font-bold px-2 py-0.5 rounded bg-blue-900 text-blue-100 border border-blue-400">
-                Score de Benefícios: {calcPreview.pontuacaoBeneficios.toFixed(0)}%
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center text-xs">
+          <div className="bg-[#0c326f] text-white p-3 rounded-lg shadow-sm">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center text-xs">
               <div>
-                <span className="text-[10px] text-blue-200 block font-medium">Custo Atual (AS IS)</span>
-                <span className="font-bold text-white text-sm">
-                  R$ {calcPreview.custoMensalAtual.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mês
+                <span className="text-[10px] text-blue-200 block font-medium">Benefício Anual (R$)</span>
+                <span className="font-bold text-emerald-300 text-sm">
+                  {calcPreview.beneficioLiquidoAnual.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                 </span>
               </div>
               <div>
-                <span className="text-[10px] text-blue-200 block font-medium">FTE Liberável</span>
-                <span className="font-bold text-green-300 text-sm">{calcPreview.fteLiberado} FTE</span>
-              </div>
-              <div>
-                <span className="text-[10px] text-blue-200 block font-medium">Custo TO BE (Ano 1)</span>
-                <span className="font-bold text-amber-300 text-sm">
-                  R$ {calcPreview.custoMensalAno1.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mês
+                <span className="text-[10px] text-blue-200 block font-medium">VPL (3 Anos)</span>
+                <span className="font-bold text-cyan-300 text-sm">
+                  {calcPreview.vpl3Anos.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                 </span>
               </div>
               <div>
-                <span className="text-[10px] text-blue-200 block font-medium">ROI Líquido (Ano 1)</span>
-                <span className="font-bold text-green-300 text-sm">
-                  R$ {calcPreview.roiAno1.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </span>
+                <span className="text-[10px] text-blue-200 block font-medium">FTEs Liberáveis</span>
+                <span className="font-bold text-amber-300 text-sm">{calcPreview.fteLiberado} FTE</span>
               </div>
               <div>
                 <span className="text-[10px] text-blue-200 block font-medium">Payback Estimado</span>
-                <span className="font-bold text-cyan-300 text-sm">{calcPreview.paybackMeses} meses</span>
+                <span className="font-bold text-white text-sm">{calcPreview.paybackMeses} meses</span>
+              </div>
+              <div>
+                <span className="text-[10px] text-blue-200 block font-medium">Score Intangível</span>
+                <span className="font-bold text-blue-200 text-sm">{calcPreview.pontuacaoBeneficios}%</span>
               </div>
             </div>
           </div>
         )}
 
-        {/* Tab 1: Identificação Geral */}
+        {/* Abas de Navegação GOVBR DS */}
+        <div className="flex border-b border-slate-200 overflow-x-auto space-x-1 pb-1">
+          <button
+            type="button"
+            onClick={() => setActiveSubTab('geral')}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-t transition-all whitespace-nowrap cursor-pointer ${
+              activeSubTab === 'geral'
+                ? 'bg-white text-[#1351b4] border-b-2 border-[#1351b4] font-bold'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+            }`}
+          >
+            1. Ficha N0 (Entrada Rápida)
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveSubTab('diagnostico')}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-t transition-all whitespace-nowrap cursor-pointer flex items-center space-x-1 ${
+              activeSubTab === 'diagnostico'
+                ? 'bg-white text-[#1351b4] border-b-2 border-[#1351b4] font-bold'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+            }`}
+          >
+            <span>2. Diagnóstico</span>
+            {diagnosticoPendencias.length > 0 && (
+              <span className="bg-amber-500 text-white rounded-full px-1.5 py-0.2 text-[10px] font-bold">
+                {diagnosticoPendencias.length}
+              </span>
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveSubTab('arquetipos')}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-t transition-all whitespace-nowrap cursor-pointer ${
+              activeSubTab === 'arquetipos'
+                ? 'bg-white text-[#1351b4] border-b-2 border-[#1351b4] font-bold'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+            }`}
+          >
+            3. 7 Arquétipos & AS IS
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveSubTab('trilha')}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-t transition-all whitespace-nowrap cursor-pointer ${
+              activeSubTab === 'trilha'
+                ? 'bg-white text-[#1351b4] border-b-2 border-[#1351b4] font-bold'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+            }`}
+          >
+            4. Trilha & Reuso
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveSubTab('beneficios')}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-t transition-all whitespace-nowrap cursor-pointer ${
+              activeSubTab === 'beneficios'
+                ? 'bg-white text-[#1351b4] border-b-2 border-[#1351b4] font-bold'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+            }`}
+          >
+            5. Matriz 12 Critérios
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveSubTab('tobe')}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-t transition-all whitespace-nowrap cursor-pointer ${
+              activeSubTab === 'tobe'
+                ? 'bg-white text-[#1351b4] border-b-2 border-[#1351b4] font-bold'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+            }`}
+          >
+            6. Solução TO BE & Turnos
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveSubTab('realizado')}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-t transition-all whitespace-nowrap cursor-pointer ${
+              activeSubTab === 'realizado'
+                ? 'bg-white text-[#1351b4] border-b-2 border-[#1351b4] font-bold'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+            }`}
+          >
+            7. N3 Realizado
+          </button>
+        </div>
+
+        {/* Tab 1: Ficha N0 (Entrada Rápida) */}
         {activeSubTab === 'geral' && (
           <div className="space-y-4 text-xs">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="bg-[#1351b4] text-white p-3.5 rounded-lg shadow-xs flex items-center justify-between">
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  Nome do Processo *
-                  <Tooltip content="Título claro e descritivo da atividade de negócio a ser automatizada." />
+                <span className="font-bold text-white block text-xs">
+                  Ficha de Oportunidade (Nível N0)
+                </span>
+                <span className="text-[11px] text-blue-100 block mt-0.5">
+                  Preenchível em até 10 minutos. Nenhuma métrica quantitativa é obrigatória para registrar a dor.
+                </span>
+              </div>
+              <span className="bg-white text-[#0c326f] text-[10px] font-bold px-2.5 py-1 rounded shadow-xs whitespace-nowrap">
+                Ponto de Partida Legítimo
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex flex-col justify-end">
+                <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[30px] leading-tight">
+                  <span>Nome do Processo *</span>
+                  <Tooltip content="Título claro e descritivo da rotina operacional a ser automatizada." />
                 </label>
                 <input
                   type="text"
                   required
                   value={formData.nomeProcesso || ''}
                   onChange={(e) => handleChange('nomeProcesso', e.target.value)}
-                  placeholder="Ex: Conciliação Bancária de Arrecadação"
+                  placeholder="Ex: Conciliação de Arrecadação NFS-e"
                   className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none"
                 />
               </div>
 
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  Área / Diretoria *
-                  <Tooltip content="Departamento ou gerência proprietária da regra de negócio do processo." />
+              <div className="flex flex-col justify-end">
+                <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[30px] leading-tight">
+                  <span>Área / Diretoria Solicitante *</span>
+                  <Tooltip content="Departamento corporativo proprietário do processo de negócio." />
                 </label>
-                <input
-                  type="text"
+                <select
+                  required
                   value={formData.area || ''}
                   onChange={(e) => handleChange('area', e.target.value)}
-                  placeholder="Ex: Contabilidade, Financeiro, Gestão de Pessoas"
-                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none"
-                />
+                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none bg-white cursor-pointer"
+                >
+                  <option value="">Selecione a área corporativa...</option>
+                  {areas.map((a) => (
+                    <option key={a.id} value={a.nome}>
+                      {a.sigla ? `[${a.sigla}] ` : ''}{a.nome}
+                    </option>
+                  ))}
+                  {formData.area && !areas.some((a) => a.nome === formData.area) && (
+                    <option value={formData.area}>{formData.area} (Informada)</option>
+                  )}
+                </select>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  ID Origem (Opcional)
-                  <Tooltip content="Código ou número de chamado em ferramenta externa (Jira, ServiceNow, Demanda interna)." />
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">
+                <span>Descrição da Dor / Sintomas Operacionais (N0)</span>
+                <Tooltip content="Descreva os gargalos, retrabalhos, atrasos ou dificuldades enfrentadas pela equipe hoje." />
+              </label>
+              <textarea
+                rows={3}
+                value={formData.sintomasDor || formData.descricaoProcesso || ''}
+                onChange={(e) => {
+                  handleChange('sintomasDor', e.target.value);
+                  if (!formData.descricaoProcesso) handleChange('descricaoProcesso', e.target.value);
+                }}
+                placeholder="Descreva qualitativamente a dor enfrentada pela área..."
+                className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="flex flex-col justify-end">
+                <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[30px] leading-tight">
+                  <span>Criticidade Percebida</span>
+                  <Tooltip content="Gravidade do impacto da dor no dia a dia da equipe." />
                 </label>
-                <input
-                  type="text"
-                  value={formData.idOrigem || ''}
-                  onChange={(e) => handleChange('idOrigem', e.target.value)}
-                  placeholder="Ex: DEM-2026-089"
-                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none"
-                />
+                <select
+                  value={formData.criticidadePercebida || 'Média'}
+                  onChange={(e) => handleChange('criticidadePercebida', e.target.value)}
+                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none bg-white cursor-pointer"
+                >
+                  <option value="Baixa">Baixa</option>
+                  <option value="Média">Média</option>
+                  <option value="Alta">Alta</option>
+                  <option value="Crítica">Crítica</option>
+                </select>
               </div>
 
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  Situação da Oportunidade
-                  <Tooltip content="Estágio atual no funil de esteira de automação do Centro de Excelência." />
+              <div className="flex flex-col justify-end">
+                <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[30px] leading-tight">
+                  <span>Recorrência da Dor</span>
+                  <Tooltip content="Com que frequência o problema se manifesta." />
+                </label>
+                <select
+                  value={formData.recorrenciaDor || 'Frequente'}
+                  onChange={(e) => handleChange('recorrenciaDor', e.target.value)}
+                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none bg-white cursor-pointer"
+                >
+                  <option value="Diária">Diária</option>
+                  <option value="Frequente">Frequente (Semanal/Quinzenal)</option>
+                  <option value="Ocasional">Ocasional (Mensal)</option>
+                  <option value="Rara">Rara / Sob Demanda</option>
+                </select>
+              </div>
+
+              <div className="flex flex-col justify-end">
+                <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[30px] leading-tight">
+                  <span>Situação do Ciclo de Vida</span>
+                  <Tooltip content="Estágio atual no funil do Centro de Excelência." />
                 </label>
                 <select
                   value={formData.situacao || 'Em levantamento'}
@@ -526,139 +864,30 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  Data do Levantamento
-                  <Tooltip content="Data em que as entrevistas e mapeamento da rotina foram iniciados." />
-                </label>
-                <input
-                  type="date"
-                  value={formData.dataLevantamento || ''}
-                  onChange={(e) => handleChange('dataLevantamento', e.target.value)}
-                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  Participantes & Entrevistados
-                  <Tooltip content="Nomes dos analistas e líderes de processo que participaram da sessão de descoberta." />
-                </label>
-                <input
-                  type="text"
-                  value={formData.participantes || ''}
-                  onChange={(e) => handleChange('participantes', e.target.value)}
-                  placeholder="Ex: Maria Souza (Analista), João Silva (Líder)"
-                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none"
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Tab 2: Diagnóstico AS IS */}
-        {activeSubTab === 'asis' && (
-          <div className="space-y-4 text-xs">
-            <div>
-              <label className="block font-semibold text-slate-700 mb-1">
-                Descrição Detalhada do Processo AS IS
-                <Tooltip content="Resumo passo a passo de como o processo é executado manualmente hoje." />
-              </label>
-              <textarea
-                rows={2}
-                value={formData.descricaoProcesso || ''}
-                onChange={(e) => handleChange('descricaoProcesso', e.target.value)}
-                placeholder="Descreva as etapas operacionais manuais..."
-                className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  Periodicidade
-                  <Tooltip content="Frequência com que o processo é disparado." />
-                </label>
-                <select
-                  value={formData.periodicidade || 'Mensal'}
-                  onChange={(e) => handleChange('periodicidade', e.target.value)}
-                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none bg-white cursor-pointer"
-                >
-                  <option value="Diária">Diária</option>
-                  <option value="Semanal">Semanal</option>
-                  <option value="Mensal">Mensal</option>
-                  <option value="Sob demanda">Sob demanda</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  Nº de Execuções / Mês
-                  <Tooltip content="Volume de transações ou vezes que a rotina é executada ao longo de um mês." />
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  value={formData.numExecucoes ?? 100}
-                  onChange={(e) => handleChange('numExecucoes', Number(e.target.value))}
-                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  Perfil do Executor
-                  <Tooltip content="Cargo ou qualificação média de quem opera a tarefa manual." />
-                </label>
-                <input
-                  type="text"
-                  value={formData.perfilExecutor || ''}
-                  onChange={(e) => handleChange('perfilExecutor', e.target.value)}
-                  placeholder="Ex: Analista Fiscal Jr"
-                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  Valor da Hora do Executor (R$/HH)
-                  <Tooltip content="Custo da hora de mão de obra direta do profissional executor." />
-                </label>
-                <input
-                  type="number"
-                  step="5"
-                  value={formData.valorHoraExecutor ?? 45}
-                  onChange={(e) => handleChange('valorHoraExecutor', Number(e.target.value))}
-                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none font-semibold"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  Tempo Total de Execução (Horas/Mês)
-                  <Tooltip content="Total de horas mensais gastas somando todos os envolvidos nesta rotina." />
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  value={formData.tempoExecucao ?? 80}
-                  onChange={(e) => handleChange('tempoExecucao', Number(e.target.value))}
-                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none font-semibold"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  Sistemas Envolvidos
-                  <Tooltip content="Softwares, portais e ferramentas manipuladas (ex: SAP, SIAFI, Excel, SEFAZ)." />
+              <div className="flex flex-col justify-end">
+                <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[30px] leading-tight">
+                  <span>Sistemas Envolvidos</span>
+                  <Tooltip content="Softwares manipulados (ex: SAP, SIAFI, Excel, SEFAZ, Portal Web)." />
                 </label>
                 <input
                   type="text"
                   value={formData.sistemasEnvolvidos || ''}
                   onChange={(e) => handleChange('sistemasEnvolvidos', e.target.value)}
-                  placeholder="Ex: SAP, SIAFI, Excel"
+                  placeholder="Ex: SAP, SIAFI, Portal Gov, Excel"
+                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none"
+                />
+              </div>
+
+              <div className="flex flex-col justify-end">
+                <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[30px] leading-tight">
+                  <span>Papéis / Participantes Entrevistados</span>
+                  <Tooltip content="Nomes e cargos das pessoas envolvidas na descoberta." />
+                </label>
+                <input
+                  type="text"
+                  value={formData.participantes || ''}
+                  onChange={(e) => handleChange('participantes', e.target.value)}
+                  placeholder="Ex: Ana Lima (Analista), Carlos Souza (Coordenador)"
                   className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none"
                 />
               </div>
@@ -666,56 +895,602 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
           </div>
         )}
 
-        {/* Tab 3: Matriz de Benefícios (12 Critérios Corporativos) */}
-        {activeSubTab === 'beneficios' && (
-          <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
-            <div className="bg-blue-50 border border-blue-200 p-3 rounded text-xs text-blue-900 flex items-center justify-between">
-              <span>Classifique o grau de impacto de cada benefício estratégico corporativo para o negócio.</span>
-              <span className="font-bold text-[10px] bg-white px-2 py-0.5 rounded border border-blue-200">12 Critérios Corporativos</span>
+        {/* Tab 2: Diagnóstico de Instrumentação (RF04) */}
+        {activeSubTab === 'diagnostico' && (
+          <div className="space-y-4 text-xs">
+            <div className="bg-[#1351b4] text-white p-3.5 rounded-lg shadow-xs flex items-center justify-between">
+              <div>
+                <span className="font-bold text-white block text-xs">
+                  Diagnóstico de Instrumentação & Fontes de Dados (RF04)
+                </span>
+                <span className="text-[11px] text-blue-100 block mt-0.5">
+                  Para promover a demanda de nível e construir um Business Case financeiro auditável, colete as variáveis abaixo nas fontes recomendadas:
+                </span>
+              </div>
+              <span className="bg-white text-[#0c326f] text-[10px] font-bold px-2.5 py-1 rounded shadow-xs whitespace-nowrap">
+                Maturidade: {calcPreview?.nivelMaturidade}
+              </span>
             </div>
 
-            {/* 1. Eficiência Operacional */}
-            <div className="space-y-2">
-              <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block">1. Eficiência & Otimização Operacional</span>
-              {renderRadioBeneficio('benLiberarPessoas', '1. Liberar Capacidade Humana / Realocação', 'Redirecionamento de tempo dos profissionais para atividades de inteligência, planejamento e análises estratégicas.', 'Foco na produtividade e agregação de valor sem premissa de corte de pessoal.')}
-              {renderRadioBeneficio('benReduzirCusto', '2. Reduzir Custos Operacionais', 'Economia orçamentária direta decorrente da otimização e automação da rotina manual.', 'Redução de despesas operacionais e custos com retrabalho.')}
-              {renderRadioBeneficio('benReduzirErros', '3. Redução de Erros Operacionais', 'Eliminação de falhas humanas na digitação, validação de regras de negócio e retrabalho.', 'Garante precisão matemática e conformidade na execução das rotinas.')}
+            {diagnosticoPendencias.length === 0 ? (
+              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded text-center text-emerald-900">
+                <i className="fas fa-check-circle text-lg text-emerald-600 mb-1"></i>
+                <div className="font-bold">Todas as variáveis essenciais estão preenchidas!</div>
+                <div className="text-[11px]">Esta oportunidade já dispõe dos insumos para um Business Case Nível N2.</div>
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {diagnosticoPendencias.map((item, idx) => (
+                  <div key={idx} className="p-3 bg-white border border-slate-200 rounded-lg shadow-xs space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-slate-800 flex items-center space-x-1.5">
+                        <i className="fas fa-search text-amber-500 mr-1"></i>
+                        <span>{item.label}</span>
+                      </span>
+                      <span className="text-[10px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                        {item.impactoParaPromocao}
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-slate-600 pl-4 border-l-2 border-blue-400">
+                      <strong>Onde encontrar:</strong> {item.ondeEncontrar}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Tab 3: AS IS & 7 Arquétipos de Benefício */}
+        {activeSubTab === 'arquetipos' && (
+          <div className="space-y-4 text-xs max-h-[60vh] overflow-y-auto pr-1">
+            <div className="bg-[#1351b4] text-white p-3.5 rounded-lg shadow-xs flex items-center justify-between">
+              <div>
+                <span className="font-bold text-white block text-xs">
+                  Classificação por Arquétipo de Processo (A1 a A7)
+                </span>
+                <span className="text-[11px] text-blue-100 block mt-0.5">
+                  Cada arquétipo define a fórmula de benefício em R$. Selecione o arquétipo primário que melhor representa o ganho principal da automação.
+                </span>
+              </div>
+              <span className="bg-white text-[#0c326f] text-[10px] font-bold px-2.5 py-1 rounded shadow-xs whitespace-nowrap">
+                Arquétipo {formData.arquetipoPrimario}
+              </span>
             </div>
 
-            {/* 2. Governança, Risco & Compliance */}
-            <div className="space-y-2 pt-2 border-t border-slate-200">
-              <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block">2. Governança, Risco & Compliance</span>
-              {renderRadioBeneficio('benSegurancaPrivacidade', '4. Segurança da Informação & Privacidade (LGPD)', 'Proteção contra vazamento de dados, execução em cofre de credenciais e sigilo.', 'Execução segura em background sem contato humano desnecessário com dados confidenciais.')}
-              {renderRadioBeneficio('benRastreabilidadeCompliance', '5. Rastreabilidade & Conformidade (Compliance)', 'Trilha de auditoria digital completa, carimbos de tempo, evidências imutáveis e compliance.', 'Facilita auditorias externas/internas e prestação de contas com logs estruturados.')}
-              {renderRadioBeneficio('benKeyPersonRisk', '6. Mitigação de Key-Person Risk (Pessoa-Chave)', 'Eliminação de gargalos decorrentes de conhecimento tácito concentrado em pessoas-chave.', 'Garante resiliência e continuidade operacional independente de ausências ou rotatividade.')}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex flex-col justify-end">
+                <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[30px] leading-tight">
+                  <span>Arquétipo Primário *</span>
+                  <Tooltip content="Principal alavanca de geração de valor financeiro da demanda." />
+                </label>
+                <select
+                  value={formData.arquetipoPrimario || 'A1'}
+                  onChange={(e) => handleChange('arquetipoPrimario', e.target.value as ArquetipoTipo)}
+                  className="w-full text-xs px-3 py-2 border border-[#1351b4] bg-white rounded font-bold text-slate-900 focus:outline-none cursor-pointer"
+                >
+                  <option value="A1">A1 — Processo Transacional Repetitivo (Horas de Trabalho Liberadas)</option>
+                  <option value="A2">A2 — Erro e Retrabalho (Redução de Custos de Correção e Perdas)</option>
+                  <option value="A3">A3 — Atendimento e Autosserviço (Menor Custo por Contato / SAC)</option>
+                  <option value="A4">A4 — Conformidade e Risco Contratual (Mitigação de Multas e Glosas)</option>
+                  <option value="A5">A5 — Gargalo e Ciclo de Receita (Menor Lead Time / Antecipação de Faturamento)</option>
+                  <option value="A6">A6 — Racionalização de Ativos Técnicos (Consolidação de Robôs / Menos Manutenção)</option>
+                  <option value="A7">A7 — Processo Comercial e Oportunidade (Receita Adicional / Propostas Comerciais)</option>
+                </select>
+              </div>
+
+              <div className="flex flex-col justify-end">
+                <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[30px] leading-tight">
+                  <span>Arquétipos Secundários (Opcional)</span>
+                  <Tooltip content="Arquétipos secundários cujos ganhos somam-se sem sobreposição (ex: A2, A4)." />
+                </label>
+                <input
+                  type="text"
+                  value={formData.arquetiposSecundarios || ''}
+                  onChange={(e) => handleChange('arquetiposSecundarios', e.target.value)}
+                  placeholder="Ex: A2, A4"
+                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none"
+                />
+              </div>
             </div>
 
-            {/* 3. Qualidade, Atendimento & SLA */}
-            <div className="space-y-2 pt-2 border-t border-slate-200">
-              <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block">3. Qualidade, Atendimento & SLA</span>
-              {renderRadioBeneficio('benMelhorarExpCliente', '7. Experiência do Cliente / Usuário', 'Aumento da satisfação, padronização e agilidade percebida pelo usuário final do serviço.', 'Respostas instantâneas e maior qualidade percebida.')}
-              {renderRadioBeneficio('benAumentarCapacidade', '8. Capacidade & Escalabilidade Operacional', 'Capacidade de absorver aumentos expressivos de volume e picos sazonais sem estrangulamento.', 'Escalabilidade elástica sem necessidade de novas contratações emergenciais.')}
-              {renderRadioBeneficio('benReduzirTempoResposta', '9. Reduzir Tempo de Resposta (SLA)', 'Diminuição drástica do tempo decorrido entre a solicitação e a entrega final da demanda.', 'Melhora expressiva nos indicadores de nível de serviço.')}
-            </div>
+            {/* Variáveis Dinâmicas do Arquétipo Primário Selecionado */}
+            <div className="bg-slate-50 p-3.5 rounded-lg border border-slate-200 space-y-3">
+              <span className="font-bold text-slate-800 block text-xs border-b border-slate-200 pb-1">
+                Variáveis Quantitativas do Arquétipo Primário ({formData.arquetipoPrimario})
+              </span>
 
-            {/* 4. Estratégia & Sustentabilidade */}
-            <div className="space-y-2 pt-2 border-t border-slate-200">
-              <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block">4. Estratégia & Sustentabilidade</span>
-              {renderRadioBeneficio('benInteroperabilidade', '10. Interoperabilidade entre Sistemas', 'Integração ágil e não invasiva entre múltiplos softwares, ERPs, CRMs, portais web e bases legadas.', 'Conecta ecossistemas heterogêneos sem necessidade de APIs customizadas complexas.')}
-              {renderRadioBeneficio('benTransformacaoDigital', '11. Transformação Digital & Inovação', 'Modernização de rotinas, fomento à cultura de automação e eliminação de burocracia.', 'Acelera a maturidade digital corporativa.')}
-              {renderRadioBeneficio('benSustentabilidadeEsg', '12. Sustentabilidade Operacional (ESG)', 'Desmaterialização de documentos, eliminação do uso de papel e sustentabilidade corporativa.', 'Redução da pegada ecológica e suporte às diretrizes ESG.')}
+              {/* A1 */}
+              {formData.arquetipoPrimario === 'A1' && (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="flex flex-col justify-end">
+                    <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[34px] leading-tight text-xs">
+                      <span>Tempo Médio Manual (HH/mês)</span>
+                      <Tooltip content="Horas humanas gastas por mês executando a tarefa." />
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.tempoExecucao ?? 80}
+                      onChange={(e) => handleChange('tempoExecucao', Number(e.target.value))}
+                      className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded"
+                    />
+                  </div>
+                  <div className="flex flex-col justify-end">
+                    <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[34px] leading-tight text-xs">
+                      <span>Custo Hora do Executor (R$/h)</span>
+                      <Tooltip content="Custo da mão de obra por hora." />
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.valorHoraExecutor ?? 45}
+                      onChange={(e) => handleChange('valorHoraExecutor', Number(e.target.value))}
+                      className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded"
+                    />
+                  </div>
+                  <div className="flex flex-col justify-end">
+                    <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[34px] leading-tight text-xs">
+                      <span>% Automatizável (0 a 1.0)</span>
+                      <Tooltip content="Fração do processo absorvida pelo robô (ex: 1.0 para 100%)." />
+                    </label>
+                    <input
+                      type="number"
+                      step="0.05"
+                      min="0"
+                      max="1"
+                      value={formData.percAutomatizavel ?? 1.0}
+                      onChange={(e) => handleChange('percAutomatizavel', Number(e.target.value))}
+                      className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* A2 */}
+              {formData.arquetipoPrimario === 'A2' && (
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                  <div className="flex flex-col justify-end">
+                    <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[34px] leading-tight text-xs">
+                      <span>Volume Mensal (Transações)</span>
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.numExecucoes ?? 100}
+                      onChange={(e) => handleChange('numExecucoes', Number(e.target.value))}
+                      className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded"
+                    />
+                  </div>
+                  <div className="flex flex-col justify-end">
+                    <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[34px] leading-tight text-xs">
+                      <span>Taxa de Erro Atual (%)</span>
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder="Ex: 0.10 para 10%"
+                      value={formData.taxaErroAtual ?? 0.05}
+                      onChange={(e) => handleChange('taxaErroAtual', Number(e.target.value))}
+                      className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded"
+                    />
+                  </div>
+                  <div className="flex flex-col justify-end">
+                    <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[34px] leading-tight text-xs">
+                      <span>Custo Médio por Erro (R$)</span>
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.custoMedioErro ?? 50}
+                      onChange={(e) => handleChange('custoMedioErro', Number(e.target.value))}
+                      className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded"
+                    />
+                  </div>
+                  <div className="flex flex-col justify-end">
+                    <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[34px] leading-tight text-xs">
+                      <span>Redução Esperada do Erro (%)</span>
+                    </label>
+                    <input
+                      type="number"
+                      step="0.05"
+                      value={formData.reducaoEsperadaErro ?? 0.8}
+                      onChange={(e) => handleChange('reducaoEsperadaErro', Number(e.target.value))}
+                      className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* A3 */}
+              {formData.arquetipoPrimario === 'A3' && (
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                  <div className="flex flex-col justify-end">
+                    <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[34px] leading-tight text-xs">
+                      <span>Volume de Contatos/Mês</span>
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.volumeContatosMensal ?? 1000}
+                      onChange={(e) => handleChange('volumeContatosMensal', Number(e.target.value))}
+                      className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded"
+                    />
+                  </div>
+                  <div className="flex flex-col justify-end">
+                    <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[34px] leading-tight text-xs">
+                      <span>Custo Atendimento Humano (R$)</span>
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.custoAtendimentoHumano ?? 15}
+                      onChange={(e) => handleChange('custoAtendimentoHumano', Number(e.target.value))}
+                      className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded"
+                    />
+                  </div>
+                  <div className="flex flex-col justify-end">
+                    <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[34px] leading-tight text-xs">
+                      <span>Taxa de Contenção (%)</span>
+                    </label>
+                    <input
+                      type="number"
+                      step="0.05"
+                      value={formData.taxaContencaoEsperada ?? 0.6}
+                      onChange={(e) => handleChange('taxaContencaoEsperada', Number(e.target.value))}
+                      className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded"
+                    />
+                  </div>
+                  <div className="flex flex-col justify-end">
+                    <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[34px] leading-tight text-xs">
+                      <span>Custo Atendimento Auto (R$)</span>
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.custoAtendimentoAuto ?? 1.5}
+                      onChange={(e) => handleChange('custoAtendimentoAuto', Number(e.target.value))}
+                      className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* A4 */}
+              {formData.arquetipoPrimario === 'A4' && (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="flex flex-col justify-end">
+                    <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[34px] leading-tight text-xs">
+                      <span>Impacto Financeiro Multa/Glosa (R$)</span>
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.impactoFinanceiroOcorrencia ?? 50000}
+                      onChange={(e) => handleChange('impactoFinanceiroOcorrencia', Number(e.target.value))}
+                      className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded"
+                    />
+                  </div>
+                  <div className="flex flex-col justify-end">
+                    <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[34px] leading-tight text-xs">
+                      <span>Probabilidade Anual Ocorrência (%)</span>
+                    </label>
+                    <input
+                      type="number"
+                      step="0.05"
+                      value={formData.probabilidadeDescumprimento ?? 0.2}
+                      onChange={(e) => handleChange('probabilidadeDescumprimento', Number(e.target.value))}
+                      className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded"
+                    />
+                  </div>
+                  <div className="flex flex-col justify-end">
+                    <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[34px] leading-tight text-xs">
+                      <span>Redução de Risco Esperada (%)</span>
+                    </label>
+                    <input
+                      type="number"
+                      step="0.05"
+                      value={formData.reducaoProbabilidadeRisco ?? 0.9}
+                      onChange={(e) => handleChange('reducaoProbabilidadeRisco', Number(e.target.value))}
+                      className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* A5, A6, A7 complementares */}
+              {formData.arquetipoPrimario === 'A5' && (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="flex flex-col justify-end">
+                    <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[34px] leading-tight text-xs">
+                      <span>Volume Adicional Viabilizado/Mês</span>
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.volumeAdicionalViabilizado ?? 50}
+                      onChange={(e) => handleChange('volumeAdicionalViabilizado', Number(e.target.value))}
+                      className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded"
+                    />
+                  </div>
+                  <div className="flex flex-col justify-end">
+                    <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[34px] leading-tight text-xs">
+                      <span>Ticket Médio de Receita (R$)</span>
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.ticketMedioReceita ?? 200}
+                      onChange={(e) => handleChange('ticketMedioReceita', Number(e.target.value))}
+                      className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded"
+                    />
+                  </div>
+                  <div className="flex flex-col justify-end">
+                    <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[34px] leading-tight text-xs">
+                      <span>Dias Antecipação Faturamento</span>
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.diasAntecipacaoFaturamento ?? 5}
+                      onChange={(e) => handleChange('diasAntecipacaoFaturamento', Number(e.target.value))}
+                      className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {formData.arquetipoPrimario === 'A6' && (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="flex flex-col justify-end">
+                    <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[34px] leading-tight text-xs">
+                      <span>Nº Ativos Técnicos Antes</span>
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.nrAtivosAntes ?? 8}
+                      onChange={(e) => handleChange('nrAtivosAntes', Number(e.target.value))}
+                      className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded"
+                    />
+                  </div>
+                  <div className="flex flex-col justify-end">
+                    <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[34px] leading-tight text-xs">
+                      <span>Nº Ativos Técnicos Depois</span>
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.nrAtivosDepois ?? 1}
+                      onChange={(e) => handleChange('nrAtivosDepois', Number(e.target.value))}
+                      className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded"
+                    />
+                  </div>
+                  <div className="flex flex-col justify-end">
+                    <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[34px] leading-tight text-xs">
+                      <span>Custo Manutenção Anual por Ativo (R$)</span>
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.custoManutencaoAnualAtivo ?? 12000}
+                      onChange={(e) => handleChange('custoManutencaoAnualAtivo', Number(e.target.value))}
+                      className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {formData.arquetipoPrimario === 'A7' && (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="flex flex-col justify-end">
+                    <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[34px] leading-tight text-xs">
+                      <span>Solicitações Comerciais/Mês</span>
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.numSolicitacoesComerciaisMes ?? 30}
+                      onChange={(e) => handleChange('numSolicitacoesComerciaisMes', Number(e.target.value))}
+                      className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded"
+                    />
+                  </div>
+                  <div className="flex flex-col justify-end">
+                    <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[34px] leading-tight text-xs">
+                      <span>Taxa Conversão Alvo (%)</span>
+                    </label>
+                    <input
+                      type="number"
+                      step="0.05"
+                      value={formData.taxaConversaoAlvo ?? 0.35}
+                      onChange={(e) => handleChange('taxaConversaoAlvo', Number(e.target.value))}
+                      className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded"
+                    />
+                  </div>
+                  <div className="flex flex-col justify-end">
+                    <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[34px] leading-tight text-xs">
+                      <span>Ticket Médio Proposta (R$)</span>
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.ticketMedioProposta ?? 15000}
+                      onChange={(e) => handleChange('ticketMedioProposta', Number(e.target.value))}
+                      className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
 
-        {/* Tab 4: Solução TO BE & Múltiplos Turnos */}
+        {/* Tab 4: Trilha, Reuso & Escala */}
+        {activeSubTab === 'trilha' && (
+          <div className="space-y-4 text-xs">
+            <div className="bg-[#1351b4] text-white p-3.5 rounded-lg shadow-xs flex items-center justify-between">
+              <div>
+                <span className="font-bold text-white block text-xs">
+                  Atribuição por Trilha de Solução (Seção 5.3) & Fator de Reuso (Seção 5.4)
+                </span>
+                <span className="text-[11px] text-blue-100 block mt-0.5">
+                  Demandas reais combinam melhorias de processo, evolução de sistemas e automação. O business case reivindica a parcela que lhe cabe.
+                </span>
+              </div>
+              <span className="bg-white text-[#0c326f] text-[10px] font-bold px-2.5 py-1 rounded shadow-xs whitespace-nowrap">
+                Trilha & Escala
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="flex flex-col justify-end">
+                <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[34px] leading-tight text-xs">
+                  <span>Trilha Automação (%)</span>
+                  <Tooltip content="Fração do benefício conquistada pelo robô/fluxo automatizado." />
+                </label>
+                <input
+                  type="number"
+                  step="0.05"
+                  min="0"
+                  max="1"
+                  value={formData.percTrilhaAutomacao ?? 1.0}
+                  onChange={(e) => handleChange('percTrilhaAutomacao', Number(e.target.value))}
+                  className="w-full text-xs px-3 py-2 border border-blue-400 bg-blue-50/50 rounded font-bold text-blue-900"
+                />
+              </div>
+              <div className="flex flex-col justify-end">
+                <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[34px] leading-tight text-xs">
+                  <span>Trilha Padronização (%)</span>
+                  <Tooltip content="Ganho obtido antes da automação via redesenho/simplificação." />
+                </label>
+                <input
+                  type="number"
+                  step="0.05"
+                  min="0"
+                  max="1"
+                  value={formData.percTrilhaProcesso ?? 0}
+                  onChange={(e) => handleChange('percTrilhaProcesso', Number(e.target.value))}
+                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded"
+                />
+              </div>
+              <div className="flex flex-col justify-end">
+                <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[34px] leading-tight text-xs">
+                  <span>Trilha Evolução Sistema (%)</span>
+                  <Tooltip content="Ganho atribuível a novas APIs ou correções no sistema legado." />
+                </label>
+                <input
+                  type="number"
+                  step="0.05"
+                  min="0"
+                  max="1"
+                  value={formData.percTrilhaSistema ?? 0}
+                  onChange={(e) => handleChange('percTrilhaSistema', Number(e.target.value))}
+                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded"
+                />
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-slate-200 space-y-3">
+              <span className="font-bold text-slate-800 block text-xs">
+                Fator de Reuso e Escala (Seção 5.4)
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="flex flex-col justify-end">
+                  <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[34px] leading-tight text-xs">
+                    <span>Unidades no Piloto</span>
+                    <Tooltip content="Ex: 1 município / 1 cliente inicial." />
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={formData.unidadesPiloto ?? 1}
+                    onChange={(e) => handleChange('unidadesPiloto', Number(e.target.value))}
+                    className="w-full text-xs px-3 py-2 border border-slate-300 rounded"
+                  />
+                </div>
+                <div className="flex flex-col justify-end">
+                  <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[34px] leading-tight text-xs">
+                    <span>Unidades Potenciais</span>
+                    <Tooltip content="Total de unidades/clientes que poderão reutilizar o robô." />
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={formData.unidadesPotenciais ?? 1}
+                    onChange={(e) => handleChange('unidadesPotenciais', Number(e.target.value))}
+                    className="w-full text-xs px-3 py-2 border border-slate-300 rounded"
+                  />
+                </div>
+                <div className="flex flex-col justify-end">
+                  <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[34px] leading-tight text-xs">
+                    <span>Custo Marginal Replicação (R$)</span>
+                    <Tooltip content="Custo adicional para habilitar cada nova unidade." />
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.custoMarginalReplicacao ?? 0}
+                    onChange={(e) => handleChange('custoMarginalReplicacao', Number(e.target.value))}
+                    className="w-full text-xs px-3 py-2 border border-slate-300 rounded"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 5: Matriz de 12 Critérios */}
+        {activeSubTab === 'beneficios' && (
+          <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
+            <div className="bg-[#1351b4] text-white p-3.5 rounded-lg shadow-xs flex items-center justify-between">
+              <div>
+                <span className="font-bold text-white block text-xs">
+                  Matriz de Avaliação Multicritério (12 Critérios Corporativos)
+                </span>
+                <span className="text-[11px] text-blue-100 block mt-0.5">
+                  Classifique o grau de impacto de cada benefício estratégico corporativo para o negócio.
+                </span>
+              </div>
+              <span className="bg-white text-[#0c326f] text-[10px] font-bold px-2.5 py-1 rounded shadow-xs whitespace-nowrap">
+                12 Critérios Corporativos
+              </span>
+            </div>
+
+            <div className="space-y-2">
+              <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block">1. Eficiência & Otimização Operacional</span>
+              {renderRadioBeneficio('benLiberarPessoas', '1. Liberar Capacidade Humana / Realocação', 'Redirecionamento de tempo para atividades de inteligência.', 'Foco na produtividade sem corte de pessoal.')}
+              {renderRadioBeneficio('benReduzirCusto', '2. Reduzir Custos Operacionais', 'Economia orçamentária direta decorrente da automação.', 'Redução de despesas operacionais.')}
+              {renderRadioBeneficio('benReduzirErros', '3. Redução de Erros Operacionais', 'Eliminação de falhas humanas na digitação e validação.', 'Garante precisão matemática e conformidade.')}
+            </div>
+
+            <div className="space-y-2 pt-2 border-t border-slate-200">
+              <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block">2. Governança, Risco & Compliance</span>
+              {renderRadioBeneficio('benSegurancaPrivacidade', '4. Segurança da Informação & Privacidade (LGPD)', 'Proteção contra vazamento de dados e sigilo.', 'Execução segura em background.')}
+              {renderRadioBeneficio('benRastreabilidadeCompliance', '5. Rastreabilidade & Conformidade (Compliance)', 'Trilha de auditoria digital e evidências imutáveis.', 'Facilita auditorias e prestação de contas.')}
+              {renderRadioBeneficio('benKeyPersonRisk', '6. Mitigação de Key-Person Risk (Pessoa-Chave)', 'Eliminação de gargalos decorrentes de conhecimento tácito.', 'Garante continuidade operacional.')}
+            </div>
+
+            <div className="space-y-2 pt-2 border-t border-slate-200">
+              <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block">3. Qualidade, Atendimento & SLA</span>
+              {renderRadioBeneficio('benMelhorarExpCliente', '7. Experiência do Cliente / Usuário', 'Aumento da satisfação e agilidade percebida.', 'Respostas instantâneas.')}
+              {renderRadioBeneficio('benAumentarCapacidade', '8. Capacidade & Escalabilidade Operacional', 'Absorção de aumentos de volume e picos sazonais.', 'Escalabilidade sem novas contratações.')}
+              {renderRadioBeneficio('benReduzirTempoResposta', '9. Reduzir Tempo de Resposta (SLA)', 'Diminuição do tempo entre a solicitação e a entrega.', 'Melhora nos indicadores de nível de serviço.')}
+            </div>
+
+            <div className="space-y-2 pt-2 border-t border-slate-200">
+              <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block">4. Estratégia & Sustentabilidade</span>
+              {renderRadioBeneficio('benInteroperabilidade', '10. Interoperabilidade entre Sistemas', 'Integração ágil e não invasiva entre múltiplos softwares.', 'Conecta ecossistemas heterogêneos.')}
+              {renderRadioBeneficio('benTransformacaoDigital', '11. Transformação Digital & Inovação', 'Modernização de rotinas e cultura de automação.', 'Acelera a maturidade digital.')}
+              {renderRadioBeneficio('benSustentabilidadeEsg', '12. Sustentabilidade Operacional (ESG)', 'Desmaterialização de documentos e eliminação de papel.', 'Suporte às diretrizes ESG.')}
+            </div>
+          </div>
+        )}
+
+        {/* Tab 6: Solução TO BE & Turnos */}
         {activeSubTab === 'tobe' && (
           <div className="space-y-4 text-xs">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="bg-[#1351b4] text-white p-3.5 rounded-lg shadow-xs flex items-center justify-between">
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  Plataforma Tecnológica da Solução
-                  <Tooltip content="Tecnologia ou orquestrador que será utilizado para construir e rodar a automação." />
+                <span className="font-bold text-white block text-xs">
+                  Solução Técnica TO BE, Turnos e Esforço de Setup
+                </span>
+                <span className="text-[11px] text-blue-100 block mt-0.5">
+                  Dimensione a plataforma tecnológica, horas de execução nos 3 turnos e o investimento de engenharia.
+                </span>
+              </div>
+              <span className="bg-white text-[#0c326f] text-[10px] font-bold px-2.5 py-1 rounded shadow-xs whitespace-nowrap">
+                TO BE & Engenharia
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex flex-col justify-end">
+                <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[30px] leading-tight">
+                  <span>Plataforma Tecnológica da Solução</span>
+                  <Tooltip content="Tecnologia ou orquestrador utilizado para construir a automação." />
                 </label>
                 <select
                   value={formData.perfilPlataformaId || ''}
@@ -730,10 +1505,10 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
                 </select>
               </div>
 
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  Complexidade Técnica Estimada
-                  <Tooltip content="Grau de dificuldade técnica de implementação da automação." />
+              <div className="flex flex-col justify-end">
+                <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[30px] leading-tight">
+                  <span>Complexidade Técnica Estimada</span>
+                  <Tooltip content="Grau de dificuldade técnica de implementação." />
                 </label>
                 <select
                   value={formData.complexidade || 'Média'}
@@ -747,168 +1522,156 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
               </div>
             </div>
 
-            <div>
-              <label className="block font-semibold text-slate-700 mb-1">
-                Descrição da Solução TO BE
-                <Tooltip content="Como o robô ou fluxo de automação atuará de ponta a ponta." />
-              </label>
-              <textarea
-                rows={2}
-                value={formData.descricaoSolucao || ''}
-                onChange={(e) => handleChange('descricaoSolucao', e.target.value)}
-                placeholder="Descreva a arquitetura da solução automatizada..."
-                className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none"
-              />
-            </div>
-
-            {/* Painel de Dimensionamento com Múltiplos Turnos */}
             <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-slate-800 flex items-center space-x-1.5">
-                  <i className="fas fa-clock text-[#1351b4] mr-1"></i>
-                  <span>Alocação de Horas em Múltiplos Turnos (Dimensionamento do Robô)</span>
-                  <Tooltip content="Aloque as horas mensais estimadas de execução do robô em cada janela horária. O custo total é calculado com a taxa exata de cada turno." />
-                </span>
-                <span className="text-[11px] font-bold text-[#1351b4] bg-blue-50 px-2.5 py-1 rounded border border-blue-200">
-                  Total: {formData.horasRobo || 0} h/mês
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {/* Diurno */}
-                <div className="bg-white p-3 rounded border border-amber-200 shadow-xs">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-bold text-amber-900 flex items-center space-x-1">
-                      <i className="fas fa-sun text-amber-500 mr-1"></i>
-                      <span>Turno Diurno</span>
-                    </span>
-                    <span className="text-[10px] text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded font-semibold">
-                      R$ {calcPreview?.taxaDiurna.toFixed(2)}/h
-                    </span>
-                  </div>
-                  <span className="text-[10px] text-slate-500 block mb-1.5">08h às 18h (Dias Úteis)</span>
+              <span className="font-bold text-slate-800 block text-xs">
+                Alocação de Horas em Múltiplos Turnos (Dimensionamento do Robô)
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                <div className="flex flex-col justify-end">
+                  <label className="flex items-end font-medium text-slate-700 mb-1 min-h-[30px] leading-tight text-xs">
+                    <span>Diurno (08h-18h)</span>
+                  </label>
                   <input
                     type="number"
                     min="0"
                     value={formData.horasRoboDiurno ?? 0}
                     onChange={(e) => handleChange('horasRoboDiurno', Number(e.target.value))}
-                    className="w-full text-xs font-bold px-2.5 py-1.5 border border-slate-300 rounded focus:border-[#1351b4] outline-none"
+                    className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded"
                   />
-                  <span className="text-[10px] text-slate-600 block mt-1">
-                    Subtotal: <strong className="text-slate-900">R$ {calcPreview?.custoHorasRoboDiurno.toFixed(2)}/mês</strong>
-                  </span>
                 </div>
-
-                {/* Noturno */}
-                <div className="bg-white p-3 rounded border border-blue-200 shadow-xs">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-bold text-blue-950 flex items-center space-x-1">
-                      <i className="fas fa-moon text-blue-700 mr-1"></i>
-                      <span>Turno Noturno</span>
-                    </span>
-                    <span className="text-[10px] text-blue-800 bg-blue-50 px-1.5 py-0.5 rounded font-semibold">
-                      R$ {calcPreview?.taxaNoturna.toFixed(2)}/h
-                    </span>
-                  </div>
-                  <span className="text-[10px] text-slate-500 block mb-1.5">18h às 08h (Madrugada)</span>
+                <div className="flex flex-col justify-end">
+                  <label className="flex items-end font-medium text-slate-700 mb-1 min-h-[30px] leading-tight text-xs">
+                    <span>Noturno (18h-08h)</span>
+                  </label>
                   <input
                     type="number"
                     min="0"
                     value={formData.horasRoboNoturno ?? 0}
                     onChange={(e) => handleChange('horasRoboNoturno', Number(e.target.value))}
-                    className="w-full text-xs font-bold px-2.5 py-1.5 border border-slate-300 rounded focus:border-[#1351b4] outline-none"
+                    className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded"
                   />
-                  <span className="text-[10px] text-slate-600 block mt-1">
-                    Subtotal: <strong className="text-slate-900">R$ {calcPreview?.custoHorasRoboNoturno.toFixed(2)}/mês</strong>
-                  </span>
                 </div>
-
-                {/* Fim de Semana */}
-                <div className="bg-white p-3 rounded border border-purple-200 shadow-xs">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-bold text-purple-950 flex items-center space-x-1">
-                      <i className="fas fa-calendar-alt text-purple-600 mr-1"></i>
-                      <span>Fim de Semana</span>
-                    </span>
-                    <span className="text-[10px] text-purple-800 bg-purple-50 px-1.5 py-0.5 rounded font-semibold">
-                      R$ {calcPreview?.taxaFimSemana.toFixed(2)}/h
-                    </span>
-                  </div>
-                  <span className="text-[10px] text-slate-500 block mb-1.5">Sábados e Domingos 24h</span>
+                <div className="flex flex-col justify-end">
+                  <label className="flex items-end font-medium text-slate-700 mb-1 min-h-[30px] leading-tight text-xs">
+                    <span>Fim de Semana</span>
+                  </label>
                   <input
                     type="number"
                     min="0"
                     value={formData.horasRoboFimDeSemana ?? 0}
                     onChange={(e) => handleChange('horasRoboFimDeSemana', Number(e.target.value))}
-                    className="w-full text-xs font-bold px-2.5 py-1.5 border border-slate-300 rounded focus:border-[#1351b4] outline-none"
+                    className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded"
                   />
-                  <span className="text-[10px] text-slate-600 block mt-1">
-                    Subtotal: <strong className="text-slate-900">R$ {calcPreview?.custoHorasRoboFimSemana.toFixed(2)}/mês</strong>
-                  </span>
                 </div>
-              </div>
-
-              <div className="flex justify-between items-center bg-white p-2.5 rounded border border-slate-200 text-[11px]">
-                <span className="text-slate-700 font-semibold">Custo Total de Operação do Robô (Ponderado):</span>
-                <span className="font-bold text-[#1351b4] text-xs">
-                  R$ {calcPreview?.custoHorasRobo.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mês
-                </span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  Esforço de Setup (Semanas)
-                  <Tooltip content="Semanas estimadas de desenvolvimento, homologação e implantação da automação." />
-                </label>
-                <input
-                  type="number"
-                  min="0.5"
-                  step="0.5"
-                  value={formData.esforcoSetupSemanas ?? 2}
-                  onChange={(e) => handleChange('esforcoSetupSemanas', Number(e.target.value))}
-                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] outline-none font-semibold"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  Horas Apoio Negócio (HH/Mês)
-                  <Tooltip content="Horas mensais gastas pela área de negócio para interações pontuais ou exceções." />
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  value={formData.horasApoioNegocio ?? 4}
-                  onChange={(e) => handleChange('horasApoioNegocio', Number(e.target.value))}
-                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] outline-none font-semibold"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  Horas Manutenção NOC (HH/Mês)
-                  <Tooltip content="Estimativa de horas mensais de suporte do NOC para acompanhamento e sustentação do robô." />
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  value={formData.horasManutencao ?? 4}
-                  onChange={(e) => handleChange('horasManutencao', Number(e.target.value))}
-                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] outline-none font-semibold"
-                />
+                <div className="flex flex-col justify-end">
+                  <label className="flex items-end font-medium text-slate-700 mb-1 min-h-[30px] leading-tight text-xs">
+                    <span>Setup (Semanas)</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={formData.esforcoSetupSemanas ?? 2}
+                    onChange={(e) => handleChange('esforcoSetupSemanas', Number(e.target.value))}
+                    className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded"
+                  />
+                </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* Modal Bottom Actions */}
-        <div className="flex items-center justify-between pt-4 border-t border-slate-200">
+        {/* Tab 7: N3 Realizado */}
+        {activeSubTab === 'realizado' && (
+          <div className="space-y-4 text-xs">
+            <div className="bg-[#1351b4] text-white p-3.5 rounded-lg shadow-xs flex items-center justify-between">
+              <div>
+                <span className="font-bold text-white block text-xs">
+                  Ciclo de Benefício Realizado (Nível N3)
+                </span>
+                <span className="text-[11px] text-blue-100 block mt-0.5">
+                  Para processos entregues e em operação. Permite confrontar a economia projetada com o resultado real apurado em produção para calibrar benchmarks.
+                </span>
+              </div>
+              <span className="bg-white text-[#0c326f] text-[10px] font-bold px-2.5 py-1 rounded shadow-xs whitespace-nowrap">
+                N3 — Realizado
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex items-center space-x-2 pt-4">
+                <input
+                  type="checkbox"
+                  id="isRetrospectivo"
+                  checked={formData.isRetrospectivo || false}
+                  onChange={(e) => handleChange('isRetrospectivo', e.target.checked)}
+                  className="h-4 w-4 text-[#1351b4] rounded border-slate-300 cursor-pointer"
+                />
+                <label htmlFor="isRetrospectivo" className="font-semibold text-slate-800 cursor-pointer">
+                  Demanda Cadastrada em Modo Retrospectivo (Legado Já em Operação)
+                </label>
+              </div>
+
+              <div className="flex flex-col justify-end">
+                <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[30px] leading-tight text-xs">
+                  <span>Data da Apuração Realizada</span>
+                </label>
+                <input
+                  type="date"
+                  value={formData.dataApuracaoRealizado || ''}
+                  onChange={(e) => handleChange('dataApuracaoRealizado', e.target.value)}
+                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex flex-col justify-end">
+                <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[30px] leading-tight text-xs">
+                  <span>Benefício Realizado Anual (R$)</span>
+                </label>
+                <input
+                  type="number"
+                  value={formData.beneficioRealizadoAnual ?? 0}
+                  onChange={(e) => handleChange('beneficioRealizadoAnual', Number(e.target.value))}
+                  placeholder="Ex: 120000"
+                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded"
+                />
+              </div>
+
+              <div className="flex flex-col justify-end">
+                <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[30px] leading-tight text-xs">
+                  <span>Desvio vs Projetado (%)</span>
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={formData.desvioProjetadoRealizadoPerc ?? 0}
+                  onChange={(e) => handleChange('desvioProjetadoRealizadoPerc', Number(e.target.value))}
+                  placeholder="Ex: -0.05 para -5%"
+                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">Notas de Auditoria & Lições Aprendidas</label>
+              <textarea
+                rows={2}
+                value={formData.notasRealizado || ''}
+                onChange={(e) => handleChange('notasRealizado', e.target.value)}
+                placeholder="Registre os fatores que explicaram a aderência ou desvio do benefício..."
+                className="w-full text-xs px-3 py-2 border border-slate-300 rounded"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Rodapé com Ações GOVBR DS */}
+        <div className="flex items-center justify-between pt-3 border-t border-slate-200">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-slate-700 hover:bg-slate-100 font-semibold rounded text-xs transition-colors cursor-pointer"
+            className="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded border border-slate-300 cursor-pointer transition-colors"
           >
             Cancelar
           </button>
@@ -916,14 +1679,22 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
           <button
             type="submit"
             disabled={isSubmitting}
-            className="flex items-center space-x-2 px-6 py-2.5 bg-[#1351b4] hover:bg-[#0c326f] active:bg-[#0c326f] text-white font-bold rounded text-xs shadow-xs transition-colors disabled:opacity-50 cursor-pointer"
+            className="px-6 py-2 text-xs font-bold text-white bg-[#1351b4] hover:bg-[#0c326f] rounded shadow-sm hover:shadow cursor-pointer transition-all flex items-center space-x-2"
           >
-            <i className="fas fa-save mr-1.5"></i>
-            <span>{isSubmitting ? 'Salvando...' : initialData ? 'Salvar Oportunidade' : 'Cadastrar Oportunidade'}</span>
+            {isSubmitting ? (
+              <>
+                <i className="fas fa-spinner fa-spin"></i>
+                <span>Salvando...</span>
+              </>
+            ) : (
+              <>
+                <i className="fas fa-check"></i>
+                <span>{formData.id ? 'Salvar Alterações' : 'Cadastrar Oportunidade'}</span>
+              </>
+            )}
           </button>
         </div>
       </form>
     </Modal>
   );
 };
-
