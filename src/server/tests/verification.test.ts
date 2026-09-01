@@ -36,6 +36,9 @@ async function runTests() {
     percDiurno: 0.60,
     percNoturno: 0.30,
     percFimDeSemana: 0.10,
+    salarioDesenvolvedorI: 10000,
+    salarioDesenvolvedorII: 18500,
+    salarioDesenvolvedorIII: 26000,
     custoHoraDesenvolvimento: 185,
     taxaDescontoVpl: 0.12,
     horizonteVplMeses: 36,
@@ -191,6 +194,69 @@ async function runTests() {
   });
   assert(diag.pendencias.length > 0, `Diagnóstico detectou ${diag.pendencias.length} pendências para promoção`);
   assert(diag.pendencias[0].ondeEncontrar.length > 0, 'Cada pendência indica a fonte do dado');
+
+  // 5. Teste dos 3 Perfis de Desenvolvedores
+  console.log('\n--- 5. Validação dos 3 Perfis de Desenvolvedores (I, II, III) ---');
+  const horaDevI = CalculationService.getCustoHoraDesenvolvedor(parametroMock, 'Desenvolvedor I');
+  const horaDevII = CalculationService.getCustoHoraDesenvolvedor(parametroMock, 'Desenvolvedor II');
+  const horaDevIII = CalculationService.getCustoHoraDesenvolvedor(parametroMock, 'Desenvolvedor III');
+
+  assert(horaDevI === 100, `Desenvolvedor I calcula R$ 100/h a partir de R$ 10.000/mês (obtido: ${horaDevI})`);
+  assert(horaDevII === 185, `Desenvolvedor II calcula R$ 185/h a partir de R$ 18.500/mês (obtido: ${horaDevII})`);
+  assert(horaDevIII === 260, `Desenvolvedor III calcula R$ 260/h a partir de R$ 26.000/mês (obtido: ${horaDevIII})`);
+
+  const calcDevI = CalculationService.calculate(
+    {
+      tempoExecucao: 80,
+      custoMensalAtual: 5000,
+      arquetipoPrimario: 'A1',
+      perfilDesenvolvedor: 'Desenvolvedor I',
+      esforcoSetupSemanas: 2,
+    },
+    parametroMock
+  );
+
+  const calcDevIII = CalculationService.calculate(
+    {
+      tempoExecucao: 80,
+      custoMensalAtual: 5000,
+      arquetipoPrimario: 'A1',
+      perfilDesenvolvedor: 'Desenvolvedor III',
+      esforcoSetupSemanas: 2,
+    },
+    parametroMock
+  );
+
+  assert(calcDevIII.investimentoSetup > calcDevI.investimentoSetup, 'Setup com Desenvolvedor III é mais caro que com Desenvolvedor I para a mesma duração');
+
+  // 6. Teste do Score Composto Ponderado de Priorização
+  console.log('\n--- 6. Validação do Score Composto Ponderado de Priorização ---');
+  const calcScore = CalculationService.calculate(
+    {
+      tempoExecucao: 120,
+      custoMensalAtual: 8000,
+      arquetipoPrimario: 'A1',
+      percAutomatizavel: 0.9,
+      percTrilhaAutomacao: 1.0,
+      esforcoSetupSemanas: 2,
+      benLiberarPessoas: 'principal',
+      benReduzirCusto: 'bastante',
+      benReduzirErros: 'bastante',
+      benSegurancaPrivacidade: 'principal',
+      benRastreabilidadeCompliance: 'principal',
+      benKeyPersonRisk: 'bastante',
+      benMelhorarExpCliente: 'bastante',
+      benAumentarCapacidade: 'bastante',
+      benReduzirTempoResposta: 'bastante',
+      benInteroperabilidade: 'bastante',
+      benTransformacaoDigital: 'principal',
+      benSustentabilidadeEsg: 'pouco',
+    },
+    parametroMock
+  );
+
+  assert(calcScore.scorePriorizacao > 0 && calcScore.scorePriorizacao <= 100, `Score de Priorização calculado dentro do range [0, 100] (obtido: ${calcScore.scorePriorizacao})`);
+  assert(calcScore.scorePriorizacao >= 50, `Demanda com alto retorno e alto score intangível recebe nota relevante (obtido: ${calcScore.scorePriorizacao})`);
 
   console.log('\n🎉 TODOS OS TESTES DO PLANO DE VERIFICAÇÃO PASSARAM COM SUCESSO!\n');
 }

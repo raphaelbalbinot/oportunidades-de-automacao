@@ -55,12 +55,6 @@ export const SidebarMenu: React.FC<SidebarMenuProps> = ({
     },
   ];
 
-  const institutionalLinks = [
-    { label: 'Loja Serpro', href: 'https://loja.serpro.gov.br/?utm_source=portal&utm_medium=menu&utm_campaign=home-serpro', icon: 'fa-shopping-cart' },
-    { label: 'Acesso à Informação', href: 'https://www.transparencia.serpro.gov.br/acesso-a-informacao', icon: 'fa-info-circle' },
-    { label: 'Central de Serviços (CSS)', href: 'https://www.serpro.gov.br/menu/suporte/css', icon: 'fa-headset' },
-  ];
-
   const renderNavItems = (isCompact: boolean, isMobile: boolean) => (
     <nav className={`menu-body flex-1 overflow-y-auto ${isCompact ? 'px-2 py-4 space-y-3' : 'px-4 py-5 space-y-2'}`} aria-label="Telas do Sistema">
       {!isCompact && (
@@ -125,30 +119,6 @@ export const SidebarMenu: React.FC<SidebarMenuProps> = ({
           </button>
         );
       })}
-
-      {!isCompact && (
-        <>
-          <div className="pt-5 px-3 pb-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-t border-slate-200/80 mt-4">
-            Acesso Rápido & Suporte
-          </div>
-
-          {institutionalLinks.map((link) => (
-            <a
-              key={link.label}
-              href={link.href}
-              target="_blank"
-              rel="noreferrer"
-              className="menu-item p-2.5 rounded-lg text-xs text-slate-600 hover:bg-slate-50 hover:text-[var(--govbr-blue-warm-vivid-70)] transition-colors flex items-center justify-between"
-            >
-              <div className="flex items-center space-x-2.5">
-                <i className={`fas ${link.icon} text-slate-400 text-sm`} aria-hidden="true"></i>
-                <span>{link.label}</span>
-              </div>
-              <i className="fas fa-external-link-alt text-[10px] text-slate-400"></i>
-            </a>
-          ))}
-        </>
-      )}
     </nav>
   );
 
@@ -167,18 +137,6 @@ export const SidebarMenu: React.FC<SidebarMenuProps> = ({
         aria-label="Menu Lateral Principal"
       >
         {renderNavItems(!isExpanded, false)}
-
-        {/* Rodapé Desktop */}
-        <div className={`menu-footer border-t border-slate-200 bg-slate-50/70 ${isExpanded ? 'p-4' : 'p-2 text-center'}`}>
-          {isExpanded ? (
-            <div>
-              <div className="font-semibold text-xs text-slate-700 leading-snug">Serpro Oportunidade de Automação</div>
-              <div className="text-[10px] text-slate-400 mt-0.5">Versão 1.0 • GovBR DS</div>
-            </div>
-          ) : (
-            <div className="text-[10px] font-bold text-slate-400 uppercase">v1.0</div>
-          )}
-        </div>
       </aside>
 
       {/* 2. Versão Mobile / Tablet: Drawer Retrátil com Scrim */}
@@ -231,22 +189,6 @@ export const SidebarMenu: React.FC<SidebarMenuProps> = ({
 
             {/* Itens Mobile */}
             {renderNavItems(false, true)}
-
-            {/* Rodapé Mobile */}
-            <div className="menu-footer p-4 border-t border-slate-200 bg-slate-50/70 flex items-center justify-between text-xs text-slate-500">
-              <div>
-                <div className="font-semibold text-slate-700">Serpro Oportunidade de Automação</div>
-                <div className="text-[10px] text-slate-400 mt-0.5">Versão 1.0 • Padrão GovBR DS</div>
-              </div>
-              <a
-                href="https://www.serpro.gov.br"
-                target="_blank"
-                rel="noreferrer"
-                className="hover:underline text-[var(--govbr-blue-warm-vivid-70)] font-medium text-[11px]"
-              >
-                serpro.gov.br
-              </a>
-            </div>
           </div>
         </div>
       )}

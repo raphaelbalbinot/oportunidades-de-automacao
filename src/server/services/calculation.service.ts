@@ -21,6 +21,9 @@ export interface ParametroData {
   percDiurno: number;
   percNoturno: number;
   percFimDeSemana: number;
+  salarioDesenvolvedorI?: number;
+  salarioDesenvolvedorII?: number;
+  salarioDesenvolvedorIII?: number;
   custoHoraDesenvolvimento: number;
   taxaDescontoVpl?: number;
   horizonteVplMeses?: number;
@@ -99,6 +102,7 @@ export interface RegistroInput {
   // TO BE Operacional
   tipoPlataformaNome?: string;
   perfilPlataformaId?: string;
+  perfilDesenvolvedor?: string;
   turno?: string;
   esforcoSetupSemanas?: number;
   horasRoboDiurno?: number;
@@ -152,6 +156,7 @@ export interface CalculatedFields {
   roiAno1: number;
   roiAno2: number;
   paybackMeses: number;
+  scorePriorizacao: number;
   vpl3Anos: number;
   vplCenarioConservador: number;
   vplCenarioBase: number;
@@ -223,10 +228,60 @@ export class CalculationService {
   }
 
   /**
+   * Calcula o custo por hora técnica do desenvolvedor de acordo com o perfil e salário mensal (com encargos 1.6).
+   */
+  static getCustoHoraDesenvolvedor(
+    param: ParametroData,
+    perfil: string = 'Desenvolvedor II'
+  ): number {
+    const carga = param.cargaHorariaPadrao || 160;
+    const encargos = 1.6;
+    const normal = (perfil || 'Desenvolvedor II').trim().toLowerCase();
+
+    if (normal.includes('iii') || normal.includes('senior') || normal.includes('sênior') || normal.includes('3')) {
+      const sal =
+        param.salarioDesenvolvedorIII !== undefined && param.salarioDesenvolvedorIII > 0
+          ? param.salarioDesenvolvedorIII
+          : param.custoHoraDesenvolvimento
+          ? (param.custoHoraDesenvolvimento * 1.4 * carga) / encargos
+          : 26000;
+      return Number(((sal * encargos) / carga).toFixed(2));
+    }
+
+    if (
+      (normal.includes('i') && !normal.includes('ii') && !normal.includes('iii')) ||
+      normal.includes('junior') ||
+      normal.includes('júnior') ||
+      normal.includes('1')
+    ) {
+      const sal =
+        param.salarioDesenvolvedorI !== undefined && param.salarioDesenvolvedorI > 0
+          ? param.salarioDesenvolvedorI
+          : param.custoHoraDesenvolvimento
+          ? (param.custoHoraDesenvolvimento * 0.6 * carga) / encargos
+          : 10000;
+      return Number(((sal * encargos) / carga).toFixed(2));
+    }
+
+    // Default: Desenvolvedor II (Pleno)
+    const sal =
+      param.salarioDesenvolvedorII !== undefined && param.salarioDesenvolvedorII > 0
+        ? param.salarioDesenvolvedorII
+        : param.custoHoraDesenvolvimento
+        ? (param.custoHoraDesenvolvimento * carga) / encargos
+        : 18500;
+    return Number(((sal * encargos) / carga).toFixed(2));
+  }
+
+  /**
    * Calcula o custo de setup mensal diluído (em 12 meses) por semana de implementação.
    */
-  static getCustoSetupMensalPorSemana(param: ParametroData): number {
-    return (param.custoHoraDesenvolvimento * 40) / 12;
+  static getCustoSetupMensalPorSemana(
+    param: ParametroData,
+    perfil: string = 'Desenvolvedor II'
+  ): number {
+    const custoHora = this.getCustoHoraDesenvolvedor(param, perfil);
+    return (custoHora * 40) / 12;
   }
 
   private static getBeneficioFactor(resposta: string = 'nenhum'): number {
@@ -257,7 +312,8 @@ export class CalculationService {
 
     // A1 - Transacional Repetitivo (Horas Liberadas)
     if (arquetiposAtivos.has('A1')) {
-      const percAuto = input.percAutomatizavel !== undefined ? Number(input.percAutomatizavel) : 1.0;
+      const rawAuto = input.percAutomatizavel !== undefined ? Number(input.percAutomatizavel) : 100;
+      const percAuto = rawAuto > 1 ? rawAuto / 100 : (rawAuto <= 0 ? 0 : rawAuto);
       const ganhoA1 = (custoMensalAtualPadrao * 12) * Math.max(0, Math.min(1, percAuto));
       detalhe['A1'] = Number(ganhoA1.toFixed(2));
       somaBruta += detalhe['A1'];
@@ -420,7 +476,8 @@ export class CalculationService {
 
     // 3. Custos de Setup e Multi-Turno
     const esforcoSetupSemanas = Number(input.esforcoSetupSemanas) || 0;
-    const custoSetupPorSemana = this.getCustoSetupMensalPorSemana(param);
+    const perfilDev = input.perfilDesenvolvedor || 'Desenvolvedor II';
+    const custoSetupPorSemana = this.getCustoSetupMensalPorSemana(param, perfilDev);
     const investimentoSetup = Number((esforcoSetupSemanas * custoSetupPorSemana).toFixed(2));
     const investimentoSetupTotalCapital = Number((investimentoSetup * 12).toFixed(2));
 
@@ -539,6 +596,34 @@ export class CalculationService {
         ? Number((setupOtim / ((benOtim - custoOtim) / 12)).toFixed(1))
         : Number((paybackMeses * 0.8).toFixed(1));
 
+    // Score Composto Ponderado de Priorização (0 a 100)
+    // 1. Score VPL (40%): 0 para VPL <= 0; linear até R$ 250.000 (100 pts)
+    let scoreVpl = 0;
+    if (vpl3Anos > 0) {
+      scoreVpl = Math.min(100, (vpl3Anos / 250000) * 100);
+    }
+
+    // 2. Score Intangíveis (30%): pontuacaoBeneficios (0 a 1 -> 0 a 100%)
+    const scoreIntangiveis = Math.min(100, pontuacaoBeneficios > 1 ? pontuacaoBeneficios : pontuacaoBeneficios * 100);
+
+    // 3. Score Payback & Velocidade (30%):
+    // Payback <= 3m -> 100; <= 6m -> 85; <= 12m -> 70; <= 18m -> 50; <= 24m -> 30; > 24m -> 10
+    let scorePayback = 0;
+    if (paybackMeses > 0) {
+      if (paybackMeses <= 3) scorePayback = 100;
+      else if (paybackMeses <= 6) scorePayback = 85;
+      else if (paybackMeses <= 12) scorePayback = 70;
+      else if (paybackMeses <= 18) scorePayback = 50;
+      else if (paybackMeses <= 24) scorePayback = 30;
+      else scorePayback = 10;
+    } else if (nivelMaturidade === 'N0') {
+      scorePayback = input.criticidadePercebida === 'Alta' ? 70 : input.criticidadePercebida === 'Média' ? 50 : 30;
+    }
+
+    const scorePriorizacao = Number(
+      (0.40 * scoreVpl + 0.30 * scoreIntangiveis + 0.30 * scorePayback).toFixed(1)
+    );
+
     return {
       nivelMaturidade,
       custoMensalAtual,
@@ -563,6 +648,7 @@ export class CalculationService {
       roiAno1,
       roiAno2,
       paybackMeses,
+      scorePriorizacao,
       vpl3Anos,
       vplCenarioConservador,
       vplCenarioBase,

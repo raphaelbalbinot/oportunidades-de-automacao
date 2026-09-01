@@ -24,6 +24,9 @@ export interface Parametro {
   percDiurno: number;
   percNoturno: number;
   percFimDeSemana: number;
+  salarioDesenvolvedorI?: number;
+  salarioDesenvolvedorII?: number;
+  salarioDesenvolvedorIII?: number;
   custoHoraDesenvolvimento: number;
   taxaDescontoVpl?: number;
   horizonteVplMeses?: number;
@@ -190,6 +193,7 @@ export interface Registro {
   recomendacao: string;
 
   // Custos e Múltiplos Turnos
+  perfilDesenvolvedor?: string;
   esforcoSetupSemanas: number;
   investimentoSetup: number;
   horasRoboDiurno: number;
@@ -215,6 +219,7 @@ export interface Registro {
   roiAno1: number;
   roiAno2: number;
   paybackMeses: number;
+  scorePriorizacao?: number;
 
   // VPL & Cenários
   vpl3Anos?: number;
@@ -287,6 +292,7 @@ export interface AnalyticsResumo {
     roiAno1: number;
     roiAno2: number;
     paybackMeses: number;
+    scorePriorizacao?: number;
     recomendacao: string;
     situacao: string;
   }>;
@@ -295,12 +301,19 @@ export interface AnalyticsResumo {
     idAnalise: string;
     nome: string;
     area: string;
+    nivelMaturidade?: string;
+    arquetipo?: string;
     beneficiosScore: number;
     roiAno1: number;
+    vpl3Anos?: number;
+    beneficioLiquidoAnual?: number;
+    esforcoSemanas?: number;
+    scorePriorizacao?: number;
     fte: number;
     complexidade: string;
     payback: number;
     recomendacao: string;
+    situacao?: string;
   }>;
   todosProcessosDisponiveis: Array<{
     id: string;

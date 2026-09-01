@@ -1,6 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { Registro, Parametro } from '../types';
 import { api } from '../services/api';
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  Legend,
+  PieChart,
+  Pie,
+  Cell,
+} from 'recharts';
 
 interface DossiePrintPageProps {
   registroId: string;
@@ -73,11 +86,76 @@ export const DossiePrintPage: React.FC<DossiePrintPageProps> = ({ registroId }) 
     A3: 'A3 — Atendimento e Autosserviço (Menor Custo por Contato / SAC)',
     A4: 'A4 — Conformidade e Risco Contratual (Mitigação de Multas e Glosas)',
     A5: 'A5 — Gargalo e Ciclo de Receita (Menor Lead Time / Antecipação)',
-    A6: 'A6 — Racionalização de Ativos Técnicos (Consolidação de Robôs / Menor Sustentação)',
+    A6: 'A6 — Racionalização de Ativos Técnicos (Consolidação de Soluções / Menor Sustentação)',
     A7: 'A7 — Processo Comercial e Oportunidade (Receita Adicional)',
   };
 
-  const beneficioAnual = registro.beneficioLiquidoAnual || (registro.custoMensalAtual ? registro.custoMensalAtual * 12 : 0);
+  const benefBruto = Number(registro.beneficioBrutoAnual || (registro.custoMensalAtual ? registro.custoMensalAtual * 12 : 0));
+  const custoAno1 = Number(registro.custoAnualAno1 || ((registro.investimentoSetup || 0) * 12 + (registro.custoMensalAno2 || 0) * 12));
+  const custoAno2 = Number(registro.custoAnualAno2 || ((registro.custoMensalAno2 || 0) * 12));
+  const beneficioAnual = registro.beneficioLiquidoAnual || (benefBruto - custoAno1);
+
+  // Dados para Gráfico de Fluxo Trienal
+  const fluxoFinanceiroData = [
+    {
+      periodo: 'Ano 1 (Setup + Op.)',
+      'Custo Total': Math.round(custoAno1),
+      'Benefício Bruto': Math.round(benefBruto),
+      'Saldo Líquido': Math.round(benefBruto - custoAno1),
+    },
+    {
+      periodo: 'Ano 2 (Operação)',
+      'Custo Total': Math.round(custoAno2),
+      'Benefício Bruto': Math.round(benefBruto),
+      'Saldo Líquido': Math.round(benefBruto - custoAno2),
+    },
+    {
+      periodo: 'Ano 3 (Operação)',
+      'Custo Total': Math.round(custoAno2),
+      'Benefício Bruto': Math.round(benefBruto),
+      'Saldo Líquido': Math.round(benefBruto - custoAno2),
+    },
+  ];
+
+  // Dados para Gráfico de Pizza / Donut de Trilhas
+  const percAuto = Math.round((registro.percTrilhaAutomacao ?? 1.0) * 100);
+  const percProc = Math.round((registro.percTrilhaProcesso ?? 0) * 100);
+  const percSist = Math.round((registro.percTrilhaSistema ?? 0) * 100);
+
+  const trilhaData = [
+    { name: 'Automação', value: percAuto > 0 ? percAuto : 100, color: '#1351b4' },
+    { name: 'Padronização', value: percProc, color: '#059669' },
+    { name: 'Evolução Sistêmica', value: percSist, color: '#d97706' },
+  ].filter(t => t.value > 0);
+
+  // Lista dos 12 Benefícios Intangíveis
+  const beneficiosList = [
+    { label: 'Liberar Pessoas (FTE)', value: registro.benLiberarPessoas, icon: 'fa-user-check' },
+    { label: 'Redução de Custos', value: registro.benReduzirCusto, icon: 'fa-dollar-sign' },
+    { label: 'Redução de Erros', value: registro.benReduzirErros, icon: 'fa-shield-alt' },
+    { label: 'Segurança & Privacidade', value: registro.benSegurancaPrivacidade, icon: 'fa-lock' },
+    { label: 'Rastreabilidade / Compliance', value: registro.benRastreabilidadeCompliance, icon: 'fa-file-signature' },
+    { label: 'Key Person Risk', value: registro.benKeyPersonRisk, icon: 'fa-user-shield' },
+    { label: 'Experiência do Cliente', value: registro.benMelhorarExpCliente, icon: 'fa-smile' },
+    { label: 'Aumento de Capacidade', value: registro.benAumentarCapacidade, icon: 'fa-tachometer-alt' },
+    { label: 'Redução Tempo Resposta', value: registro.benReduzirTempoResposta, icon: 'fa-clock' },
+    { label: 'Interoperabilidade', value: registro.benInteroperabilidade, icon: 'fa-network-wired' },
+    { label: 'Transformação Digital', value: registro.benTransformacaoDigital, icon: 'fa-laptop-code' },
+    { label: 'Sustentabilidade ESG', value: registro.benSustentabilidadeEsg, icon: 'fa-leaf' },
+  ];
+
+  const getBeneficioBadge = (val?: string) => {
+    switch (val) {
+      case 'principal':
+        return <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[9px] uppercase">Alto</span>;
+      case 'bastante':
+        return <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 font-semibold text-[9px] uppercase">Médio</span>;
+      case 'pouco':
+        return <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 font-medium text-[9px] uppercase">Baixo</span>;
+      default:
+        return <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-400 text-[9px]">Neutro</span>;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-100 py-6 px-4 print:bg-white print:p-0">
@@ -268,6 +346,88 @@ export const DossiePrintPage: React.FC<DossiePrintPageProps> = ({ registroId }) 
           </div>
         </div>
 
+        {/* PAINEL VISUAL DE GRÁFICOS EXECUTIVOS (UX DESIGNER) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 break-inside-avoid">
+          {/* Gráfico 1: Fluxo Trienal */}
+          <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
+            <span className="font-bold text-slate-800 text-xs flex items-center space-x-1.5">
+              <i className="fas fa-chart-column text-[#1351b4]"></i>
+              <span>Fluxo de Valor & Retorno Trienal (R$)</span>
+            </span>
+            <div className="h-44 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={fluxoFinanceiroData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                  <XAxis dataKey="periodo" tick={{ fontSize: 9, fill: '#475569' }} />
+                  <YAxis tick={{ fontSize: 9, fill: '#475569' }} tickFormatter={(val) => `R$ ${(val / 1000).toFixed(0)}k`} />
+                  <RechartsTooltip
+                    formatter={(val: any, name: any) => [`R$ ${Number(val).toLocaleString('pt-BR')}`, name]}
+                    contentStyle={{
+                      backgroundColor: '#ffffff',
+                      borderColor: '#cbd5e1',
+                      borderRadius: '6px',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)',
+                      fontSize: '11px',
+                      padding: '8px 12px',
+                      color: '#0f172a',
+                    }}
+                    labelStyle={{ color: '#0c326f', fontWeight: 'bold', marginBottom: '4px', borderBottom: '1px solid #e2e8f0', paddingBottom: '3px' }}
+                    itemStyle={{ color: '#1e293b', fontSize: '11px', padding: '2px 0' }}
+                  />
+                  <Legend wrapperStyle={{ fontSize: '9px', paddingTop: '4px' }} />
+                  <Bar dataKey="Custo Total" fill="#ef4444" radius={[3, 3, 0, 0]} isAnimationActive={false} />
+                  <Bar dataKey="Benefício Bruto" fill="#3b82f6" radius={[3, 3, 0, 0]} isAnimationActive={false} />
+                  <Bar dataKey="Saldo Líquido" fill="#10b981" radius={[3, 3, 0, 0]} isAnimationActive={false} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Gráfico 2: Atribuição por Trilha */}
+          <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
+            <span className="font-bold text-slate-800 text-xs flex items-center space-x-1.5">
+              <i className="fas fa-chart-pie text-[#1351b4]"></i>
+              <span>Composição de Ganhos por Trilha</span>
+            </span>
+            <div className="h-44 w-full flex items-center justify-center">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={trilhaData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={30}
+                    outerRadius={55}
+                    paddingAngle={4}
+                    isAnimationActive={false}
+                  >
+                    {trilhaData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <RechartsTooltip
+                    formatter={(val: any, name: any) => [`${val}%`, name || 'Participação']}
+                    contentStyle={{
+                      backgroundColor: '#ffffff',
+                      borderColor: '#cbd5e1',
+                      borderRadius: '6px',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)',
+                      fontSize: '11px',
+                      padding: '8px 12px',
+                      color: '#0f172a',
+                    }}
+                    labelStyle={{ color: '#0c326f', fontWeight: 'bold' }}
+                    itemStyle={{ color: '#1e293b', fontSize: '11px', padding: '2px 0' }}
+                  />
+                  <Legend wrapperStyle={{ fontSize: '9.5px' }} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
         {/* Seção 3: Atribuição por Trilha & Fator de Reuso */}
         <div className="space-y-3 break-inside-avoid">
           <h2 className="text-xs font-bold uppercase tracking-wider text-[#1351b4] border-b border-slate-200 pb-1 m-0">
@@ -277,16 +437,16 @@ export const DossiePrintPage: React.FC<DossiePrintPageProps> = ({ registroId }) 
             <div className="p-3 bg-slate-50 border border-slate-200 rounded space-y-1.5">
               <span className="font-bold text-slate-900 block text-xs">Distribuição de Causalidade por Trilha:</span>
               <div className="flex justify-between text-xs">
-                <span className="text-slate-600">Trilha Automação (Robô / RPA / IA):</span>
-                <span className="font-bold text-emerald-700">{((registro.percTrilhaAutomacao ?? 1.0) * 100).toFixed(0)}%</span>
+                <span className="text-slate-600">Trilha Automação:</span>
+                <span className="font-bold text-emerald-700">{percAuto}%</span>
               </div>
               <div className="flex justify-between text-xs">
                 <span className="text-slate-600">Trilha Padronização de Processo:</span>
-                <span className="font-medium text-slate-800">{((registro.percTrilhaProcesso ?? 0) * 100).toFixed(0)}%</span>
+                <span className="font-medium text-slate-800">{percProc}%</span>
               </div>
               <div className="flex justify-between text-xs">
                 <span className="text-slate-600">Trilha Evolução de Sistema Legado:</span>
-                <span className="font-medium text-slate-800">{((registro.percTrilhaSistema ?? 0) * 100).toFixed(0)}%</span>
+                <span className="font-medium text-slate-800">{percSist}%</span>
               </div>
             </div>
 
@@ -310,15 +470,33 @@ export const DossiePrintPage: React.FC<DossiePrintPageProps> = ({ registroId }) 
           </div>
         </div>
 
-        {/* Seção 4: Arquitetura da Solução TO BE & Dimensionamento */}
+        {/* Seção 4: Avaliação dos 12 Benefícios Intangíveis */}
         <div className="space-y-3 break-inside-avoid">
           <h2 className="text-xs font-bold uppercase tracking-wider text-[#1351b4] border-b border-slate-200 pb-1 m-0">
-            4. Arquitetura da Solução TO BE & Dimensionamento Técnico
+            4. Avaliação Qualitativa & Benefícios Intangíveis (12 Critérios Corporativos)
+          </h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 bg-slate-50 p-3 rounded border border-slate-200">
+            {beneficiosList.map((b, idx) => (
+              <div key={idx} className="bg-white p-2.5 rounded border border-slate-200 flex items-center justify-between shadow-2xs">
+                <div className="flex items-center space-x-1.5 truncate mr-1">
+                  <i className={`fas ${b.icon} text-[#1351b4] text-[10px] w-3.5 text-center`}></i>
+                  <span className="text-[10px] text-slate-700 font-medium truncate">{b.label}</span>
+                </div>
+                {getBeneficioBadge(b.value)}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Seção 5: Arquitetura da Solução TO BE & Dimensionamento */}
+        <div className="space-y-3 break-inside-avoid">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-[#1351b4] border-b border-slate-200 pb-1 m-0">
+            5. Arquitetura da Solução TO BE & Dimensionamento Técnico
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 p-3 rounded border border-slate-200">
             <div>
               <span className="text-[10px] font-semibold text-slate-500 block uppercase">Plataforma Tecnológica</span>
-              <span className="font-bold text-slate-900 text-xs">{registro.tipoPlataformaNome || 'Python/Robot'}</span>
+              <span className="font-bold text-slate-900 text-xs">{registro.tipoPlataformaNome || 'Python / Frameworks de Automação'}</span>
             </div>
             <div>
               <span className="text-[10px] font-semibold text-slate-500 block uppercase">Complexidade Técnica</span>

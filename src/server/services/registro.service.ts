@@ -205,6 +205,7 @@ export class RegistroService {
         numRotinas: Number(data.numRotinas ?? 1),
         turno: calculated.turno,
         recomendacao: data.recomendacao ?? 'Recomendado',
+        perfilDesenvolvedor: data.perfilDesenvolvedor || 'Desenvolvedor II',
         esforcoSetupSemanas: Number(data.esforcoSetupSemanas ?? 1),
 
         // Multi-Turno & Horas de Robô
@@ -235,6 +236,7 @@ export class RegistroService {
         roiAno1: calculated.roiAno1,
         roiAno2: calculated.roiAno2,
         paybackMeses: calculated.paybackMeses,
+        scorePriorizacao: calculated.scorePriorizacao,
 
         // VPL & Cenários
         vpl3Anos: calculated.vpl3Anos,
@@ -388,6 +390,7 @@ export class RegistroService {
         ...(data.numRotinas !== undefined && { numRotinas: Number(data.numRotinas) }),
         turno: calculated.turno,
         ...(data.recomendacao !== undefined && { recomendacao: data.recomendacao }),
+        ...(data.perfilDesenvolvedor !== undefined && { perfilDesenvolvedor: data.perfilDesenvolvedor }),
         ...(data.esforcoSetupSemanas !== undefined && { esforcoSetupSemanas: Number(data.esforcoSetupSemanas) }),
 
         // Multi-Turno
@@ -417,6 +420,7 @@ export class RegistroService {
         roiAno1: calculated.roiAno1,
         roiAno2: calculated.roiAno2,
         paybackMeses: calculated.paybackMeses,
+        scorePriorizacao: calculated.scorePriorizacao,
 
         vpl3Anos: calculated.vpl3Anos,
         vplCenarioConservador: calculated.vplCenarioConservador,

@@ -47,7 +47,7 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
     arquetiposSecundarios: '',
 
     // Variáveis dos Arquétipos
-    percAutomatizavel: 1.0,
+    percAutomatizavel: 100,
     taxaErroAtual: 0,
     custoMedioErro: 0,
     reducaoEsperadaErro: 0.8,
@@ -90,13 +90,13 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
     // AS IS
     areasEnvolvidas: '',
     descricaoProcesso: '',
-    numExecucoes: 100,
+    numExecucoes: 0,
     periodicidade: 'Mensal',
-    numPessoasEnvolvidas: 1,
+    numPessoasEnvolvidas: 0,
     tipoAlocacao: 'Parcial',
     perfilExecutor: 'Analista',
     valorHoraExecutor: 45,
-    tempoExecucao: 80,
+    tempoExecucao: 0,
     custoMensalAtual: 0,
     sistemasEnvolvidos: '',
     documentosApoio: '',
@@ -119,20 +119,21 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
     tipoPlataformaNome: '',
     descricaoSolucao: '',
     pontosAtencao: '',
-    reducaoTempoPrevista: '80%',
+    reducaoTempoPrevista: '',
     complexidade: 'Média',
-    reducaoCustoPrevista: '70%',
+    reducaoCustoPrevista: '',
     numRotinas: 1,
     turno: 'Diurno',
     recomendacao: 'Recomendado',
 
-    esforcoSetupSemanas: 2,
-    horasRoboDiurno: 40,
-    horasRoboNoturno: 20,
+    perfilDesenvolvedor: 'Desenvolvedor II',
+    esforcoSetupSemanas: 0,
+    horasRoboDiurno: 0,
+    horasRoboNoturno: 0,
     horasRoboFimDeSemana: 0,
-    horasRobo: 60,
-    horasApoioNegocio: 4,
-    horasManutencao: 4,
+    horasRobo: 0,
+    horasApoioNegocio: 0,
+    horasManutencao: 0,
 
     // N3 Realizado
     beneficioRealizadoAnual: 0,
@@ -143,8 +144,34 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeSubTab, setActiveSubTab] = useState<
-    'geral' | 'diagnostico' | 'arquetipos' | 'trilha' | 'beneficios' | 'tobe' | 'realizado'
+    'geral' | 'arquetipos' | 'beneficios' | 'tobe' | 'trilha' | 'diagnostico' | 'realizado'
   >('geral');
+
+  const stepOrder: Array<'geral' | 'arquetipos' | 'beneficios' | 'tobe' | 'trilha' | 'diagnostico' | 'realizado'> = [
+    'geral',
+    'arquetipos',
+    'beneficios',
+    'tobe',
+    'trilha',
+    'diagnostico',
+  ];
+  if (formData.id || formData.isRetrospectivo || (formData.beneficioRealizadoAnual && formData.beneficioRealizadoAnual > 0)) {
+    stepOrder.push('realizado');
+  }
+
+  const currentStepIndex = stepOrder.indexOf(activeSubTab);
+
+  const handleNextStep = () => {
+    if (currentStepIndex < stepOrder.length - 1) {
+      setActiveSubTab(stepOrder[currentStepIndex + 1]);
+    }
+  };
+
+  const handlePrevStep = () => {
+    if (currentStepIndex > 0) {
+      setActiveSubTab(stepOrder[currentStepIndex - 1]);
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -170,15 +197,20 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
         ...initialData,
         nivelMaturidade: initialData.nivelMaturidade || 'N0',
         arquetipoPrimario: initialData.arquetipoPrimario || 'A1',
+        percAutomatizavel: initialData.percAutomatizavel !== undefined ? (initialData.percAutomatizavel <= 1 && initialData.percAutomatizavel > 0 ? Math.round(initialData.percAutomatizavel * 100) : initialData.percAutomatizavel) : 100,
         percTrilhaAutomacao: initialData.percTrilhaAutomacao ?? 1.0,
         unidadesPiloto: initialData.unidadesPiloto ?? 1,
         unidadesPotenciais: initialData.unidadesPotenciais ?? 1,
         horasRoboDiurno: initialData.horasRoboDiurno ?? (initialData.turno === 'Noturno' ? 0 : initialData.horasRobo || 0),
         horasRoboNoturno: initialData.horasRoboNoturno ?? (initialData.turno === 'Noturno' ? initialData.horasRobo || 0 : 0),
         horasRoboFimDeSemana: initialData.horasRoboFimDeSemana ?? (initialData.turno === 'Final de Semana' ? initialData.horasRobo || 0 : 0),
+        horasManutencao: initialData.horasManutencao ?? 0,
+        horasApoioNegocio: initialData.horasApoioNegocio ?? 0,
+        perfilDesenvolvedor: initialData.perfilDesenvolvedor || 'Desenvolvedor II',
       });
     } else {
       const padrao = perfis.find((p) => p.isPadrao) || perfis[0];
+      setActiveSubTab('geral');
       setFormData({
         idOrigem: '',
         idAnalise: '',
@@ -195,7 +227,7 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
         recorrenciaDor: 'Frequente',
         arquetipoPrimario: 'A1',
         arquetiposSecundarios: '',
-        percAutomatizavel: 1.0,
+        percAutomatizavel: 100,
         taxaErroAtual: 0,
         custoMedioErro: 0,
         reducaoEsperadaErro: 0.8,
@@ -234,13 +266,13 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
         coberturaFinalPerc: 1.0,
         areasEnvolvidas: '',
         descricaoProcesso: '',
-        numExecucoes: 100,
+        numExecucoes: 0,
         periodicidade: 'Mensal',
-        numPessoasEnvolvidas: 1,
+        numPessoasEnvolvidas: 0,
         tipoAlocacao: 'Parcial',
         perfilExecutor: 'Analista',
         valorHoraExecutor: 45,
-        tempoExecucao: 80,
+        tempoExecucao: 0,
         custoMensalAtual: 0,
         sistemasEnvolvidos: '',
         documentosApoio: '',
@@ -257,22 +289,23 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
         benTransformacaoDigital: 'nenhum',
         benSustentabilidadeEsg: 'nenhum',
         perfilPlataformaId: padrao?.id || '',
-        tipoPlataformaNome: padrao?.nome || 'Python & Robot Framework (Open Source)',
+        tipoPlataformaNome: padrao?.nome || 'Python / Frameworks de Automação (Open Source)',
         descricaoSolucao: '',
         pontosAtencao: '',
-        reducaoTempoPrevista: '80%',
+        reducaoTempoPrevista: '',
         complexidade: 'Média',
-        reducaoCustoPrevista: '70%',
+        reducaoCustoPrevista: '',
         numRotinas: 1,
         turno: 'Diurno',
         recomendacao: 'Recomendado',
-        esforcoSetupSemanas: 2,
-        horasRoboDiurno: 40,
-        horasRoboNoturno: 20,
+        perfilDesenvolvedor: 'Desenvolvedor II',
+        esforcoSetupSemanas: 0,
+        horasRoboDiurno: 0,
+        horasRoboNoturno: 0,
         horasRoboFimDeSemana: 0,
-        horasRobo: 60,
-        horasApoioNegocio: 4,
-        horasManutencao: 4,
+        horasRobo: 0,
+        horasApoioNegocio: 0,
+        horasManutencao: 0,
         beneficioRealizadoAnual: 0,
         desvioProjetadoRealizadoPerc: 0,
         dataApuracaoRealizado: '',
@@ -384,7 +417,21 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
     const hf = Number(formData.horasRoboFimDeSemana) || 0;
     const custoHorasRobo = hd * taxaDiurna + hn * taxaNoturna + hf * taxaFimSemana;
 
-    const custoHoraDev = parametro.custoHoraDesenvolvimento || 185;
+    const encargos = 1.6;
+    const perfilDev = (formData.perfilDesenvolvedor || 'Desenvolvedor II').trim().toLowerCase();
+    let custoHoraDev = parametro.custoHoraDesenvolvimento || 185;
+
+    if (perfilDev.includes('iii') || perfilDev.includes('senior') || perfilDev.includes('sênior') || perfilDev.includes('3')) {
+      const sal = parametro.salarioDesenvolvedorIII || 26000;
+      custoHoraDev = (sal * encargos) / cargaHoraria;
+    } else if ((perfilDev.includes('i') && !perfilDev.includes('ii') && !perfilDev.includes('iii')) || perfilDev.includes('junior') || perfilDev.includes('júnior') || perfilDev.includes('1')) {
+      const sal = parametro.salarioDesenvolvedorI || 10000;
+      custoHoraDev = (sal * encargos) / cargaHoraria;
+    } else {
+      const sal = parametro.salarioDesenvolvedorII || 18500;
+      custoHoraDev = (sal * encargos) / cargaHoraria;
+    }
+
     const esforcoSetupSemanas = Number(formData.esforcoSetupSemanas) || 0;
     const investimentoSetup = (esforcoSetupSemanas * (custoHoraDev * 40)) / 12;
 
@@ -405,7 +452,9 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
     const arq = (formData.arquetipoPrimario || 'A1').toUpperCase();
 
     if (arq === 'A1') {
-      beneficioBruto = (custoMensalAtual * 12) * (Number(formData.percAutomatizavel) || 1.0);
+      const rawPerc = Number(formData.percAutomatizavel !== undefined ? formData.percAutomatizavel : 100);
+      const percAuto = rawPerc > 1 ? rawPerc / 100 : (rawPerc <= 0 ? 0 : rawPerc);
+      beneficioBruto = (custoMensalAtual * 12) * Math.max(0, Math.min(1, percAuto));
     } else if (arq === 'A2') {
       const numExec = Number(formData.numExecucoes) || 0;
       const tErro = Number(formData.taxaErroAtual) || 0;
@@ -620,7 +669,7 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
         {/* Painel Superior Executivo com Métricas V2.0 */}
         {calcPreview && (
           <div className="bg-[#0c326f] text-white p-3 rounded-lg shadow-sm">
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center text-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-6 gap-2 text-center text-xs">
               <div>
                 <span className="text-[10px] text-blue-200 block font-medium">Benefício Anual (R$)</span>
                 <span className="font-bold text-emerald-300 text-sm">
@@ -643,96 +692,66 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
               </div>
               <div>
                 <span className="text-[10px] text-blue-200 block font-medium">Score Intangível</span>
-                <span className="font-bold text-blue-200 text-sm">{calcPreview.pontuacaoBeneficios}%</span>
+                <span className="font-bold text-purple-300 text-sm">{calcPreview.pontuacaoBeneficios}%</span>
+              </div>
+              <div>
+                <span className="text-[10px] text-blue-200 block font-medium">Score Priorização</span>
+                <span className="font-bold text-yellow-300 text-sm">{calcPreview.scorePriorizacao ?? 0} pts</span>
               </div>
             </div>
           </div>
         )}
 
-        {/* Abas de Navegação GOVBR DS */}
-        <div className="flex border-b border-slate-200 overflow-x-auto space-x-1 pb-1">
-          <button
-            type="button"
-            onClick={() => setActiveSubTab('geral')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-t transition-all whitespace-nowrap cursor-pointer ${
-              activeSubTab === 'geral'
-                ? 'bg-white text-[#1351b4] border-b-2 border-[#1351b4] font-bold'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-            }`}
-          >
-            1. Ficha N0 (Entrada Rápida)
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveSubTab('diagnostico')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-t transition-all whitespace-nowrap cursor-pointer flex items-center space-x-1 ${
-              activeSubTab === 'diagnostico'
-                ? 'bg-white text-[#1351b4] border-b-2 border-[#1351b4] font-bold'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-            }`}
-          >
-            <span>2. Diagnóstico</span>
-            {diagnosticoPendencias.length > 0 && (
-              <span className="bg-amber-500 text-white rounded-full px-1.5 py-0.2 text-[10px] font-bold">
-                {diagnosticoPendencias.length}
-              </span>
-            )}
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveSubTab('arquetipos')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-t transition-all whitespace-nowrap cursor-pointer ${
-              activeSubTab === 'arquetipos'
-                ? 'bg-white text-[#1351b4] border-b-2 border-[#1351b4] font-bold'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-            }`}
-          >
-            3. 7 Arquétipos & AS IS
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveSubTab('trilha')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-t transition-all whitespace-nowrap cursor-pointer ${
-              activeSubTab === 'trilha'
-                ? 'bg-white text-[#1351b4] border-b-2 border-[#1351b4] font-bold'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-            }`}
-          >
-            4. Trilha & Reuso
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveSubTab('beneficios')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-t transition-all whitespace-nowrap cursor-pointer ${
-              activeSubTab === 'beneficios'
-                ? 'bg-white text-[#1351b4] border-b-2 border-[#1351b4] font-bold'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-            }`}
-          >
-            5. Matriz 12 Critérios
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveSubTab('tobe')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-t transition-all whitespace-nowrap cursor-pointer ${
-              activeSubTab === 'tobe'
-                ? 'bg-white text-[#1351b4] border-b-2 border-[#1351b4] font-bold'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-            }`}
-          >
-            6. Solução TO BE & Turnos
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveSubTab('realizado')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-t transition-all whitespace-nowrap cursor-pointer ${
-              activeSubTab === 'realizado'
-                ? 'bg-white text-[#1351b4] border-b-2 border-[#1351b4] font-bold'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-            }`}
-          >
-            7. N3 Realizado
-          </button>
+        {/* Stepper Wizard Bar (GOVBR DS) */}
+        <div className="flex border-b border-slate-200 overflow-x-auto pb-1 gap-1">
+          {stepOrder.map((stepKey, idx) => {
+            const isActive = activeSubTab === stepKey;
+            const isPassed = currentStepIndex > idx;
+            const stepLabels: Record<string, { label: string; icon: string }> = {
+              geral: { label: '1. Contexto (N0)', icon: 'fa-file-alt' },
+              arquetipos: { label: '2. AS IS & 7 Arquétipos', icon: 'fa-chart-line' },
+              beneficios: { label: '3. Benefícios Intangíveis', icon: 'fa-award' },
+              tobe: { label: '4. TO BE & Engenharia', icon: 'fa-laptop-code' },
+              trilha: { label: '5. Trilha & Reuso', icon: 'fa-sitemap' },
+              diagnostico: { label: '6. Diagnóstico & Prontidão', icon: 'fa-stethoscope' },
+              realizado: { label: '7. N3 Realizado', icon: 'fa-check-circle' },
+            };
+
+            const info = stepLabels[stepKey] || { label: stepKey, icon: 'fa-circle' };
+
+            return (
+              <button
+                key={stepKey}
+                type="button"
+                onClick={() => setActiveSubTab(stepKey)}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-t transition-all whitespace-nowrap cursor-pointer flex items-center space-x-1.5 ${
+                  isActive
+                    ? 'bg-white text-[#1351b4] border-b-2 border-[#1351b4] font-bold shadow-xs'
+                    : isPassed
+                    ? 'text-emerald-700 hover:bg-emerald-50/50'
+                    : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+                }`}
+              >
+                <span
+                  className={`w-4 h-4 rounded-full text-[9px] flex items-center justify-center font-bold ${
+                    isActive
+                      ? 'bg-[#1351b4] text-white'
+                      : isPassed
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-slate-200 text-slate-600'
+                  }`}
+                >
+                  {isPassed ? <i className="fas fa-check text-[8px]"></i> : idx + 1}
+                </span>
+                <span>{info.label}</span>
+                {stepKey === 'diagnostico' && diagnosticoPendencias.length > 0 && (
+                  <span className="bg-amber-500 text-white rounded-full px-1.5 py-0.2 text-[9px] font-bold">
+                    {diagnosticoPendencias.length}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
 
         {/* Tab 1: Ficha N0 (Entrada Rápida) */}
@@ -895,55 +914,9 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
           </div>
         )}
 
-        {/* Tab 2: Diagnóstico de Instrumentação (RF04) */}
-        {activeSubTab === 'diagnostico' && (
-          <div className="space-y-4 text-xs">
-            <div className="bg-[#1351b4] text-white p-3.5 rounded-lg shadow-xs flex items-center justify-between">
-              <div>
-                <span className="font-bold text-white block text-xs">
-                  Diagnóstico de Instrumentação & Fontes de Dados (RF04)
-                </span>
-                <span className="text-[11px] text-blue-100 block mt-0.5">
-                  Para promover a demanda de nível e construir um Business Case financeiro auditável, colete as variáveis abaixo nas fontes recomendadas:
-                </span>
-              </div>
-              <span className="bg-white text-[#0c326f] text-[10px] font-bold px-2.5 py-1 rounded shadow-xs whitespace-nowrap">
-                Maturidade: {calcPreview?.nivelMaturidade}
-              </span>
-            </div>
-
-            {diagnosticoPendencias.length === 0 ? (
-              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded text-center text-emerald-900">
-                <i className="fas fa-check-circle text-lg text-emerald-600 mb-1"></i>
-                <div className="font-bold">Todas as variáveis essenciais estão preenchidas!</div>
-                <div className="text-[11px]">Esta oportunidade já dispõe dos insumos para um Business Case Nível N2.</div>
-              </div>
-            ) : (
-              <div className="space-y-2.5">
-                {diagnosticoPendencias.map((item, idx) => (
-                  <div key={idx} className="p-3 bg-white border border-slate-200 rounded-lg shadow-xs space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-slate-800 flex items-center space-x-1.5">
-                        <i className="fas fa-search text-amber-500 mr-1"></i>
-                        <span>{item.label}</span>
-                      </span>
-                      <span className="text-[10px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                        {item.impactoParaPromocao}
-                      </span>
-                    </div>
-                    <div className="text-[11px] text-slate-600 pl-4 border-l-2 border-blue-400">
-                      <strong>Onde encontrar:</strong> {item.ondeEncontrar}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Tab 3: AS IS & 7 Arquétipos de Benefício */}
+        {/* Tab 2: AS IS & 7 Arquétipos de Benefício */}
         {activeSubTab === 'arquetipos' && (
-          <div className="space-y-4 text-xs max-h-[60vh] overflow-y-auto pr-1">
+          <div className="space-y-4 text-xs">
             <div className="bg-[#1351b4] text-white p-3.5 rounded-lg shadow-xs flex items-center justify-between">
               <div>
                 <span className="font-bold text-white block text-xs">
@@ -974,7 +947,7 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
                   <option value="A3">A3 — Atendimento e Autosserviço (Menor Custo por Contato / SAC)</option>
                   <option value="A4">A4 — Conformidade e Risco Contratual (Mitigação de Multas e Glosas)</option>
                   <option value="A5">A5 — Gargalo e Ciclo de Receita (Menor Lead Time / Antecipação de Faturamento)</option>
-                  <option value="A6">A6 — Racionalização de Ativos Técnicos (Consolidação de Robôs / Menos Manutenção)</option>
+                  <option value="A6">A6 — Racionalização de Ativos Técnicos (Consolidação de Soluções / Menos Manutenção)</option>
                   <option value="A7">A7 — Processo Comercial e Oportunidade (Receita Adicional / Propostas Comerciais)</option>
                 </select>
               </div>
@@ -1029,15 +1002,15 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
                   </div>
                   <div className="flex flex-col justify-end">
                     <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[34px] leading-tight text-xs">
-                      <span>% Automatizável (0 a 1.0)</span>
-                      <Tooltip content="Fração do processo absorvida pelo robô (ex: 1.0 para 100%)." />
+                      <span>% Automatizável (0% a 100%)</span>
+                      <Tooltip content="Percentual do processo absorvido pela automação (ex: 100 para 100%, 80 para 80%)." />
                     </label>
                     <input
                       type="number"
-                      step="0.05"
+                      step="1"
                       min="0"
-                      max="1"
-                      value={formData.percAutomatizavel ?? 1.0}
+                      max="100"
+                      value={formData.percAutomatizavel ?? 100}
                       onChange={(e) => handleChange('percAutomatizavel', Number(e.target.value))}
                       className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded"
                     />
@@ -1330,7 +1303,7 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
               <div className="flex flex-col justify-end">
                 <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[34px] leading-tight text-xs">
                   <span>Trilha Automação (%)</span>
-                  <Tooltip content="Fração do benefício conquistada pelo robô/fluxo automatizado." />
+                  <Tooltip content="Fração do benefício conquistada pela solução de automação." />
                 </label>
                 <input
                   type="number"
@@ -1395,7 +1368,7 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
                 <div className="flex flex-col justify-end">
                   <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[34px] leading-tight text-xs">
                     <span>Unidades Potenciais</span>
-                    <Tooltip content="Total de unidades/clientes que poderão reutilizar o robô." />
+                    <Tooltip content="Total de unidades/clientes que poderão reutilizar a automação." />
                   </label>
                   <input
                     type="number"
@@ -1424,7 +1397,7 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
 
         {/* Tab 5: Matriz de 12 Critérios */}
         {activeSubTab === 'beneficios' && (
-          <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
+          <div className="space-y-4 text-xs">
             <div className="bg-[#1351b4] text-white p-3.5 rounded-lg shadow-xs flex items-center justify-between">
               <div>
                 <span className="font-bold text-white block text-xs">
@@ -1522,11 +1495,53 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
               </div>
             </div>
 
+            {/* Bloco de Engenharia de Desenvolvimento & Setup */}
             <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-3">
-              <span className="font-bold text-slate-800 block text-xs">
-                Alocação de Horas em Múltiplos Turnos (Dimensionamento do Robô)
+              <span className="font-bold text-slate-800 text-xs flex items-center space-x-1.5">
+                <i className="fas fa-code-branch text-[#1351b4]"></i>
+                <span>Engenharia de Desenvolvimento & Setup da Solução</span>
               </span>
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex flex-col justify-end">
+                  <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[30px] leading-tight text-xs">
+                    <span>Perfil do Desenvolvedor</span>
+                    <Tooltip content="Nível técnico do profissional para o desenvolvimento da automação. Cada perfil possui valor de hora técnica correspondente ao seu salário/encargos cadastrados nos parâmetros." />
+                  </label>
+                  <select
+                    value={formData.perfilDesenvolvedor || 'Desenvolvedor II'}
+                    onChange={(e) => handleChange('perfilDesenvolvedor', e.target.value)}
+                    className="w-full text-xs px-3 py-2 border border-blue-400 bg-blue-50/50 rounded font-bold text-blue-900 focus:border-[#1351b4] focus:outline-none cursor-pointer"
+                  >
+                    <option value="Desenvolvedor I">Desenvolvedor I (Júnior)</option>
+                    <option value="Desenvolvedor II">Desenvolvedor II (Pleno - Padrão)</option>
+                    <option value="Desenvolvedor III">Desenvolvedor III (Sênior)</option>
+                  </select>
+                </div>
+
+                <div className="flex flex-col justify-end">
+                  <label className="flex items-end font-semibold text-slate-700 mb-1 min-h-[30px] leading-tight text-xs">
+                    <span>Esforço de Implementação (Semanas)</span>
+                    <Tooltip content="Tempo total estimado em semanas (40h/semana) para desenvolver, testar e homologar a automação." />
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.5"
+                    value={formData.esforcoSetupSemanas ?? 2}
+                    onChange={(e) => handleChange('esforcoSetupSemanas', Number(e.target.value))}
+                    className="w-full text-xs px-3 py-2 border border-slate-300 rounded font-semibold bg-white focus:border-[#1351b4] focus:outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Bloco de Horas de Automação nos Turnos */}
+            <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-3">
+              <span className="font-bold text-slate-800 text-xs flex items-center space-x-1.5">
+                <i className="fas fa-clock text-[#1351b4]"></i>
+                <span>Alocação de Horas em Múltiplos Turnos (Dimensionamento da Execução da Automação)</span>
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="flex flex-col justify-end">
                   <label className="flex items-end font-medium text-slate-700 mb-1 min-h-[30px] leading-tight text-xs">
                     <span>Diurno (08h-18h)</span>
@@ -1536,7 +1551,7 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
                     min="0"
                     value={formData.horasRoboDiurno ?? 0}
                     onChange={(e) => handleChange('horasRoboDiurno', Number(e.target.value))}
-                    className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded"
+                    className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded bg-white"
                   />
                 </div>
                 <div className="flex flex-col justify-end">
@@ -1548,7 +1563,7 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
                     min="0"
                     value={formData.horasRoboNoturno ?? 0}
                     onChange={(e) => handleChange('horasRoboNoturno', Number(e.target.value))}
-                    className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded"
+                    className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded bg-white"
                   />
                 </div>
                 <div className="flex flex-col justify-end">
@@ -1560,23 +1575,93 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
                     min="0"
                     value={formData.horasRoboFimDeSemana ?? 0}
                     onChange={(e) => handleChange('horasRoboFimDeSemana', Number(e.target.value))}
-                    className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded"
-                  />
-                </div>
-                <div className="flex flex-col justify-end">
-                  <label className="flex items-end font-medium text-slate-700 mb-1 min-h-[30px] leading-tight text-xs">
-                    <span>Setup (Semanas)</span>
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={formData.esforcoSetupSemanas ?? 2}
-                    onChange={(e) => handleChange('esforcoSetupSemanas', Number(e.target.value))}
-                    className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded"
+                    className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded bg-white"
                   />
                 </div>
               </div>
             </div>
+
+            <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-3">
+              <span className="font-bold text-slate-800 block text-xs">
+                Sustentação Operacional & Apoio Contínuo (h/mês)
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex flex-col justify-end">
+                  <label className="flex items-end font-medium text-slate-700 mb-1 min-h-[30px] leading-tight text-xs">
+                    <span>Horas Mensais de Manutenção / NOC</span>
+                    <Tooltip content="Horas mensais estimadas de suporte técnico e sustentação preventiva/corretiva da automação pela equipe de sustentação/NOC." />
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.5"
+                    value={formData.horasManutencao ?? 4}
+                    onChange={(e) => handleChange('horasManutencao', Number(e.target.value))}
+                    className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded bg-white"
+                  />
+                </div>
+                <div className="flex flex-col justify-end">
+                  <label className="flex items-end font-medium text-slate-700 mb-1 min-h-[30px] leading-tight text-xs">
+                    <span>Horas Mensais de Apoio do Negócio</span>
+                    <Tooltip content="Horas mensais dedicadas pela equipe de negócio para acompanhamento, tratamento de exceções e apoio operacional contínuo." />
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.5"
+                    value={formData.horasApoioNegocio ?? 4}
+                    onChange={(e) => handleChange('horasApoioNegocio', Number(e.target.value))}
+                    className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded bg-white"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 6: Diagnóstico de Instrumentação & Prontidão (RF04) */}
+        {activeSubTab === 'diagnostico' && (
+          <div className="space-y-4 text-xs">
+            <div className="bg-[#1351b4] text-white p-3.5 rounded-lg shadow-xs flex items-center justify-between">
+              <div>
+                <span className="font-bold text-white block text-xs">
+                  Diagnóstico de Instrumentação, Fontes de Dados & Prontidão (RF04)
+                </span>
+                <span className="text-[11px] text-blue-100 block mt-0.5">
+                  Checklist de prontidão para promoção da oportunidade no funil de maturidade (N0 → N1 → N2).
+                </span>
+              </div>
+              <span className="bg-white text-[#0c326f] text-[10px] font-bold px-2.5 py-1 rounded shadow-xs whitespace-nowrap">
+                Maturidade: {calcPreview?.nivelMaturidade}
+              </span>
+            </div>
+
+            {diagnosticoPendencias.length === 0 ? (
+              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded text-center text-emerald-900">
+                <i className="fas fa-check-circle text-lg text-emerald-600 mb-1"></i>
+                <div className="font-bold">Todas as variáveis essenciais estão preenchidas!</div>
+                <div className="text-[11px]">Esta oportunidade já dispõe de todos os insumos para um Business Case Nível N2 e priorização.</div>
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {diagnosticoPendencias.map((item, idx) => (
+                  <div key={idx} className="p-3 bg-white border border-slate-200 rounded-lg shadow-xs space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-slate-800 flex items-center space-x-1.5">
+                        <i className="fas fa-search text-amber-500 mr-1"></i>
+                        <span>{item.label}</span>
+                      </span>
+                      <span className="text-[10px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                        {item.impactoParaPromocao}
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-slate-600 pl-4 border-l-2 border-blue-400">
+                      <strong>Onde encontrar:</strong> {item.ondeEncontrar}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -1666,8 +1751,8 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
           </div>
         )}
 
-        {/* Rodapé com Ações GOVBR DS */}
-        <div className="flex items-center justify-between pt-3 border-t border-slate-200">
+        {/* Rodapé com Navegação Wizard & Ações GOVBR DS */}
+        <div className="flex items-center justify-between pt-3 border-t border-slate-200 bg-white">
           <button
             type="button"
             onClick={onClose}
@@ -1676,23 +1761,54 @@ export const RegistroFormModal: React.FC<RegistroFormModalProps> = ({
             Cancelar
           </button>
 
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="px-6 py-2 text-xs font-bold text-white bg-[#1351b4] hover:bg-[#0c326f] rounded shadow-sm hover:shadow cursor-pointer transition-all flex items-center space-x-2"
-          >
-            {isSubmitting ? (
-              <>
-                <i className="fas fa-spinner fa-spin"></i>
-                <span>Salvando...</span>
-              </>
-            ) : (
-              <>
-                <i className="fas fa-check"></i>
-                <span>{formData.id ? 'Salvar Alterações' : 'Cadastrar Oportunidade'}</span>
-              </>
+          <div className="flex items-center space-x-2">
+            {currentStepIndex > 0 && (
+              <button
+                type="button"
+                onClick={handlePrevStep}
+                className="px-3.5 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded border border-slate-300 cursor-pointer transition-colors flex items-center space-x-1.5"
+              >
+                <i className="fas fa-chevron-left text-[10px]"></i>
+                <span>Anterior</span>
+              </button>
             )}
-          </button>
+
+            {currentStepIndex < stepOrder.length - 1 && (
+              <button
+                type="button"
+                onClick={handleNextStep}
+                className="px-4 py-2 text-xs font-bold text-white bg-[#1351b4] hover:bg-[#0c326f] rounded shadow-xs cursor-pointer transition-all flex items-center space-x-1.5"
+              >
+                <span>Próximo Passo</span>
+                <i className="fas fa-chevron-right text-[10px]"></i>
+              </button>
+            )}
+
+            {/* Salvar visível no último passo ou se estiver em modo de edição */}
+            {(currentStepIndex === stepOrder.length - 1 || formData.id) && (
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className={`px-5 py-2 text-xs font-bold text-white rounded shadow-sm hover:shadow cursor-pointer transition-all flex items-center space-x-2 ${
+                  currentStepIndex === stepOrder.length - 1
+                    ? 'bg-emerald-600 hover:bg-emerald-700'
+                    : 'bg-[#1351b4] hover:bg-[#0c326f]'
+                }`}
+              >
+                {isSubmitting ? (
+                  <>
+                    <i className="fas fa-spinner fa-spin"></i>
+                    <span>Salvando...</span>
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-check"></i>
+                    <span>{formData.id ? 'Salvar Alterações' : 'Concluir & Cadastrar'}</span>
+                  </>
+                )}
+              </button>
+            )}
+          </div>
         </div>
       </form>
     </Modal>

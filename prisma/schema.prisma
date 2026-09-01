@@ -41,8 +41,11 @@ model Parametro {
   percNoturno                    Float    @default(0.30)
   percFimDeSemana                Float    @default(0.10)
 
-  // Investimento de Engenharia / Desenvolvimento
-  custoHoraDesenvolvimento       Float    @default(185.0) // Custo pleno analista/desenvolvedor
+  // Investimento de Engenharia / Desenvolvimento por Salário Mensal (R$/Mês)
+  salarioDesenvolvedorI          Float    @default(10000.0) // Desenvolvedor I (Júnior)
+  salarioDesenvolvedorII         Float    @default(18500.0) // Desenvolvedor II (Pleno)
+  salarioDesenvolvedorIII        Float    @default(26000.0) // Desenvolvedor III (Sênior)
+  custoHoraDesenvolvimento       Float    @default(185.0)   // Legado / Fallback
 
   // Parâmetros Financeiros Corporativos (VPL & Benchmarks)
   taxaDescontoVpl                Float    @default(0.12)  // 12% a.a. taxa de desconto padrão
@@ -211,6 +214,7 @@ model Registro {
   recomendacao                   String   @default("Recomendado")
 
   // Custo, Esforço e Alocação de Múltiplos Turnos
+  perfilDesenvolvedor            String   @default("Desenvolvedor II") // "Desenvolvedor I", "Desenvolvedor II", "Desenvolvedor III"
   esforcoSetupSemanas            Float    @default(1.0)
   investimentoSetup              Float    @default(0.0)
   
@@ -235,10 +239,11 @@ model Registro {
   beneficioBrutoAnual            Float    @default(0.0)
   beneficioLiquidoAnual          Float    @default(0.0)
 
-  // ROI & Payback
+  // ROI, Payback & Priorização
   roiAno1                        Float    @default(0.0)
   roiAno2                        Float    @default(0.0)
   paybackMeses                   Float    @default(0.0)
+  scorePriorizacao               Float    @default(0.0)
 
   // VPL & Cenários
   vpl3Anos                       Float    @default(0.0)

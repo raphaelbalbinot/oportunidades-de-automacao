@@ -587,7 +587,7 @@ export const ParametrosPage: React.FC = () => {
               <div>
                 <label className="block text-xs font-semibold text-slate-800 mb-1.5">
                   Posto Sustentação NOC / Operador (R$/Mês)
-                  <Tooltip content="Custo mensal total do posto de monitoramento 24x7 e sustentação operacional de robôs, incluindo encargos e adicionais." />
+                  <Tooltip content="Custo mensal total do posto de monitoramento 24x7 e sustentação operacional de automações, incluindo encargos e adicionais." />
                 </label>
                 <input
                   type="number"
@@ -598,20 +598,98 @@ export const ParametrosPage: React.FC = () => {
                 />
               </div>
 
-              {/* Custo Hora Dev */}
+            </div>
+
+            {/* Seção Especial: Perfis de Engenharia & Desenvolvimento (Salário Mensal) */}
+            <div className="bg-slate-50 p-5 rounded-lg border border-slate-200 space-y-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-800 mb-1.5">
-                  Custo Hora de Engenharia/Dev (R$/HH)
-                  <Tooltip content="Valor integral da hora técnica de analistas/desenvolvedores para desenvolvimento e setup das soluções de automação." />
-                </label>
-                <input
-                  type="number"
-                  step="5"
-                  value={parametro.custoHoraDesenvolvimento}
-                  onChange={(e) => handleParamChange('custoHoraDesenvolvimento', Number(e.target.value))}
-                  className="w-full text-xs px-3 py-2 bg-white border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none font-semibold text-slate-900"
-                />
+                <h4 className="text-xs font-bold text-slate-900 m-0 flex items-center space-x-2">
+                  <i className="fas fa-users-cog text-[#1351b4]"></i>
+                  <span>Perfis de Engenharia & Desenvolvimento (Salário Base Mensal)</span>
+                </h4>
+                <p className="text-[11px] text-slate-600 mt-1 m-0">
+                  Informe o salário mensal de cada perfil de desenvolvedor. O sistema converte automaticamente em custo/hora técnico considerando a jornada padrão de {parametro.cargaHorariaPadrao || 160}h/mês e fator multiplicador de encargos corporativos (1,6x).
+                </p>
               </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
+                {/* Desenvolvedor I */}
+                <div className="bg-white p-4 rounded-md border border-slate-200 shadow-xs space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-xs text-slate-800">Desenvolvedor I (Júnior)</span>
+                    <span className="bg-blue-100 text-[#0c326f] text-[10px] font-bold px-2 py-0.5 rounded">
+                      R$ {(((parametro.salarioDesenvolvedorI ?? 10000) * 1.6) / (parametro.cargaHorariaPadrao || 160)).toFixed(2)}/h
+                    </span>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-medium text-slate-600 mb-1">
+                      Salário Mensal (R$/Mês)
+                    </label>
+                    <input
+                      type="number"
+                      step="500"
+                      value={parametro.salarioDesenvolvedorI ?? 10000}
+                      onChange={(e) => handleParamChange('salarioDesenvolvedorI', Number(e.target.value))}
+                      className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded font-semibold text-slate-900 focus:border-[#1351b4] focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                {/* Desenvolvedor II */}
+                <div className="bg-white p-4 rounded-md border-2 border-[#1351b4] shadow-xs space-y-2 relative">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-xs text-blue-900 flex items-center space-x-1">
+                      <span>Desenvolvedor II (Pleno)</span>
+                      <span className="text-[10px] text-amber-500 font-bold" title="Perfil Padrão">⭐</span>
+                    </span>
+                    <span className="bg-[#1351b4] text-white text-[10px] font-bold px-2 py-0.5 rounded">
+                      R$ {(((parametro.salarioDesenvolvedorII ?? 18500) * 1.6) / (parametro.cargaHorariaPadrao || 160)).toFixed(2)}/h
+                    </span>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-medium text-slate-600 mb-1">
+                      Salário Mensal (R$/Mês)
+                    </label>
+                    <input
+                      type="number"
+                      step="500"
+                      value={parametro.salarioDesenvolvedorII ?? 18500}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        handleParamChange('salarioDesenvolvedorII', val);
+                        const custoHora = Number(((val * 1.6) / (parametro.cargaHorariaPadrao || 160)).toFixed(2));
+                        handleParamChange('custoHoraDesenvolvimento', custoHora);
+                      }}
+                      className="w-full text-xs px-3 py-1.5 border border-blue-300 rounded font-semibold text-slate-900 focus:border-[#1351b4] focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                {/* Desenvolvedor III */}
+                <div className="bg-white p-4 rounded-md border border-slate-200 shadow-xs space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-xs text-slate-800">Desenvolvedor III (Sênior)</span>
+                    <span className="bg-purple-100 text-purple-900 text-[10px] font-bold px-2 py-0.5 rounded">
+                      R$ {(((parametro.salarioDesenvolvedorIII ?? 26000) * 1.6) / (parametro.cargaHorariaPadrao || 160)).toFixed(2)}/h
+                    </span>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-medium text-slate-600 mb-1">
+                      Salário Mensal (R$/Mês)
+                    </label>
+                    <input
+                      type="number"
+                      step="500"
+                      value={parametro.salarioDesenvolvedorIII ?? 26000}
+                      onChange={(e) => handleParamChange('salarioDesenvolvedorIII', Number(e.target.value))}
+                      className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded font-semibold text-slate-900 focus:border-[#1351b4] focus:outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 
               {/* Taxa Desconto VPL */}
               <div>
@@ -812,8 +890,8 @@ export const ParametrosPage: React.FC = () => {
                     </div>
 
                     <div className="bg-slate-50 p-2 rounded">
-                      <span className="text-[10px] text-slate-500 block">Rateio Robôs</span>
-                      <span className="font-bold text-slate-800">{p.nrRobosDiluicao} robôs</span>
+                      <span className="text-[10px] text-slate-500 block">Rateio Automações</span>
+                      <span className="font-bold text-slate-800">{p.nrRobosDiluicao} automações</span>
                     </div>
                   </div>
                 </div>
@@ -924,7 +1002,7 @@ export const ParametrosPage: React.FC = () => {
               required
               value={perfilFormData.nome || ''}
               onChange={(e) => setPerfilFormData({ ...perfilFormData, nome: e.target.value })}
-              placeholder="Ex: Python & Robot Framework (Cloud Native)"
+              placeholder="Ex: Python / Scripts de Automação (Cloud Native)"
               className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none"
             />
           </div>
@@ -938,7 +1016,7 @@ export const ParametrosPage: React.FC = () => {
               onChange={(e) => setPerfilFormData({ ...perfilFormData, categoria: e.target.value })}
               className="w-full text-xs px-3 py-2 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none bg-white cursor-pointer"
             >
-              <option value="Open Source / Scripting">Open Source / Scripting (Python, Robot)</option>
+              <option value="Open Source / Scripting">Open Source / Scripting (Python, Automações)</option>
               <option value="Workflow & iPaaS">Workflow & iPaaS (n8n, Camunda, Airflow)</option>
               <option value="RPA Proprietário">RPA Proprietário (Power Automate, UiPath)</option>
               <option value="Low-Code / RAD">Low-Code / RAD (OutSystems, Appian)</option>
@@ -1002,7 +1080,7 @@ export const ParametrosPage: React.FC = () => {
 
             <div>
               <label className="block text-xs font-semibold text-slate-800 mb-1">
-                Quantidade de Robôs p/ Diluição
+                Quantidade de Automações p/ Diluição
               </label>
               <input
                 type="number"

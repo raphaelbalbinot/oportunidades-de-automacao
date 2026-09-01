@@ -176,6 +176,7 @@ export class AnalyticsService {
       roiAno1: r.roiAno1 || 0,
       roiAno2: r.roiAno2 || 0,
       paybackMeses: r.paybackMeses || 0,
+      scorePriorizacao: r.scorePriorizacao || 0,
       vpl3Anos: r.vpl3Anos || 0,
       vplCenarioConservador: r.vplCenarioConservador || 0,
       vplCenarioBase: r.vplCenarioBase || 0,
@@ -195,10 +196,14 @@ export class AnalyticsService {
       beneficiosScore: Number(((r.pontuacaoBeneficios || 0) * 100).toFixed(1)),
       roiAno1: r.roiAno1,
       vpl3Anos: r.vpl3Anos || 0,
+      beneficioLiquidoAnual: r.beneficioLiquidoAnual || (r.custoMensalAtual ? r.custoMensalAtual * 12 : 0),
+      esforcoSemanas: r.esforcoSetupSemanas || 1,
+      scorePriorizacao: r.scorePriorizacao || 0,
       fte: r.fteLiberado,
       complexidade: r.complexidade,
       payback: r.paybackMeses,
       recomendacao: r.recomendacao,
+      situacao: r.situacao || 'Em levantamento',
     }));
 
     return {

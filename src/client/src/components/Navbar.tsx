@@ -8,9 +8,7 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onToggleMenu }) => {
   const [darkMode, setDarkMode] = useState<boolean>(false);
-  const [searchQuery, setSearchQuery] = useState<string>('');
   const [fontScale, setFontScale] = useState<number>(100);
-  const [isQuickAccessOpen, setIsQuickAccessOpen] = useState<boolean>(false);
 
   useEffect(() => {
     const isDark = localStorage.getItem('serpro_contrast_mode') === 'true';
@@ -38,18 +36,6 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onToggl
       return next;
     });
   };
-
-  const quickLinks = [
-    { label: 'Empresa', href: 'https://www.serpro.gov.br/menu/quem-somos' },
-    { label: 'Insights', href: 'https://www.serpro.gov.br/insights' },
-    { label: 'Privacidade', href: 'https://www.serpro.gov.br/privacidade-protecao-dados' },
-    { label: 'Suporte', href: 'https://www.serpro.gov.br/menu/suporte/css' },
-    { label: 'Download e Software', href: 'https://www.serpro.gov.br/menu/suporte/downloads/downloads-e-softwares' },
-    { label: 'Imprensa', href: 'https://www.serpro.gov.br/imprensa' },
-    { label: 'Contato', href: 'https://www.serpro.gov.br/menu/contato/cliente/cliente/@@template_contato' },
-    { label: 'Acesso à informação', href: 'https://www.transparencia.serpro.gov.br/acesso-a-informacao', external: true },
-    { label: 'Loja Serpro', href: 'https://loja.serpro.gov.br/?utm_source=portal&utm_medium=menu&utm_campaign=home-serpro', external: true },
-  ];
 
   return (
     <header className="w-full bg-white border-b border-slate-200 shadow-xs sticky top-0 z-40 font-['Rawline',sans-serif]" id="header-capa">
@@ -101,102 +87,9 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onToggl
 
         {/* 2. Cabeçalho Oficial GOV.BR DS Serpro (.br-header) */}
         <div className="br-header flex flex-column justify-content-end w-full">
-          {/* Linha Superior: Logo + Divisor + Links Institucionais + Área do Cliente */}
-          <div className="header-top px-4 sm:px-8 py-3 flex items-center justify-between border-b border-slate-100">
-            <div className="header-logo flex items-center">
-              <a
-                className="logo flex items-center cursor-pointer"
-                aria-label="marca do serpro"
-                href="https://www.serpro.gov.br/"
-                target="_blank"
-                rel="noreferrer"
-              >
-                <img
-                  src={darkMode ? '/assets/marca-serpro-rodape.png' : '/assets/marca-serpro.png'}
-                  alt="Serpro"
-                  className="h-9 w-auto object-contain"
-                />
-              </a>
-              <span className="br-divider vertical h-7 w-px bg-slate-300 mx-4 hidden sm:block"></span>
-            </div>
 
-            <div className="header-actions flex items-center space-x-3 sm:space-x-4 lg:space-x-6 text-[14px] font-normal font-['Rawline','Raleway',sans-serif]">
-              {/* Links Diretos em Telas Grandes */}
-              <div className="header-links hidden xl:flex items-center space-x-6">
-                {quickLinks.map((link) => (
-                  <a
-                    key={link.label}
-                    href={link.href}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-[var(--govbr-blue-warm-vivid-70)] hover:text-[var(--govbr-blue-warm-vivid-90)] hover:underline transition-colors flex items-center space-x-1"
-                  >
-                    <span>{link.label}</span>
-                    {link.external && <i className="fas fa-external-link-alt text-[10px] ml-0.5"></i>}
-                  </a>
-                ))}
-              </div>
-
-              {/* Menu Dropdown de Acesso Rápido em Telas Menores (Padrão GovBR 3 Pontinhos) */}
-              <div className="relative xl:hidden">
-                <button
-                  type="button"
-                  onClick={() => setIsQuickAccessOpen((prev) => !prev)}
-                  className="br-button circle small w-8 h-8 rounded-full border border-slate-200 hover:bg-slate-100 text-[var(--govbr-blue-warm-vivid-70)] flex items-center justify-center cursor-pointer transition-colors"
-                  aria-label="Abrir Acesso Rápido"
-                  aria-expanded={isQuickAccessOpen}
-                  title="Acesso Rápido"
-                >
-                  <i className="fas fa-ellipsis-v text-xs"></i>
-                </button>
-
-                {isQuickAccessOpen && (
-                  <>
-                    <div
-                      className="fixed inset-0 z-40"
-                      onClick={() => setIsQuickAccessOpen(false)}
-                    />
-                    <div className="br-list absolute right-0 top-10 w-56 bg-white border border-slate-200 rounded-lg shadow-xl py-2 z-50 text-xs">
-                      <div className="px-3 py-1.5 font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 mb-1 text-[10px]">
-                        Acesso Rápido
-                      </div>
-                      {quickLinks.map((link) => (
-                        <a
-                          key={link.label}
-                          href={link.href}
-                          target="_blank"
-                          rel="noreferrer"
-                          onClick={() => setIsQuickAccessOpen(false)}
-                          className="block px-3 py-2 text-slate-700 hover:bg-blue-50 hover:text-[var(--govbr-blue-warm-vivid-70)] transition-colors"
-                        >
-                          {link.label}
-                        </a>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-
-              <span className="br-divider vertical h-6 w-px bg-slate-300 mx-2 hidden sm:block"></span>
-
-              <div className="header-login hidden sm:block">
-                <div className="header-sign-in">
-                  <a
-                    href="http://cliente.serpro.gov.br/"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="br-sign-in small btn-area-cliente flex items-center space-x-2 px-4 py-1.5 rounded-full border border-slate-300 text-slate-700 hover:text-[var(--govbr-blue-warm-vivid-70)] hover:border-[var(--govbr-blue-warm-vivid-70)] bg-white hover:bg-slate-50 transition-all font-normal text-[13px] cursor-pointer"
-                  >
-                    <i className="far fa-user text-xs"></i>
-                    <span>Área do cliente</span>
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Linha Inferior: Menu Hambúrguer Oficial GovBR + Título do Sistema + Campo de Busca */}
-          <div className="header-bottom px-4 sm:px-8 py-2.5 flex flex-col md:flex-row md:items-center justify-between gap-3">
+          {/* Linha Inferior: Menu Hambúrguer Oficial GovBR + Título do Sistema */}
+          <div className="header-bottom px-4 sm:px-8 py-2.5 flex items-center justify-between">
             <div className="header-menu flex items-center space-x-3">
               <div className="header-menu-trigger" id="header-navigation">
                 <button
@@ -216,33 +109,6 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onToggl
                 </div>
               </div>
             </div>
-
-            <form
-              id="main-searchbox"
-              className="search-form-container relative w-full md:w-80 m-0 bg-transparent border-0"
-              action="https://www.serpro.gov.br/@@search"
-              method="get"
-              target="_blank"
-            >
-              <div className="relative w-full flex items-center">
-                <input
-                  name="SearchableText"
-                  id="searchbox"
-                  type="text"
-                  placeholder="O que você procura?"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="search-input w-full bg-white border border-slate-300 rounded-md py-2 pl-3.5 pr-10 text-xs text-slate-700 italic placeholder:text-slate-400 focus:bg-white focus:border-[var(--govbr-blue-warm-vivid-70)] focus:outline-none transition-colors"
-                />
-                <button
-                  className="search-submit-btn absolute right-2 top-1/2 -translate-y-1/2 text-[var(--govbr-blue-warm-vivid-70)] hover:text-[var(--govbr-blue-warm-vivid-90)] cursor-pointer p-1.5 bg-transparent border-0 shadow-none flex items-center justify-center"
-                  type="submit"
-                  aria-label="Pesquisar"
-                >
-                  <i className="fas fa-search text-xs"></i>
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       </header>

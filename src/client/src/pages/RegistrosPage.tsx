@@ -5,6 +5,59 @@ import { RegistroFormModal } from '../components/RegistroFormModal';
 import { DossieExportModal } from '../components/DossieExportModal';
 import { useNotification } from '../components/Notification';
 
+const HeaderInfoTooltip: React.FC<{
+  title: string;
+  description: string;
+  formula?: string;
+  align?: 'left' | 'center' | 'right';
+}> = ({ title, description, formula, align = 'center' }) => {
+  const [show, setShow] = useState(false);
+
+  const positionClasses =
+    align === 'left'
+      ? 'top-full left-0 mt-2'
+      : align === 'right'
+      ? 'top-full right-0 mt-2'
+      : 'top-full left-1/2 -translate-x-1/2 mt-2';
+
+  return (
+    <div
+      className="relative inline-flex items-center ml-1 text-slate-400 hover:text-[#1351b4]"
+      onClick={(e) => e.stopPropagation()}
+      onMouseEnter={() => setShow(true)}
+      onMouseLeave={() => setShow(false)}
+    >
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          setShow(!show);
+        }}
+        className="p-0.5 bg-transparent border-0 shadow-none cursor-pointer inline-flex items-center text-slate-400 hover:text-[#1351b4]"
+        aria-label={`Ajuda sobre ${title}`}
+      >
+        <i className="fas fa-info-circle text-[10.5px]"></i>
+      </button>
+      {show && (
+        <div
+          className={`absolute z-[100] ${positionClasses} w-64 p-3 bg-[#0f172a] text-white text-[11px] rounded-lg shadow-2xl border border-slate-700 text-left normal-case font-normal leading-tight pointer-events-none`}
+        >
+          <div className="font-bold text-blue-300 text-[11.5px] mb-1 flex items-center space-x-1.5">
+            <i className="fas fa-lightbulb text-amber-400 text-[11px]"></i>
+            <span>{title}</span>
+          </div>
+          <p className="m-0 text-slate-200 leading-relaxed">{description}</p>
+          {formula && (
+            <div className="mt-2 pt-1.5 border-t border-slate-700/80 text-[10px] text-emerald-300 font-mono">
+              <strong className="text-slate-400 font-sans">Fórmula:</strong> {formula}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const RegistrosPage: React.FC = () => {
   const notify = useNotification();
   const [registros, setRegistros] = useState<Registro[]>([]);
@@ -46,18 +99,9 @@ export const RegistrosPage: React.FC = () => {
     }
   };
 
-  const loadParametros = async () => {
-    try {
-      const p = await api.getParametros();
-      setParametro(p);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
   useEffect(() => {
     loadData();
-    loadParametros();
+    api.getParametros().then(setParametro).catch(console.error);
   }, [search, areaFilter, situacaoFilter, complexidadeFilter, maturidadeFilter, arquetipoFilter]);
 
   const handleOpenCreate = () => {
@@ -68,6 +112,19 @@ export const RegistrosPage: React.FC = () => {
   const handleOpenEdit = (registro: Registro) => {
     setEditingRegistro(registro);
     setModalOpen(true);
+  };
+
+  const handleDelete = async (id: string, nomeProcesso: string) => {
+    if (confirm(`Deseja realmente excluir a oportunidade "${nomeProcesso}"?`)) {
+      try {
+        await api.deleteRegistro(id);
+        notify.success('Oportunidade Excluída', `Oportunidade "${nomeProcesso}" excluída com sucesso.`);
+        loadData();
+      } catch (err: any) {
+        console.error(err);
+        notify.error('Erro ao Excluir', 'Não foi possível excluir a oportunidade.');
+      }
+    }
   };
 
   const handleSave = async (formData: Partial<Registro>) => {
@@ -83,18 +140,6 @@ export const RegistrosPage: React.FC = () => {
       loadData();
     } catch (err: any) {
       notify.error('Erro ao Salvar', err.message || 'Erro ao salvar oportunidade.');
-    }
-  };
-
-  const handleDelete = async (id: string, nome: string) => {
-    if (confirm(`Tem certeza que deseja excluir o levantamento "${nome}"?`)) {
-      try {
-        await api.deleteRegistro(id);
-        notify.success('Processo Excluído', `Levantamento "${nome}" excluído com sucesso.`);
-        loadData();
-      } catch (err: any) {
-        notify.error('Erro ao Excluir', err.message || 'Erro ao excluir.');
-      }
     }
   };
 
@@ -168,123 +213,160 @@ export const RegistrosPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header com Identidade GOVBR DS */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-lg border border-slate-200 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-lg border border-slate-200 shadow-xs">
         <div>
-          <h1 className="text-xl font-bold text-[var(--govbr-blue-warm-vivid-90)] tracking-tight">
-            Portfólio de Oportunidades de Automação
+          <h1 className="text-xl font-bold text-[#1351b4] tracking-tight">
+            Levantamento de Oportunidades & Business Cases
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Gestão de esteira, triagem de maturidade (N0 a N3), arquétipos de valor e análise de viabilidade corporativa.
+            Inventário unificado de automações com cálculo auditável de ROI, VPL, maturidade e benefícios estratégicos.
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={handleOpenCreate}
-          className="flex items-center justify-center space-x-2 px-4 py-2 bg-[#1351b4] hover:bg-[#0c326f] text-white font-bold text-xs rounded-md shadow-xs hover:shadow transition-all cursor-pointer whitespace-nowrap"
-        >
-          <i className="fas fa-plus text-xs"></i>
-          <span>Nova Oportunidade (N0)</span>
-        </button>
+        <div className="flex items-center space-x-2">
+          <button
+            type="button"
+            onClick={toggleExpandAll}
+            className="px-3 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded border border-slate-300 cursor-pointer transition-colors flex items-center space-x-1.5"
+            title={isAllExpanded ? 'Recolher todos os detalhes' : 'Expandir todos os detalhes'}
+          >
+            <i className={`fas fa-${isAllExpanded ? 'compress-alt' : 'expand-alt'} text-slate-600 text-xs`}></i>
+            <span>{isAllExpanded ? 'Recolher Tudo' : 'Expandir Tudo'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleOpenCreate}
+            className="px-4 py-2 text-xs font-bold text-white bg-[#1351b4] hover:bg-[#0c326f] rounded shadow-xs hover:shadow cursor-pointer transition-all flex items-center space-x-2"
+          >
+            <i className="fas fa-plus text-xs"></i>
+            <span>Nova Oportunidade</span>
+          </button>
+        </div>
       </div>
 
-      {/* Barra de Filtros GOVBR DS */}
-      <div className="bg-white p-3.5 rounded-lg border border-slate-200 shadow-xs flex flex-col md:flex-row flex-wrap items-center gap-3">
-        {/* Search */}
-        <div className="relative flex-1 min-w-[200px] w-full">
-          <input
-            type="text"
-            placeholder="Buscar por processo, ID, área, dor ou plataforma..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full text-xs bg-slate-50 border border-slate-300 rounded-md pl-8 pr-3 py-2 text-slate-700 placeholder:text-slate-400 outline-none focus:bg-white focus:border-[#1351b4]"
-          />
-          <i className="fas fa-search absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+      {/* Barra de Filtros Rápidos */}
+      <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-xs space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-3">
+          {/* Busca Texto */}
+          <div className="md:col-span-2">
+            <label className="block text-[11px] font-semibold text-slate-700 mb-1">Buscar Processo / ID / Sistemas</label>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Ex: Folha, DAP, SEI, A1..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full text-xs pl-8 pr-3 py-1.5 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none"
+              />
+              <i className="fas fa-search absolute left-2.5 top-2.5 text-slate-400 text-xs"></i>
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch('')}
+                  className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                >
+                  <i className="fas fa-times text-xs"></i>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Área Solicitante */}
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700 mb-1">Área Cliente</label>
+            <select
+              value={areaFilter}
+              onChange={(e) => setAreaFilter(e.target.value)}
+              className="w-full text-xs px-2.5 py-1.5 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none bg-white"
+            >
+              <option value="">Todas as Áreas</option>
+              {uniqueAreas.map((a) => (
+                <option key={a} value={a}>
+                  {a}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Funil de Maturidade */}
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700 mb-1">Maturidade (FCAIA)</label>
+            <select
+              value={maturidadeFilter}
+              onChange={(e) => setMaturidadeFilter(e.target.value)}
+              className="w-full text-xs px-2.5 py-1.5 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none bg-white font-medium"
+            >
+              <option value="">Todos os Níveis</option>
+              <option value="N0">N0 — Ideação / Oportunidade</option>
+              <option value="N1">N1 — Quantificação Básica</option>
+              <option value="N2">N2 — Business Case Pronto</option>
+              <option value="N3">N3 — Benefício Realizado</option>
+            </select>
+          </div>
+
+          {/* Arquétipo Primário */}
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700 mb-1">7 Arquétipos</label>
+            <select
+              value={arquetipoFilter}
+              onChange={(e) => setArquetipoFilter(e.target.value)}
+              className="w-full text-xs px-2.5 py-1.5 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none bg-white"
+            >
+              <option value="">Todos os Arquétipos</option>
+              <option value="A1">A1 — HH Liberadas</option>
+              <option value="A2">A2 — Mitigação de Erros</option>
+              <option value="A3">A3 — Contatos / SAC</option>
+              <option value="A4">A4 — Mitigação de Risco</option>
+              <option value="A5">A5 — Lead Time / SLA</option>
+              <option value="A6">A6 — Racionalização TI</option>
+              <option value="A7">A7 — Novas Receitas</option>
+            </select>
+          </div>
+
+          {/* Situação / Status */}
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700 mb-1">Status Esteira</label>
+            <select
+              value={situacaoFilter}
+              onChange={(e) => setSituacaoFilter(e.target.value)}
+              className="w-full text-xs px-2.5 py-1.5 border border-slate-300 rounded focus:border-[#1351b4] focus:outline-none bg-white"
+            >
+              <option value="">Todos os Status</option>
+              <option value="Em levantamento">Em levantamento</option>
+              <option value="Aprovado">Aprovado</option>
+              <option value="Em implantação">Em implantação</option>
+              <option value="Concluído">Concluído</option>
+              <option value="Descartado">Descartado</option>
+            </select>
+          </div>
         </div>
 
-        {/* Filter Maturidade */}
-        <div className="w-full md:w-auto">
-          <select
-            value={maturidadeFilter}
-            onChange={(e) => setMaturidadeFilter(e.target.value)}
-            className="w-full md:w-auto text-xs bg-slate-50 border border-slate-300 rounded-md px-3 py-2 text-slate-700 outline-none cursor-pointer focus:border-[#1351b4] font-medium"
-          >
-            <option value="">Todos os Níveis de Maturidade</option>
-            <option value="N0">N0 — Oportunidade (Dor Registrada)</option>
-            <option value="N1">N1 — Business Case Parcial</option>
-            <option value="N2">N2 — Business Case Completo</option>
-            <option value="N3">N3 — Benefício Realizado</option>
-          </select>
-        </div>
-
-        {/* Filter Arquétipo */}
-        <div className="w-full md:w-auto">
-          <select
-            value={arquetipoFilter}
-            onChange={(e) => setArquetipoFilter(e.target.value)}
-            className="w-full md:w-auto text-xs bg-slate-50 border border-slate-300 rounded-md px-3 py-2 text-slate-700 outline-none cursor-pointer focus:border-[#1351b4]"
-          >
-            <option value="">Todos os 7 Arquétipos</option>
-            <option value="A1">A1 — Transacional Repetitivo (Horas)</option>
-            <option value="A2">A2 — Erro e Retrabalho (Perdas)</option>
-            <option value="A3">A3 — Atendimento e Autosserviço (SAC)</option>
-            <option value="A4">A4 — Conformidade e Risco (Multas/Glosas)</option>
-            <option value="A5">A5 — Gargalo e Ciclo de Receita</option>
-            <option value="A6">A6 — Racionalização Técnica (Robôs)</option>
-            <option value="A7">A7 — Processo Comercial (Receita)</option>
-          </select>
-        </div>
-
-        {/* Filter Área */}
-        <div className="w-full md:w-auto">
-          <select
-            value={areaFilter}
-            onChange={(e) => setAreaFilter(e.target.value)}
-            className="w-full md:w-auto text-xs bg-slate-50 border border-slate-300 rounded-md px-3 py-2 text-slate-700 outline-none cursor-pointer focus:border-[#1351b4]"
-          >
-            <option value="">Todas as Áreas</option>
-            {uniqueAreas.map((a) => (
-              <option key={a} value={a}>
-                {a}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Filter Situação */}
-        <div className="w-full md:w-auto">
-          <select
-            value={situacaoFilter}
-            onChange={(e) => setSituacaoFilter(e.target.value)}
-            className="w-full md:w-auto text-xs bg-slate-50 border border-slate-300 rounded-md px-3 py-2 text-slate-700 outline-none cursor-pointer focus:border-[#1351b4]"
-          >
-            <option value="">Todas as Situações</option>
-            <option value="Em levantamento">Em levantamento</option>
-            <option value="Aprovado">Aprovado</option>
-            <option value="Em implantação">Em implantação</option>
-            <option value="Concluído">Concluído</option>
-            <option value="Descartado">Descartado</option>
-          </select>
-        </div>
-
-        {/* Expand / Collapse All */}
-        <button
-          type="button"
-          onClick={toggleExpandAll}
-          className="w-full md:w-auto flex items-center justify-center space-x-1.5 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-md border border-slate-300 transition-colors cursor-pointer whitespace-nowrap"
-        >
-          {isAllExpanded ? (
-            <>
-              <i className="fas fa-compress text-slate-500 text-xs mr-1"></i>
-              <span>Recolher Todos</span>
-            </>
-          ) : (
-            <>
-              <i className="fas fa-expand text-slate-500 text-xs mr-1"></i>
-              <span>Expandir Todos</span>
-            </>
-          )}
-        </button>
+        {/* Badges de Filtros Ativos */}
+        {(search || areaFilter || situacaoFilter || complexidadeFilter || maturidadeFilter || arquetipoFilter) && (
+          <div className="flex items-center space-x-2 pt-2 border-t border-slate-100 text-xs">
+            <span className="text-slate-500 font-medium">Filtros ativos:</span>
+            {search && <span className="bg-blue-50 text-[#1351b4] px-2 py-0.5 rounded text-[11px]">Busca: "{search}"</span>}
+            {areaFilter && <span className="bg-blue-50 text-[#1351b4] px-2 py-0.5 rounded text-[11px]">Área: {areaFilter}</span>}
+            {maturidadeFilter && <span className="bg-blue-50 text-[#1351b4] px-2 py-0.5 rounded text-[11px]">Maturidade: {maturidadeFilter}</span>}
+            {arquetipoFilter && <span className="bg-blue-50 text-[#1351b4] px-2 py-0.5 rounded text-[11px]">Arquétipo: {arquetipoFilter}</span>}
+            {situacaoFilter && <span className="bg-blue-50 text-[#1351b4] px-2 py-0.5 rounded text-[11px]">Status: {situacaoFilter}</span>}
+            <button
+              type="button"
+              onClick={() => {
+                setSearch('');
+                setAreaFilter('');
+                setMaturidadeFilter('');
+                setArquetipoFilter('');
+                setSituacaoFilter('');
+                setComplexidadeFilter('');
+              }}
+              className="text-red-600 hover:text-red-800 font-semibold text-[11px] underline cursor-pointer ml-2"
+            >
+              Limpar Filtros
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Table (Master-Detail Inline com padrão GOV.BR DS) */}
@@ -295,28 +377,74 @@ export const RegistrosPage: React.FC = () => {
               <tr className="bg-slate-100/90 text-slate-600 font-semibold uppercase text-[10px] tracking-wider border-b border-slate-200">
                 <th className="py-2 px-2.5 w-8 text-center"></th>
                 <th onClick={() => handleSort('idAnalise')} className="py-2 px-2.5 cursor-pointer hover:bg-slate-200/70 transition-colors">
-                  ID {renderSortIcon('idAnalise')}
+                  <div className="flex items-center space-x-0.5">
+                    <span>ID</span>
+                    {renderSortIcon('idAnalise')}
+                    <HeaderInfoTooltip align="left" title="ID da Oportunidade" description="Identificador único da demanda no inventário da esteira de automação." />
+                  </div>
                 </th>
                 <th onClick={() => handleSort('nomeProcesso')} className="py-2 px-3 cursor-pointer hover:bg-slate-200/70 transition-colors">
-                  Processo & Maturidade {renderSortIcon('nomeProcesso')}
+                  <div className="flex items-center space-x-0.5">
+                    <span>Processo & Maturidade</span>
+                    {renderSortIcon('nomeProcesso')}
+                    <HeaderInfoTooltip align="left" title="Processo & Nível de Maturidade" description="Nível na esteira: N0 (Ideação preliminar), N1 (Quantificação básica), N2 (Business Case pronto para priorização) ou N3 (Em produção com benefício realizado)." />
+                  </div>
                 </th>
                 <th onClick={() => handleSort('arquetipoPrimario')} className="py-2 px-2.5 text-center cursor-pointer hover:bg-slate-200/70 transition-colors">
-                  Arquétipo {renderSortIcon('arquetipoPrimario')}
+                  <div className="flex items-center justify-center space-x-0.5">
+                    <span>Arquétipo</span>
+                    {renderSortIcon('arquetipoPrimario')}
+                    <HeaderInfoTooltip align="left" title="Arquétipo Financeiro (A1 a A7)" description="Modelo de mensuração de valor: A1 (HH Liberadas), A2 (Erro/Retrabalho), A3 (SAC/Contatos), A4 (Risco/Multas), A5 (Lead Time), A6 (Racionalização TI), A7 (Novas Receitas)." />
+                  </div>
+                </th>
+                <th onClick={() => handleSort('pontuacaoBeneficios')} className="py-2 px-2.5 text-center cursor-pointer hover:bg-slate-200/70 transition-colors">
+                  <div className="flex items-center justify-center space-x-0.5">
+                    <span>Intangíveis</span>
+                    {renderSortIcon('pontuacaoBeneficios')}
+                    <HeaderInfoTooltip align="center" title="Score de Benefícios Intangíveis (0% a 100%)" description="Aderência aos 12 critérios corporativos: LGPD, Segurança, Compliance, Mitigação de Key-Person Risk, SLA, Experiência do Cliente e ESG." />
+                  </div>
+                </th>
+                <th onClick={() => handleSort('scorePriorizacao')} className="py-2 px-2.5 text-center cursor-pointer hover:bg-slate-200/70 transition-colors">
+                  <div className="flex items-center justify-center space-x-0.5">
+                    <span>Score Prioriz.</span>
+                    {renderSortIcon('scorePriorizacao')}
+                    <HeaderInfoTooltip align="center" title="Score Composto de Priorização (0 a 100)" description="Nota unificada para rankeamento da esteira corporativa." formula="40% VPL + 30% Intangíveis + 30% Payback" />
+                  </div>
                 </th>
                 <th onClick={() => handleSort('beneficioLiquidoAnual')} className="py-2 px-2.5 text-right cursor-pointer hover:bg-slate-200/70 transition-colors">
-                  Benefício Anual {renderSortIcon('beneficioLiquidoAnual')}
+                  <div className="flex items-center justify-end space-x-0.5">
+                    <span>Benefício Anual</span>
+                    {renderSortIcon('beneficioLiquidoAnual')}
+                    <HeaderInfoTooltip align="right" title="Benefício Líquido Anual (R$)" description="Retorno financeiro líquido anual estimado após descontar custos de sustentação." />
+                  </div>
                 </th>
                 <th onClick={() => handleSort('vpl3Anos')} className="py-2 px-2.5 text-right cursor-pointer hover:bg-slate-200/70 transition-colors">
-                  VPL (3 Anos) {renderSortIcon('vpl3Anos')}
+                  <div className="flex items-center justify-end space-x-0.5">
+                    <span>VPL (3 Anos)</span>
+                    {renderSortIcon('vpl3Anos')}
+                    <HeaderInfoTooltip align="right" title="Valor Presente Líquido Trienal" description="Valor presente do fluxo de caixa líquido descontado à taxa Serpro (11,25% a.a.) no horizonte de 36 meses." />
+                  </div>
                 </th>
                 <th onClick={() => handleSort('fteLiberado')} className="py-2 px-2.5 text-right cursor-pointer hover:bg-slate-200/70 transition-colors">
-                  FTEs {renderSortIcon('fteLiberado')}
+                  <div className="flex items-center justify-end space-x-0.5">
+                    <span>FTEs</span>
+                    {renderSortIcon('fteLiberado')}
+                    <HeaderInfoTooltip align="right" title="Equivalente FTE Liberado" description="Capacidade de trabalho humano liberada para atividades de maior valor (1 FTE = 160h/mês)." />
+                  </div>
                 </th>
                 <th onClick={() => handleSort('paybackMeses')} className="py-2 px-2.5 text-center cursor-pointer hover:bg-slate-200/70 transition-colors">
-                  Payback {renderSortIcon('paybackMeses')}
+                  <div className="flex items-center justify-center space-x-0.5">
+                    <span>Payback</span>
+                    {renderSortIcon('paybackMeses')}
+                    <HeaderInfoTooltip align="right" title="Prazo de Retorno do Investimento" description="Tempo necessário em meses de operação para amortizar integralmente o custo de engenharia de setup." />
+                  </div>
                 </th>
                 <th onClick={() => handleSort('situacao')} className="py-2 px-2.5 text-center cursor-pointer hover:bg-slate-200/70 transition-colors">
-                  Status {renderSortIcon('situacao')}
+                  <div className="flex items-center justify-center space-x-0.5">
+                    <span>Status</span>
+                    {renderSortIcon('situacao')}
+                    <HeaderInfoTooltip align="right" title="Situação do Ciclo de Vida" description="Estágio atual: Em levantamento, Aprovado (priorizado), Em implantação, Concluído ou Descartado." />
+                  </div>
                 </th>
                 <th className="py-2 px-3 text-center">Ações</th>
               </tr>
@@ -325,14 +453,14 @@ export const RegistrosPage: React.FC = () => {
             <tbody className="divide-y divide-slate-100 bg-white font-medium text-slate-800 text-[11px]">
               {loading ? (
                 <tr>
-                  <td colSpan={10} className="py-12 text-center text-slate-500">
+                  <td colSpan={12} className="py-12 text-center text-slate-500">
                     <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#1351b4]"></div>
                     <p className="mt-2 text-xs">Carregando oportunidades...</p>
                   </td>
                 </tr>
               ) : sortedRegistros.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="py-10 text-center text-slate-500 text-xs">
+                  <td colSpan={12} className="py-10 text-center text-slate-500 text-xs">
                     Nenhum levantamento encontrado para os filtros selecionados.
                   </td>
                 </tr>
@@ -392,6 +520,45 @@ export const RegistrosPage: React.FC = () => {
                           <span className="bg-slate-100 text-slate-800 font-bold px-2 py-0.5 rounded border border-slate-200 text-[10px]">
                             {item.arquetipoPrimario || 'A1'}
                           </span>
+                        </td>
+
+                        {/* Score Intangível */}
+                        <td className="py-2.5 px-2.5 text-center whitespace-nowrap">
+                          {(() => {
+                            const raw = item.pontuacaoBeneficios || 0;
+                            const score = raw > 1 ? raw : raw * 100;
+                            return (
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold border ${
+                                score >= 70
+                                  ? 'bg-purple-100 text-purple-900 border-purple-300'
+                                  : score >= 40
+                                  ? 'bg-blue-100 text-blue-900 border-blue-300'
+                                  : 'bg-slate-100 text-slate-700 border-slate-300'
+                              }`}>
+                                <i className="fas fa-award mr-1 text-[9px] opacity-75"></i>
+                                {score.toFixed(1)}%
+                              </span>
+                            );
+                          })()}
+                        </td>
+
+                        {/* Score Priorização */}
+                        <td className="py-2.5 px-2.5 text-center whitespace-nowrap">
+                          {(() => {
+                            const score = item.scorePriorizacao ?? 0;
+                            return (
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold border ${
+                                score >= 70
+                                  ? 'bg-amber-100 text-amber-900 border-amber-300'
+                                  : score >= 45
+                                  ? 'bg-blue-100 text-blue-900 border-blue-300'
+                                  : 'bg-slate-100 text-slate-700 border-slate-300'
+                              }`}>
+                                <i className="fas fa-star mr-1 text-[9px] text-amber-500"></i>
+                                {score.toFixed(1)} pts
+                              </span>
+                            );
+                          })()}
                         </td>
 
                         {/* Benefício Anual */}
@@ -458,7 +625,7 @@ export const RegistrosPage: React.FC = () => {
                       {/* Expanded Sub-row Drawer */}
                       {isExpanded && (
                         <tr className="bg-slate-50 border-b border-slate-200">
-                          <td colSpan={10} className="p-4 sm:p-5">
+                          <td colSpan={12} className="p-4 sm:p-5">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                               {/* 1. Diagnóstico & Maturidade */}
                               <div className="bg-white p-3.5 rounded-lg border border-slate-200 shadow-xs space-y-2">

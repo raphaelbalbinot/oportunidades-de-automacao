@@ -130,9 +130,9 @@ export class InstrumentacaoService {
     } else {
       pendencias.push({
         campo: 'horasRobo',
-        label: 'Horas Mensais de Execução do Robô (Turnos)',
+        label: 'Horas Mensais de Execução da Automação (Turnos)',
         arquetipo: 'TO BE',
-        ondeEncontrar: 'Dimensionamento da esteira de RPA / tempo estimado por execução pelo robô.',
+        ondeEncontrar: 'Dimensionamento da esteira técnica / tempo estimado por execução automatizada.',
         impactoParaPromocao: 'Necessário para apurar o custo operacional pós-automação.',
       });
     }
