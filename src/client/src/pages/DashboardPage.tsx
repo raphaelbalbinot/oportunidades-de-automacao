@@ -319,7 +319,7 @@ export const DashboardPage: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-lg border border-slate-200 shadow-xs">
         <div>
           <h1 className="text-xl font-bold text-[var(--govbr-blue-warm-vivid-90)] tracking-tight">
-            Painel Executivo & Análise de Viabilidade (V2.0)
+            Painel Executivo & Análise de Viabilidade
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
             Consolidação de retorno financeiro (ROI & VPL), maturidade do portfólio e liberação de capacidade.
